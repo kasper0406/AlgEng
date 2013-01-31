@@ -4,7 +4,7 @@
 
 #include "test.h"
 
-const int B = 7;
+const int B = 2;
 const int d = B + 1;
 
 void build(int* arr, int pos, int* numbers, int start, int end)
@@ -40,29 +40,106 @@ void build(int* arr, int pos, int* numbers, int start, int end)
   build(arr, B * curleaf, numbers, prevIndex + 1, end);
 }
 
+void print_block(int* arr, int block)
+{
+  if (block == 0)
+    printf("1st block:\n");
+  else
+    printf("%dth block:\n", block + 1);
+
+  for (int i = 0; i < B; i++)
+    printf("%10d", arr[block * B + i]);
+  printf("\n");
+}
+
+int bs_scan_search(int q, int* arr, int block)
+  // printf("bs_scan_search_rec(%d, arr, %d);\n", q, block);
+  // print_block(arr, block);
+
+    const int index = B * block + i;
+    if (arr[block + i] > q) {
+      int newblock = d * block + 1 + i;
+      if (newblock * B >= n) {
+        return (i > 0) ? index - 1 : -1;
+      } else {
+      return bs_scan_search(q, arr, ...);
+        if (res_index != -1)
+          return res_index;
+        else
+          return (i > 0) ? index - 1 : -1;
+      }
+    } else if (arr[block + i] < q) {
+      if (i == B - 1)
+        // Check if we are out of bounds
+        int newblock = d * (block + 1);
+        if (newblock * B >= n) {
+          return index;
+        } else {
+        return bs_scan_search(q, arr, ...);
+          if (res_index != -1)
+            return res_index;
+          else
+            return index;
+        }
+      }
+      return block + i;
+  return -1;
+int bs_scan_search_iter(int q, int* arr, int n, int block)
+{
+  int cur_answer = -1;
+
+  // While we are not out of bounds we search the block
+  while (B * block < n) {
+    // Make a linear scan of the block
+    for (int i = 0; i < B; i++) {
+      const int index = B * block + i;
+      if (q < arr[index]) {
+        if (i > 0)
+          cur_answer = index - 1;
+        block = d * block + 1 + i;
+        break;
+      } else if (arr[index] < q) {
+        cur_answer = index;
+        if (i == B - 1) {
+          block = d * (block + 1);
+          break;
+        }
+      } else {
+        // equal
+        return index;
+      }
+    }
+  }
+
+  return cur_answer;
+}
+
 int main(int argc, char* argv[])
 {
   foo();
-  int i = 7;
+  int i = 3;
   int n = (int)pow((double)d, i) - 1;
   int* arr = (int*) malloc(n * sizeof(int));
   int* numbers = (int*) malloc(n * sizeof(int));
 
+  printf("n = %d\n", n);
+
   for (int i = 0; i < n; i++) {
-    numbers[i] = i;
+    numbers[i] = 3 * i;
     // printf("%5d | ", numbers[i]);
   }
   // printf("\n");
   build(arr, 0, numbers, 0, n - 1);
 
-  printf("First block:\n");
-  for (int i = 0; i < B; i++)
-    printf("%10d", arr[i]);
-  printf("\n");
+  print_block(arr, 0);
 
-  //for (int i = 0; i < n; i++)
-    // printf("%5d | ", arr[i]);
-  // printf("\n");
+  for (int q = -1; q < 3 * n; q++) {
+    int index = bs_scan_search_iter(q, arr, n, 0);
+    if (index != -1)
+      printf("query(%d) = arr[%d] = %d\n", q, index, arr[index]);
+    else
+      printf("query(%d) = no solution\n", q);
+  }
 
   return 0;
 }
