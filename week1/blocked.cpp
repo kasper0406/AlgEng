@@ -1,14 +1,6 @@
-#include "stdio.h"
-#include "stdlib.h"
-#include "math.h"
-#include <vector>
-
-#include "test.h"
+#include "blocked.h"
 
 using namespace std;
-
-const int B = 32;
-const int d = B + 1;
 
 void build(int* arr, int pos, int* numbers, int start, int end)
 {  
@@ -169,22 +161,9 @@ int bs_bs_search_iter(int q, int* arr, int n)
   }
 
   return cur_answer;
-}
-
-class BlockedLinear {
-public:
-  static int* arr;
-  static size_t n;
-
-  static void preprocess(vector<int>& datapoints);
-  static int prev(int q);
-  static void cleanup();
 };
 
-int* BlockedLinear::arr = nullptr;
-size_t BlockedLinear::n = 0;
-
-void BlockedLinear::preprocess(vector<int>& datapoints) {
+void Blocked::preprocess(vector<int>& datapoints) {
   sort(datapoints.begin(), datapoints.end());
   n = datapoints.size();
   arr = (int*) malloc(n * sizeof(int));
@@ -193,47 +172,21 @@ void BlockedLinear::preprocess(vector<int>& datapoints) {
   build(arr, 0, numbers, 0, n - 1);
 };
 
+void Blocked::cleanup() {
+  free(arr);
+};
+
+int* Blocked::arr = nullptr;
+size_t Blocked::n = 0;
+
 int BlockedLinear::prev(int q) {
   return bs_scan_search_iter(q, arr, n);
 };
 
-void BlockedLinear::cleanup() {
-  free(arr);
+int BlockedLinearRec::prev(int q) {
+  return bs_scan_search_rec(q, arr, n, 0);
 };
 
-class BlockedLinearRec : public BlockedLinear {
-public:
-  static int prev(int q) {
-    return bs_scan_search_rec(q, arr, n, 0);
-  };
+int BlockedBinarySearch::prev(int q) {
+  return bs_bs_search_iter(q, arr, n);
 };
-
-class BlockedBinarySearch : public BlockedLinear {
-public:
-  static int prev(int q) {
-    return bs_bs_search_iter(q, arr, n);
-  };
-};
-
-int main(int argc, char* argv[])
-{
-   cout.precision(3);
-   test<BlockedLinear>("B-tree, linear", 1024, 1024 * 1024 * 1, 1000);
-   test<BlockedLinearRec>("B-tree, linear rec", 1024, 1024 * 1024 * 1, 1000);
-   test<BlockedBinarySearch>("B-tree, bs    ", 1024, 1024 * 1024 * 1, 1000);
-
-  /*printf("B-Tree array:\n");
-  for (int i = 0; i < n; i++)
-    printf("%5d", arr[i]);
-  printf("\n\n");
-
-  for (int q = -1; q < 3 * n; q++) {
-    int index = bs_bs_search_iter(q, arr, n, 0);
-    if (index != -1)
-      printf("query(%d) = arr[%d] = %d\n", q, index, arr[index]);
-    else
-      printf("query(%d) = no solution\n", q);
-  }*/
-
-  return 0;
-}

@@ -1,5 +1,6 @@
-#include "stdio.h"
-#include "stdlib.h"
+#include "naive.h"
+
+using namespace std;
 
 inline int bs(int q, int* arr, int n)
 {
@@ -17,8 +18,26 @@ inline int bs(int q, int* arr, int n)
       return arr[mid];
   }
   return arr[max];
-}
+};
 
+void BinarySearch::preprocess(vector<int>& datapoints) {
+  sort(datapoints.begin(), datapoints.end());
+  n = datapoints.size();
+  arr = &datapoints[0];
+};
+
+void BinarySearch::cleanup() {
+  // Vector frees itself
+};
+
+int* BinarySearch::arr = nullptr;
+size_t BinarySearch::n = 0;
+
+int BinarySearch::prev(int q) {
+  return bs(q, arr, n);
+};
+
+// TODO: Slet
 //int main(int argc, char* argv[])
 //{
 //  int n = argv[1];

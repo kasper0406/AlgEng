@@ -21,8 +21,8 @@ using namespace std::chrono;
 
 vector<int> random_data(const size_t length);
 
-template <typename Func, typename CFunc>
-void measure(const string& description, const size_t trials, Func& f, CFunc& cleanup) {
+template <typename Func>
+void measure(const string& description, const size_t trials, Func& f) {
   const size_t iMin = 0;
   const size_t iLower = trials / 4;
   const size_t iMedian = trials / 2;
@@ -33,18 +33,16 @@ void measure(const string& description, const size_t trials, Func& f, CFunc& cle
 
   cout << description << "\t" << trials << "\t";
 
-  high_resolution_clock hclock;
-
   for (unsigned int i = 0; i < trials; i++) {
-    auto beginning = hclock.now();
+    auto beginning = high_resolution_clock::now();
   
     f();
 
-    high_resolution_clock::duration duration = hclock.now() - beginning;
+    high_resolution_clock::duration duration =
+      high_resolution_clock::now() - beginning;
 
-    cleanup();
-    
-    measurements.push_back(duration_cast<milliseconds>(duration).count() / 1000.);
+    measurements.push_back(
+      duration_cast<milliseconds>(duration).count() / 1000.);
   }
 
   // Could be optimized with selection instead of sorting
@@ -61,9 +59,9 @@ template <typename T>
 void test(string test,
           const size_t initial_datapoints,
           const size_t max_datapoints, 
-          const size_t query_count) {
-  size_t datapoints_size = d - 1;
-  //size_t datapoints_size = initial_datapoints;
+          const size_t query_count,
+          const size_t trials) {
+  size_t datapoints_size = initial_datapoints;
 
   cout << "Test\t\t\tSize\tTrials\tMin\tLower\tMedian\tUpper\tMax" << endl;
 
@@ -74,12 +72,9 @@ void test(string test,
     auto datapoints = random_data(datapoints_size);
     auto queries = random_data(query_count);
 
-    T::preprocess(datapoints);
-
     function<void ()> test_function = [datapoints, queries, &result]() -> void {
       int v = 0;
 
-      // TODO: Make it C'ish?
       for (unsigned int i = 0; i < queries.size(); i++) {
         int prev = T::prev(queries[i]);
 
@@ -94,10 +89,13 @@ void test(string test,
 
     stringstream ss;
     ss << test << "\t" << datapoints_size;
-    measure(ss.str(), 1, test_function, T::cleanup);
+
+    T::preprocess(datapoints);
+    measure(ss.str(), trials, test_function);
+    T::cleanup();
 
     datapoints_size = ((datapoints_size + 1) * d) - 1;
-    //datapoints_size *= 2;
+    // TODO: datapoints_size *= 2;
   }
 
   cout << "Testing completed with result " << result << endl;
