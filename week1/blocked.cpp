@@ -116,7 +116,6 @@ int bs_scan_search_iter(int q, int* arr, int n, int block)
 
 int main(int argc, char* argv[])
 {
-  foo();
   int i = 3;
   int n = (int)pow((double)d, i) - 1;
   int* arr = (int*) malloc(n * sizeof(int));
