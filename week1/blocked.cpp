@@ -2,7 +2,7 @@
 #include "stdlib.h"
 #include "math.h"
 
-const int B = 2;
+const int B = 6;
 const int d = B + 1;
 
 void build(int* arr, int pos, int* numbers, int start, int end)
@@ -24,7 +24,7 @@ void build(int* arr, int pos, int* numbers, int start, int end)
     curleaf = d * parentleaf + i;
     // printf("cur leaf = %d\n", curleaf);
 
-    int index = start + ((double)(end - start + 1) / d) * i;
+    int index = (int)(start + ((double)(end - start + 1) / d) * i);
 
     // printf("index = %d\n", index);
     arr[B * parentleaf + (i - 1)] = numbers[index];
@@ -120,10 +120,54 @@ int bs_scan_search_iter(int q, int* arr, int n, int block)
   return cur_answer;
 }
 
+inline int bs(int q, int* arr, int min, int max)
+{
+  // printf("bs(%d, arr, %d, %d);\n", q, min, max);
+  while (min <= max) {
+    const int mid = (max + min) / 2;
+    if (arr[mid] < q)
+      min = mid + 1;
+    else if (arr[mid] > q)
+      max = mid - 1;
+    else
+      return mid;
+  }
+  return max;
+}
+
+int bs_bs_search_iter(int q, int* arr, int n, int block)
+{
+  // printf("Searching for %d\n", q);
+  int cur_answer = -1;
+
+  // While we are not out of bounds we search the block
+  while (B * block < n) {
+    // print_block(arr, block);
+
+    // Find Pred(q) while only searching the block using BS
+    const int start = B * block;
+    const int end = B * (block + 1) - 1;
+    const int index = bs(q, arr, start, end);
+
+    // printf("start = %d, end = %d\n", start, end);
+
+    //for (int i = B * block; i < B * (block + 1); i++)
+    //  printf("%5d|", arr[i]);
+    //printf("\n");
+
+    // printf("index = %d\n", index);
+    if (index != start - 1)
+      cur_answer = index;
+    block = d * block + 2 + index - start;
+  }
+
+  return cur_answer;
+}
+
 int main(int argc, char* argv[])
 {
-  int i = 3;
-  int n = (int)pow((double)d, i) - 1;
+  int i = 5;
+  int n = (int) pow((double) d, i) - 1;
   int* arr = (int*) malloc(n * sizeof(int));
   int* numbers = (int*) malloc(n * sizeof(int));
 
@@ -136,10 +180,13 @@ int main(int argc, char* argv[])
   // printf("\n");
   build(arr, 0, numbers, 0, n - 1);
 
-  print_block(arr, 0);
+  printf("B-Tree array:\n");
+  for (int i = 0; i < n; i++)
+    printf("%5d", arr[i]);
+  printf("\n\n");
 
   for (int q = -1; q < 3 * n; q++) {
-    int index = bs_scan_search_iter(q, arr, n, 0);
+    int index = bs_bs_search_iter(q, arr, n, 0);
     if (index != -1)
       printf("query(%d) = arr[%d] = %d\n", q, index, arr[index]);
     else
