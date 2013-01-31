@@ -2,6 +2,8 @@
 #include "stdlib.h"
 #include "math.h"
 
+#include "test.h"
+
 const int B = 7;
 const int d = B + 1;
 
@@ -24,7 +26,7 @@ void build(int* arr, int pos, int* numbers, int start, int end)
     curleaf = d * parentleaf + i;
     // printf("cur leaf = %d\n", curleaf);
 
-    int index = start + ((double)(end - start + 1) / d) * i;
+    int index = (int)(start + ((double)(end - start + 1) / d) * i);
 
     // printf("index = %d\n", index);
     arr[B * parentleaf + (i - 1)] = numbers[index];
@@ -38,25 +40,11 @@ void build(int* arr, int pos, int* numbers, int start, int end)
   build(arr, B * curleaf, numbers, prevIndex + 1, end);
 }
 
-int bs_scan_search(int q, int* arr, int block)
-{
-  for (int i = 0; i < B; i++) {
-    if (arr[block + i] > q) {
-      return bs_scan_search(q, arr, ...);
-    } else if (arr[block + i] < q) {
-      if (i == B - 1)
-        return bs_scan_search(q, arr, ...);
-    } else {
-      // equal
-      return block + i;
-    }
-  }
-}
-
 int main(int argc, char* argv[])
 {
+  foo();
   int i = 7;
-  int n = pow(d, i) - 1;
+  int n = (int)pow((double)d, i) - 1;
   int* arr = (int*) malloc(n * sizeof(int));
   int* numbers = (int*) malloc(n * sizeof(int));
 
