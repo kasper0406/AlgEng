@@ -2,8 +2,6 @@
 #include "stdlib.h"
 #include "math.h"
 
-#include "test.h"
-
 const int B = 2;
 const int d = B + 1;
 
@@ -26,7 +24,7 @@ void build(int* arr, int pos, int* numbers, int start, int end)
     curleaf = d * parentleaf + i;
     // printf("cur leaf = %d\n", curleaf);
 
-    int index = (int)(start + ((double)(end - start + 1) / d) * i);
+    int index = start + ((double)(end - start + 1) / d) * i;
 
     // printf("index = %d\n", index);
     arr[B * parentleaf + (i - 1)] = numbers[index];
@@ -52,38 +50,46 @@ void print_block(int* arr, int block)
   printf("\n");
 }
 
-int bs_scan_search(int q, int* arr, int block)
+int bs_scan_search_rec(int q, int* arr, int n, int block)
+{
   // printf("bs_scan_search_rec(%d, arr, %d);\n", q, block);
   // print_block(arr, block);
 
+  for (int i = 0; i < B; i++) {
     const int index = B * block + i;
-    if (arr[block + i] > q) {
+    if (arr[index] > q) {
       int newblock = d * block + 1 + i;
       if (newblock * B >= n) {
         return (i > 0) ? index - 1 : -1;
       } else {
-      return bs_scan_search(q, arr, ...);
+        int res_index = bs_scan_search_rec(q, arr, n, newblock);
         if (res_index != -1)
           return res_index;
         else
           return (i > 0) ? index - 1 : -1;
       }
-    } else if (arr[block + i] < q) {
-      if (i == B - 1)
+    } else if (arr[index] < q) {
+      if (i == B - 1) {
         // Check if we are out of bounds
         int newblock = d * (block + 1);
         if (newblock * B >= n) {
           return index;
         } else {
-        return bs_scan_search(q, arr, ...);
+          int res_index = bs_scan_search_rec(q, arr, n, newblock);
           if (res_index != -1)
             return res_index;
           else
             return index;
         }
       }
-      return block + i;
+    } else {
+      // equal
+      return index;
+    }
+  }
   return -1;
+}
+
 int bs_scan_search_iter(int q, int* arr, int n, int block)
 {
   int cur_answer = -1;
@@ -116,9 +122,8 @@ int bs_scan_search_iter(int q, int* arr, int n, int block)
 
 int main(int argc, char* argv[])
 {
-  foo();
   int i = 3;
-  int n = (int)pow((double)d, i) - 1;
+  int n = pow(d, i) - 1;
   int* arr = (int*) malloc(n * sizeof(int));
   int* numbers = (int*) malloc(n * sizeof(int));
 
