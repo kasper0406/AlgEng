@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
   cout.precision(3);
 
   static const int initial_datapoints = d - 1;
-  static const int max_datapoints = 1024 * 1024;
+  static const int max_datapoints = 1024 * 1024 * 8;
   static const int query_count = 1000*1000;
   static const int trials = 1; // Same data each time!
 
