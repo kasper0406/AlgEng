@@ -58,12 +58,13 @@ void test(const size_t initial_datapoints,
           const size_t queries_size) {
   size_t datapoints_size = initial_datapoints;
 
+  // Ensure that the queries aren't optimized away
+  int result = 0;
+
   while (datapoints_size <= max_datapoints) {
     auto datapoints = random_data(datapoint_count);
     auto queries = random_data(query_count);
 
-    // Ensure that the queries aren't optimized away
-    int result = 0;
 
     auto test_function = [datapoints, queries, &result]() -> void {
       B(datapoints);
