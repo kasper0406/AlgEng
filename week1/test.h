@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <chrono>
 #include <random>
+#include <cassert>
 
 using namespace std;
 using namespace std::chrono;
@@ -52,7 +53,7 @@ void measure(const string& description, const size_t trials, Func& f) {
   cout << fixed << measurements[iMax] << "s" << endl;
 };
 
-template <typename B, typename P>
+template <typename T>
 void test(const size_t initial_datapoints,
           const size_t max_datapoints, 
           const size_t queries_size) {
@@ -65,15 +66,20 @@ void test(const size_t initial_datapoints,
     auto datapoints = random_data(datapoint_count);
     auto queries = random_data(query_count);
 
-
-    auto test_function = [datapoints, queries, &result]() -> void {
-      B(datapoints);
+    function<void ()> test_function = [datapoints, queries, &result]() -> void {
+      T::preprocess(datapoints);
 
       int v = 0;
 
       // TODO: Make it C'ish?
       for (int i = 0; i < queries.size(); i++) {
-        v ^= P(queries[i]);
+        // TODO:
+        //int prev = T::prev(queries[i]);
+
+        //v ^= prev;
+
+        //// Sanity check
+        //assert(prev <= queries[i]);
       }
 
       result = v;
