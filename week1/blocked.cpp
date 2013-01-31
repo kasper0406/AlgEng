@@ -2,7 +2,7 @@
 #include "stdlib.h"
 #include "math.h"
 
-const int B = 7;
+const int B = 3;
 const int d = B + 1;
 
 void build(int* arr, int pos, int* numbers, int start, int end)
@@ -38,43 +38,83 @@ void build(int* arr, int pos, int* numbers, int start, int end)
   build(arr, B * curleaf, numbers, prevIndex + 1, end);
 }
 
-int bs_scan_search(int q, int* arr, int block)
+void print_block(int* arr, int block)
 {
+  if (block == 0)
+    printf("1st block:\n");
+  else
+    printf("%dth block:\n", block + 1);
+
+  for (int i = 0; i < B; i++)
+    printf("%10d", arr[block * B + i]);
+  printf("\n");
+}
+
+int bs_scan_search_rec(int q, int* arr, int n, int block)
+{
+  // printf("bs_scan_search_rec(%d, arr, %d);\n", q, block);
+  // print_block(arr, block);
+
   for (int i = 0; i < B; i++) {
-    if (arr[block + i] > q) {
-      return bs_scan_search(q, arr, ...);
-    } else if (arr[block + i] < q) {
-      if (i == B - 1)
-        return bs_scan_search(q, arr, ...);
+    const int index = B * block + i;
+    if (arr[index] > q) {
+      int newblock = d * block + 1 + i;
+      if (newblock * B >= n) {
+        return (i > 0) ? index - 1 : -1;
+      } else {
+        int res_index = bs_scan_search_rec(q, arr, n, newblock);
+        if (res_index != -1)
+          return res_index;
+        else
+          return (i > 0) ? index - 1 : -1;
+      }
+    } else if (arr[index] < q) {
+      if (i == B - 1) {
+        // Check if we are out of bounds
+        int newblock = d * (block + 1);
+        if (newblock * B >= n) {
+          return index;
+        } else {
+          int res_index = bs_scan_search_rec(q, arr, n, newblock);
+          if (res_index != -1)
+            return res_index;
+          else
+            return index;
+        }
+      }
     } else {
       // equal
-      return block + i;
+      return index;
     }
   }
+  return -1;
 }
 
 int main(int argc, char* argv[])
 {
-  int i = 7;
+  int i = 5;
   int n = pow(d, i) - 1;
   int* arr = (int*) malloc(n * sizeof(int));
   int* numbers = (int*) malloc(n * sizeof(int));
 
+  printf("n = %d\n", n);
+
   for (int i = 0; i < n; i++) {
-    numbers[i] = i;
+    numbers[i] = 3 * i;
     // printf("%5d | ", numbers[i]);
   }
   // printf("\n");
   build(arr, 0, numbers, 0, n - 1);
 
-  printf("First block:\n");
-  for (int i = 0; i < B; i++)
-    printf("%10d", arr[i]);
-  printf("\n");
+  print_block(arr, 0);
 
-  //for (int i = 0; i < n; i++)
-    // printf("%5d | ", arr[i]);
-  // printf("\n");
+  for (int q = -1; q < 3 * n; q++) {
+    int index = bs_scan_search_rec(q, arr, n, 0);
+    if (index != -1)
+      printf("query(%d) = arr[%d] = %d\n", q, index, arr[index]);
+    else
+      printf("query(%d) = no solution\n", q);
+  }
 
   return 0;
 }
