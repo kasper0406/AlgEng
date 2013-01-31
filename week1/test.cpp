@@ -13,13 +13,13 @@ auto random_int = bind(distribution, generator);
 
 // Creates a random data of a specified length
 vector<int> random_data(const size_t length) {
-  vector<int> result(length);
+  vector<int> result;
   unordered_set<int> used;
 
   while (result.size() < length) {
     auto value = random_int();
     auto found = used.insert(value);
-    if (!found.second) {
+    if (found.second) {
       result.push_back(value);
     }
   }

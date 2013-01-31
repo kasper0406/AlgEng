@@ -1,8 +1,13 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "math.h"
+#include <vector>
 
-const int B = 6;
+#include "test.h"
+
+using namespace std;
+
+const int B = 32;
 const int d = B + 1;
 
 void build(int* arr, int pos, int* numbers, int start, int end)
@@ -90,8 +95,9 @@ int bs_scan_search_rec(int q, int* arr, int n, int block)
   return -1;
 }
 
-int bs_scan_search_iter(int q, int* arr, int n, int block)
+int bs_scan_search_iter(int q, int* arr, int n)
 {
+  int block = 0;
   int cur_answer = -1;
 
   // While we are not out of bounds we search the block
@@ -135,8 +141,9 @@ inline int bs(int q, int* arr, int min, int max)
   return max;
 }
 
-int bs_bs_search_iter(int q, int* arr, int n, int block)
+int bs_bs_search_iter(int q, int* arr, int n)
 {
+  int block = 0;
   // printf("Searching for %d\n", q);
   int cur_answer = -1;
 
@@ -164,23 +171,58 @@ int bs_bs_search_iter(int q, int* arr, int n, int block)
   return cur_answer;
 }
 
+class BlockedLinear {
+public:
+  static int* arr;
+  static size_t n;
+
+  static void preprocess(vector<int>& datapoints);
+  static int prev(int q);
+  static void cleanup();
+};
+
+int* BlockedLinear::arr = nullptr;
+size_t BlockedLinear::n = 0;
+
+void BlockedLinear::preprocess(vector<int>& datapoints) {
+  sort(datapoints.begin(), datapoints.end());
+  n = datapoints.size();
+  arr = (int*) malloc(n * sizeof(int));
+  int* numbers = &datapoints[0];
+
+  build(arr, 0, numbers, 0, n - 1);
+};
+
+int BlockedLinear::prev(int q) {
+  return bs_scan_search_iter(q, arr, n);
+};
+
+void BlockedLinear::cleanup() {
+  free(arr);
+};
+
+class BlockedLinearRec : public BlockedLinear {
+public:
+  static int prev(int q) {
+    return bs_scan_search_rec(q, arr, n, 0);
+  };
+};
+
+class BlockedBinarySearch : public BlockedLinear {
+public:
+  static int prev(int q) {
+    return bs_bs_search_iter(q, arr, n);
+  };
+};
+
 int main(int argc, char* argv[])
 {
-  int i = 5;
-  int n = (int) pow((double) d, i) - 1;
-  int* arr = (int*) malloc(n * sizeof(int));
-  int* numbers = (int*) malloc(n * sizeof(int));
+   cout.precision(3);
+   test<BlockedLinear>("B-tree, linear", 1024, 1024 * 1024 * 1, 1000);
+   test<BlockedLinearRec>("B-tree, linear rec", 1024, 1024 * 1024 * 1, 1000);
+   test<BlockedBinarySearch>("B-tree, bs    ", 1024, 1024 * 1024 * 1, 1000);
 
-  printf("n = %d\n", n);
-
-  for (int i = 0; i < n; i++) {
-    numbers[i] = 3 * i;
-    // printf("%5d | ", numbers[i]);
-  }
-  // printf("\n");
-  build(arr, 0, numbers, 0, n - 1);
-
-  printf("B-Tree array:\n");
+  /*printf("B-Tree array:\n");
   for (int i = 0; i < n; i++)
     printf("%5d", arr[i]);
   printf("\n\n");
@@ -191,7 +233,7 @@ int main(int argc, char* argv[])
       printf("query(%d) = arr[%d] = %d\n", q, index, arr[index]);
     else
       printf("query(%d) = no solution\n", q);
-  }
+  }*/
 
   return 0;
 }
