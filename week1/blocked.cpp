@@ -165,18 +165,24 @@ int bs_bs_search_iter(int q, int* arr, int n)
 
 void Blocked::preprocess(vector<int>& datapoints) {
   sort(datapoints.begin(), datapoints.end());
-  n = datapoints.size();
+  n = (int)pow(d, max(1., ceil(log(datapoints.size()) / log(d))));
   arr = (int*) malloc(n * sizeof(int));
-  int* numbers = &datapoints[0];
+  numbers = (int*) malloc(n * sizeof(int));
+  memcpy(numbers, &datapoints[0], datapoints.size() * sizeof(int));
+  for (int i = 0; i < n - datapoints.size(); i++) {
+    numbers[datapoints.size() + i] = numeric_limits<int>::max();
+  }
 
-  build(arr, 0, numbers, 0, n - 1);
+  build(arr, 0, numbers, 0, n - 2);
 };
 
 void Blocked::cleanup() {
   free(arr);
+  free(numbers);
 };
 
 int* Blocked::arr = nullptr;
+int* Blocked::numbers = nullptr;
 size_t Blocked::n = 0;
 
 int BlockedLinear::prev(int q) {

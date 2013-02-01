@@ -8,7 +8,7 @@ using namespace std::chrono;
 // sequence doesn't match the last part exactly.
 random_device rd;
 mt19937 generator(rd());
-uniform_int_distribution<int> distribution(numeric_limits<int>::min(), numeric_limits<int>::max());
+uniform_int_distribution<int> distribution(numeric_limits<int>::min(), numeric_limits<int>::max() - 1); // Max is used for "no element"
 auto random_int = bind(distribution, generator);
 
 // Creates a random data of a specified length

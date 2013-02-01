@@ -14,6 +14,7 @@ using namespace std;
 class Blocked {
 public:
   static int* arr;
+  static int* numbers;
   static size_t n;
 
   static void preprocess(vector<int>& datapoints);

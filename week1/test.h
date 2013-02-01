@@ -94,8 +94,7 @@ void test(string test,
     measure(ss.str(), trials, test_function);
     T::cleanup();
 
-    datapoints_size = ((datapoints_size + 1) * d) - 1;
-    // TODO: datapoints_size *= 2;
+    datapoints_size *= 2;
   }
 
   cout << "Testing completed with result " << result << endl;
