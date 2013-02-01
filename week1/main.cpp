@@ -22,11 +22,11 @@ int sanity_check(int num_datapoints, int num_queries)
 }
 
 int main(int argc, char* argv[])
-{
+{  
   cout.precision(3);
 
   static const int initial_datapoints = 1;
-  static const int max_datapoints = 1024 * 1024 * 8;
+  static const int max_datapoints = 1024 * 1024 * 32;
   static const int query_count = 1000000;
   static const int trials = 1; // Same data each time!
 
@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
   test<BinarySearch>("Binary search\t", initial_datapoints, max_datapoints, query_count, trials);
   
   /*
-  int errors = sanity_check(100000, 1000000);
+  int errors = sanity_check(1000000, 10000000);
   if (errors == 0)
     cout << "No errors. All good :D!" << endl;
   else

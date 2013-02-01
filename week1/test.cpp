@@ -15,7 +15,7 @@ auto random_int = bind(distribution, generator);
 vector<int> unique_random_data(const size_t length) {
   vector<int> result;
   unordered_set<int> used;
-
+  
   while (result.size() < length) {
     auto value = random_int();
     auto found = used.insert(value);
@@ -23,26 +23,26 @@ vector<int> unique_random_data(const size_t length) {
       result.push_back(value);
     }
   }
-
+  
   return result;
 };
 
 vector<int> random_data(const size_t length) {
-    vector<int> result;
-    for (int i = 0; i < length; i++)
-        result.push_back(random_int());
-    return result;
+  vector<int> result;
+  for (int i = 0; i < length; i++)
+    result.push_back(random_int());
+  return result;
 }
 
 int result_dist(vector<pair<bool,int>> a, vector<pair<bool,int>> b) {
-    if (a.size() != b.size())
-        throw runtime_error("Invalid results!");
-    
-    int dist = 0;
-    for (int i = 0; i < a.size(); i++) {
-        if (a[i].first != b[i].first ||
-            (a[i].first == true && a[i].second != b[i].second))
-            dist++;
-    }
-    return dist;
+  if (a.size() != b.size())
+    throw runtime_error("Invalid results!");
+  
+  int dist = 0;
+  for (int i = 0; i < a.size(); i++) {
+    if (a[i].first != b[i].first ||
+        (a[i].first == true && a[i].second != b[i].second))
+      dist++;
+  }
+  return dist;
 }
