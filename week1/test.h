@@ -19,6 +19,7 @@
 using namespace std;
 using namespace std::chrono;
 
+vector<int> unique_random_data(const size_t length);
 vector<int> random_data(const size_t length);
 
 template <typename Func>
@@ -69,7 +70,7 @@ void test(string test,
   int result = 0;
 
   while (datapoints_size <= max_datapoints) {
-    auto datapoints = random_data(datapoints_size);
+    auto datapoints = unique_random_data(datapoints_size);
     auto queries = random_data(query_count);
 
     function<void ()> test_function = [datapoints, queries, &result]() -> void {

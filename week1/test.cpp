@@ -12,7 +12,7 @@ uniform_int_distribution<int> distribution(numeric_limits<int>::min(), numeric_l
 auto random_int = bind(distribution, generator);
 
 // Creates a random data of a specified length
-vector<int> random_data(const size_t length) {
+vector<int> unique_random_data(const size_t length) {
   vector<int> result;
   unordered_set<int> used;
 
@@ -26,6 +26,13 @@ vector<int> random_data(const size_t length) {
 
   return result;
 };
+
+vector<int> random_data(const size_t length) {
+    vector<int> result;
+    for (int i = 0; i < length; i++)
+        result.push_back(random_int());
+    return result;
+}
 
 int result_dist(vector<pair<bool,int>> a, vector<pair<bool,int>> b) {
     if (a.size() != b.size())
