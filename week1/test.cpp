@@ -26,3 +26,16 @@ vector<int> random_data(const size_t length) {
 
   return result;
 };
+
+int result_dist(vector<pair<bool,int>> a, vector<pair<bool,int>> b) {
+    if (a.size() != b.size())
+        throw runtime_error("Invalid results!");
+    
+    int dist = 0;
+    for (int i = 0; i < a.size(); i++) {
+        if (a[i].first != b[i].first ||
+            (a[i].first == true && a[i].second != b[i].second))
+            dist++;
+    }
+    return dist;
+}

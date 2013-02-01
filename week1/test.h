@@ -99,3 +99,21 @@ void test(string test,
 
   cout << "Testing completed with result " << result << endl;
 };
+
+template<typename T>
+vector<pair<bool,int>> query(vector<int> datapoints, vector<int> queries) {
+    vector<pair<bool,int>> results;
+    T::preprocess(datapoints);
+    for (auto q : queries) {
+        int index = T::prev(q);
+        if (index != -1)
+            results.push_back(make_pair(true, T::arr[index]));
+        else
+            results.push_back(make_pair(false, 0));
+    }
+    T::cleanup();
+    
+    return results;
+}
+
+int result_dist(vector<pair<bool,int>> a, vector<pair<bool,int>> b);
