@@ -15,8 +15,9 @@
 #include <chrono>
 #include <random>
 #include <cassert>
+#include <stdexcept>
 
-#ifdef __LINUX__
+#ifdef __linux__
 #include <papi.h>
 #endif
 
@@ -45,31 +46,30 @@ void measure(const string& description, const size_t trials, Func& f) {
   cout << description << "\t" << trials << "\t";
   
   for (unsigned int i = 0; i < trials; i++) {
-    CPUCounterInfo cpu_counts;
-    memset(&cpu_counts, 0, sizeof(cpu_counts));
-    
-#ifdef __LINUX__
-    // Setup PAPI events and memory for storing counter values
+    CPUCounterInfo cpu_counts = { 0, 0, 0 }; 
+#ifdef __linux__
+    // setup PAPI events and memory for storing counter values
     int cpu_events[] = { PAPI_L1_DCM, // L1 cache misses
                          PAPI_L2_DCM, // L2 cache misses
                          PAPI_BR_MSP  // Branch mispredictions
                        };
-    const int cpu_eventslen = sizeof(events) / sizeof(int);
+
+    const int cpu_events_len = sizeof(cpu_events) / sizeof(int);
 #endif
-    
+   
     auto beginning = high_resolution_clock::now();
     
-#ifdef __LINUX__
+#ifdef __linux__
     // Start PAPI
-    if (PAPI_start_counters(cpu_events, cpu_eventslen) != PAPI_OK)
+    if (PAPI_start_counters(cpu_events, cpu_events_len) != PAPI_OK)
       throw runtime_error("Failed to start PAPI counters!");
 #endif
     
     // Run the actual test
     f();
                         
-#ifdef __LINUX__
-    if (PAPI_stop_counters(&cpu_counts, cpu_eventslen) != PAPI_OK)
+#ifdef __linux__
+    if (PAPI_stop_counters((long long*)&cpu_counts, cpu_events_len) != PAPI_OK)
       throw runtime_error("Failed to stop PAPI countaers!");
 #endif
     
@@ -93,7 +93,7 @@ void measure(const string& description, const size_t trials, Func& f) {
   cout << fixed << measurements[iUpper].first << "s\t";
   cout << fixed << measurements[iMax].first << "s";
   
-#ifdef __LINUX__
+#ifdef __linux__
   cout << "\t";
   
   // TODO: Also report results which are not the median!
@@ -112,9 +112,9 @@ void test(string test,
           const size_t query_count,
           const size_t trials) {
   size_t datapoints_size = initial_datapoints;
-  
+
   cout << "Test\t\t\tSize\tTrials\tMin\tLower\tMedian\tUpper\tMax";
-#ifdef __LINUX__
+#ifdef __linux__
   cout << "\tL1 mis\tL2 mis\tBranch mis";
 #endif
   cout << endl;

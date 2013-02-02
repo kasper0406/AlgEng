@@ -1,5 +1,7 @@
 #include "test.h"
 
+#include <stdexcept>
+
 using namespace std;
 using namespace std::chrono;
 

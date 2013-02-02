@@ -1,5 +1,7 @@
 #include "blocked.h"
 
+#include <string.h>
+
 using namespace std;
 
 void build(int* arr, int pos, int* numbers, int start, int end)
