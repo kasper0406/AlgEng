@@ -1,6 +1,7 @@
 #include "blocked.h"
 
 #include <string.h>
+#include <cassert>
 
 using namespace std;
 
@@ -35,6 +36,70 @@ void build(int* arr, int pos, int* numbers, int start, int end)
   curleaf = d * (parentleaf + 1);
   // printf("cur leaf = %d\n", curleaf);
   build(arr, B * curleaf, numbers, prevIndex + 1, end);
+}
+
+void build_dfs(int* arr, int* numbers, int n)
+{
+  // Assert complete tree
+  double h = log(n + 1) / log(d);
+  assert(ceil(h - 0.000001) - 0.000001 < h && h < ceil(h + 0.000001) + 0.000001);
+
+  int subtree_size = (n - B) / d;
+
+  for (int i = 0; i < B; i++) {
+    assert(BlockedDFSLinear::arr + BlockedDFSLinear::n > arr + i);
+    arr[i] = numbers[subtree_size + (subtree_size + 1) * i];
+  }
+
+  if (subtree_size == 0) return;
+
+  for (int i = 0; i < d; i++) {
+    int* arr_start = arr + B + i * subtree_size;
+    int* numbers_start = numbers + i * (subtree_size + 1);
+    build_dfs(arr_start, numbers_start, subtree_size);
+  }
+}
+
+int dfs_linear_scan(int q, int* arr, int n)
+{
+  int* cur_arr = arr;
+  int cur_answer = -1;
+  int next_n = n;
+
+  // While we are not coming from a leaf we continue...
+  while (next_n != 0) {
+    // Subtree_size
+    next_n = (next_n - B) / d;
+
+    // Make a linear scan of the block
+    for (int i = 0; i < B; i++) {
+      const int index = cur_arr - arr + i;
+      const int value = cur_arr[i];
+      
+      if (q < value) {
+        // i'te pointer
+        cur_arr += B + i * next_n;
+        
+        break;
+      } else if (value < q) {
+
+        cur_answer = index;
+
+        if (i == B - 1) {
+
+          // Rightmost pointer
+          cur_arr += B + B * next_n;
+
+          break;
+        }
+      } else {
+        // equal
+        return index;
+      }
+    }
+  }
+
+  return cur_answer;
 }
 
 void print_block(int* arr, int block)
@@ -165,7 +230,7 @@ int bs_bs_search_iter(int q, int* arr, int n)
   return cur_answer;
 };
 
-void Blocked::preprocess(vector<int>& datapoints) {
+void BlockedBFS::preprocess(vector<int>& datapoints) {
   sort(datapoints.begin(), datapoints.end());
   n = (int)pow(d, max(1., ceil(log(datapoints.size()) / log(d))));
   arr = (int*) malloc(n * sizeof(int));
@@ -176,6 +241,21 @@ void Blocked::preprocess(vector<int>& datapoints) {
   }
 
   build(arr, 0, numbers, 0, n - 2);
+};
+
+void BlockedDFS::preprocess(vector<int>& datapoints) {
+  sort(datapoints.begin(), datapoints.end());
+
+  n = (int)pow(d, max(1., ceil(log(datapoints.size() + 1) / log(d)))) - 1;
+
+  arr = (int*) malloc(n * sizeof(int));
+  numbers = (int*) malloc(n * sizeof(int));
+  memcpy(numbers, &datapoints[0], datapoints.size() * sizeof(int));
+  for (int i = 0; i < n - datapoints.size(); i++) {
+    numbers[datapoints.size() + i] = numeric_limits<int>::max();
+  }
+
+  build_dfs(arr, numbers, n);
 };
 
 void Blocked::cleanup() {
@@ -197,4 +277,8 @@ int BlockedLinearRec::prev(int q) {
 
 int BlockedBinarySearch::prev(int q) {
   return bs_bs_search_iter(q, arr, n);
+};
+
+int BlockedDFSLinear::prev(int q) {
+  return dfs_linear_scan(q, arr, n);
 };
