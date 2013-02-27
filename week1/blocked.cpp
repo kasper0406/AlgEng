@@ -40,10 +40,6 @@ void build(int* arr, int pos, int* numbers, int start, int end)
 
 void build_dfs(int* arr, int* numbers, int n)
 {
-  // Assert complete tree
-  double h = log(n + 1) / log(d);
-  assert(ceil(h - 0.000001) - 0.000001 < h && h < ceil(h + 0.000001) + 0.000001);
-
   int subtree_size = (n - B) / d;
 
   for (int i = 0; i < B; i++) {
