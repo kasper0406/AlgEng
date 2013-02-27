@@ -35,9 +35,13 @@ The data structure under test is a set $S$ containing $N$ integers which support
 \mathrm{Pred}(x) = \max \{ y \in S\ |\ y \leq x \}
 \end{eqnarray*}
 
-\section{Algorithms}
+\section{Algorithms and datastructures}
 
 The algorithms we have focused on is classic binary search (in-order layout), binary tree (BFS), binary tree (DFS) and a blocked tree with a BFS layout. All of the structures are stored in single arrays.
+
+% TODO: Maaske skal det foelgende ned til benchmark sektionen.
+
+For tree structures we always constructed complete trees. In case the data weren't sufficient to fill the tree, dummy data were used. The dummy data were MAX\_INT's such that it would never be queried.
 
 \subsection{Binary search}
 
@@ -59,30 +63,28 @@ The algorithms we have focused on is classic binary search (in-order layout), bi
 ...
 
 \begin{eqnarray*}
+|L| & : & \textrm{Number of elements in left subtree} \\
+\\
 \mathrm{left}(i) & = & i + 1 \\
 \mathrm{right}(i) & = & i + |L| + 1
 \end{eqnarray*}
-
-% TODO: L, left sub-tree
 
 % TODO: Cache faults + mispredictions
 
 \subsection{Blocked BFS layout}
 
-...
+The blocked BFS layout contains $d - 1$ elements per node/leaf where $d$ is the arity of the tree. These blocks are laid in a breadth-first layout.
 
 \begin{eqnarray*}
-B & : & \textrm{Number of elements in each node} \\
-j & : & \textrm{Element in $i$ (left: $0$)} \\
+d & : & \textrm{Arity of the tree} \\
+j & : & \textrm{Element in $i$ (leftmost: $0$)} \\
 \\
-\mathrm{element}(i, j) & = & B\cdot i + j
+\mathrm{element}(i, j) & = & d\cdot (i - 1) + j + 1
 \end{eqnarray*}
-
-% TODO: Ovenstaaende er vist noget vroevl. Skal rettes til :)
 
 % TODO: Cache faults + mispredictions
 
-Internally in the nodes we employed two different ways to scan the elements. Linear scan and binary search.
+Internally in the nodes we employed two different ways to scan through the elements. Linear scan and binary search.
 
 % TODO: Maaske ikke subsektioner, men cache faults + mispredictions skal maaske analyseres?
 
@@ -101,6 +103,8 @@ Internally in the nodes we employed two different ways to scan the elements. Lin
 \section{Implementation}
 
 ...
+
+% TODO: Maaske hvordan vi talte comparisons?
 
 \section{Benchmarks}
 
