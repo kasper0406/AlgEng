@@ -11,10 +11,10 @@ using namespace std::chrono;
 random_device rd;
 // TODO: Udkommenter!
 // Fixed test
-//mt19937 generator(30);
-//uniform_int_distribution<int> distribution(1, 100); // Max is used for "no element"
-mt19937 generator(rd());
-uniform_int_distribution<int> distribution(numeric_limits<int>::min(), numeric_limits<int>::max() - 1); // Max is used for "no element"
+mt19937 generator(30);
+uniform_int_distribution<int> distribution(1, 100); // Max is used for "no element"
+//mt19937 generator(rd());
+//uniform_int_distribution<int> distribution(numeric_limits<int>::min(), numeric_limits<int>::max() - 1); // Max is used for "no element"
 auto random_int = bind(distribution, generator);
 
 // Creates a random data of a specified length

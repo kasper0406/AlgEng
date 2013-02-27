@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
 {  
   cout.precision(3);
 
-  int errors = sanity_check(1000, 10000);
+  int errors = sanity_check(7, 10000);
   if (errors == 0)
     cout << "No errors. All good :D!" << endl;
   else
