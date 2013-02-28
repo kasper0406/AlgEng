@@ -17,6 +17,8 @@
 #include <cassert>
 #include <stdexcept>
 
+#include "ComparisonCounter.h"
+
 #ifdef __linux__
 #include <papi.h>
 #endif
@@ -31,27 +33,45 @@ struct CPUCounterInfo {
   long long L1_cache_misses;
   long long L2_cache_misses;
   long long branch_mispredictions;
+  long long tlb_misses;
+  long long instructions;
+};
+
+struct Measurement {
+  Measurement(double time, double comparisons, CPUCounterInfo cpu_counters)
+    : time(time), comparisons(comparisons), cpu_counters(cpu_counters)
+  { }
+
+  bool operator<(const Measurement& o) const {
+    return time < o.time;
+  }
+
+  double time;
+  double comparisons;
+  CPUCounterInfo cpu_counters;
 };
 
 template <typename Func>
-void measure(const string& description, const size_t trials, Func& f) {
+void measure(const string& description, int query_count, const size_t trials, Func& f) {
   const size_t iMin = 0;
   const size_t iLower = trials / 4;
   const size_t iMedian = trials / 2;
   const size_t iUpper = iLower + iMedian;
   const size_t iMax = trials - 1;
   
-  vector<pair<double, CPUCounterInfo>> measurements;
+  vector<Measurement> measurements;
   
   cout << description << "\t" << trials << "\t";
   
   for (unsigned int i = 0; i < trials; i++) {
-    CPUCounterInfo cpu_counts = { 0, 0, 0 }; 
+    CPUCounterInfo cpu_counts = { 0, 0, 0, 0, 0 };
 #ifdef __linux__
     // setup PAPI events and memory for storing counter values
     int cpu_events[] = { PAPI_L1_DCM, // L1 cache misses
                          PAPI_L2_DCM, // L2 cache misses
-                         PAPI_BR_MSP  // Branch mispredictions
+                         PAPI_BR_MSP, // Branch mispredictions
+                         PAPI_TLB_IM, // Translation lookaside buffer misses
+                         PAPI_TOT_INS // Instructions completed
                        };
 
     const int cpu_events_len = sizeof(cpu_events) / sizeof(int);
@@ -77,30 +97,38 @@ void measure(const string& description, const size_t trials, Func& f) {
     high_resolution_clock::now() - beginning;
     
     double time_spent = duration_cast<milliseconds>(duration).count() / 1000.;
-    measurements.push_back(make_pair(time_spent, cpu_counts));
+
+    double comparisons = (double) ComparisonCounter::counter / query_count;
+    ComparisonCounter::counter = 0;
+
+    measurements.push_back(Measurement(time_spent, comparisons, cpu_counts));
   }
   
   // Could be optimized with selection instead of sorting
-  sort(measurements.begin(), measurements.end(), [] (const pair<double, CPUCounterInfo>& a,
-                                                     const pair<double, CPUCounterInfo>& b)
-       {
-         return a.first < b.first;
-       });
+  sort(measurements.begin(), measurements.end());
   
-  cout << fixed << measurements[iMin].first << "s\t";
-  cout << fixed << measurements[iLower].first << "s\t";
-  cout << fixed << measurements[iMedian].first << "s\t";
-  cout << fixed << measurements[iUpper].first << "s\t";
-  cout << fixed << measurements[iMax].first << "s";
+  cout << fixed << measurements[iMin].time << "s\t";
+  cout << fixed << measurements[iLower].time << "s\t";
+  cout << fixed << measurements[iMedian].time << "s\t";
+  cout << fixed << measurements[iUpper].time << "s\t";
+  cout << fixed << measurements[iMax].time << "s";
   
 #ifdef __linux__
   cout << "\t";
   
   // TODO: Also report results which are not the median!
-  cout << fixed << measurements[iMedian].second.L1_cache_misses << "\t";
-  cout << fixed << measurements[iMedian].second.L2_cache_misses << "\t";
-  cout << fixed << measurements[iMedian].second.branch_mispredictions;
+  cout << fixed << measurements[iMedian].cpu_counters.L1_cache_misses << "\t";
+  cout << fixed << measurements[iMedian].cpu_counters.L2_cache_misses << "\t";
+  cout << fixed << measurements[iMedian].cpu_counters.branch_mispredictions << "\t";
+  cout << fixed << measurements[iMedian].cpu_counters.tlb_misses << "\t";
+  cout << fixed << measurements[iMedian].cpu_counters.instructions;
 #endif
+
+  if (measurements[iMedian].comparisons != 0) {
+    cout << "\t" << fixed << measurements[iMedian].comparisons;
+  } else {
+    cout << "\t" << fixed << "-";
+  }
   
   cout << endl;
 };
@@ -115,10 +143,11 @@ void test(string test,
 
   cout << "Test\t\t\tSize\tTrials\tMin\tLower\tMedian\tUpper\tMax";
 #ifdef __linux__
-  cout << "\tL1 mis\tL2 mis\tBranch mis";
+  cout << "\tL1 mis\tL2 mis\tBranch mis\tTLB mis\tInstructions";
 #endif
+  cout << "\tComparisons";
   cout << endl;
-  
+    
   // Ensure that the queries aren't optimized away
   int result = 0;
   
@@ -145,7 +174,7 @@ void test(string test,
     ss << test << "\t" << datapoints_size;
     
     T::preprocess(datapoints);
-    measure(ss.str(), trials, test_function);
+    measure(ss.str(), query_count, trials, test_function);
     T::cleanup();
     
     datapoints_size *= 2;

@@ -1,14 +1,27 @@
-//
-//  ComparisonCounter.h
-//  AlgEngProject1
-//
-//  Created by Kasper Nielsen on 2/26/13.
-//
-//
+#pragma once
 
-#ifndef __AlgEngProject1__ComparisonCounter__
-#define __AlgEngProject1__ComparisonCounter__
+class ComparisonCounter {
+public:
+  static unsigned long counter;
+    
+  ComparisonCounter(int v) : value(v) { }
 
-#include <iostream>
+  bool operator<(const ComparisonCounter& other) {
+    ComparisonCounter::counter++;
+    return this->value < other.value;
+  }
+    
+  bool operator==(const ComparisonCounter& other) {
+    ComparisonCounter::counter++;
+    return this->value == other.value;
+  }
 
-#endif /* defined(__AlgEngProject1__ComparisonCounter__) */
+  friend bool operator< (ComparisonCounter& c, int v);
+  friend bool operator< (int v, ComparisonCounter& c);
+  friend bool operator> (ComparisonCounter& c, int v);
+  friend bool operator== (ComparisonCounter& c, int v);
+  friend bool operator<= (ComparisonCounter& c, int v);
+    
+private:
+  int value;
+};
