@@ -1,5 +1,9 @@
 #include <iostream>
 
+// No assertions!!!
+#define NDEBUG 1
+#include <cassert>
+
 #include "blocked.h"
 #include "naive.h"
 #include "test.h"
@@ -16,33 +20,34 @@ int sanity_check(int num_datapoints, int num_queries)
   auto blocked_linear = query<BlockedLinear<int>>(datapoints, queries);
   auto blocked_linear_rec = query<BlockedLinearRec<int>>(datapoints, queries);
   auto blocked_bs = query<BlockedBinarySearch<int>>(datapoints, queries);
-  
+  auto blocked_dfs_linear = query<BlockedDFSLinear<int>>(datapoints, queries);
+
   return result_dist(bs, blocked_linear)
-       + result_dist(bs, blocked_linear_rec)
-       + result_dist(bs, blocked_bs);
+    + result_dist(bs, blocked_linear_rec)
+    + result_dist(bs, blocked_bs)
+    + result_dist(bs, blocked_dfs_linear);
 }
 
 int main(int argc, char* argv[])
 {  
   cout.precision(3);
 
-  static const int initial_datapoints = 1;
-  static const int max_datapoints = 1024 * 256 * 1;
-  static const int query_count = 1000000;
-  static const int trials = 5; // Same data each time!
-    
-  test<BlockedLinear<ComparisonCounter>>("B-tree, linear\t", initial_datapoints, max_datapoints, query_count, trials);
-  test<BlockedLinearRec<ComparisonCounter>>("B-tree, linear rec", initial_datapoints, max_datapoints, query_count, trials);
-  test<BlockedBinarySearch<ComparisonCounter>>("B-tree, bs\t", initial_datapoints, max_datapoints, query_count, trials);
-  test<BinarySearch<ComparisonCounter>>("Binary search\t", initial_datapoints, max_datapoints, query_count, trials);
-  
-  /*
-  int errors = sanity_check(1000000, 10000000);
+  int errors = sanity_check(7, 10000);
   if (errors == 0)
     cout << "No errors. All good :D!" << endl;
   else
     cout << "Oh no! We have " << errors << " errors!" << endl;
-   */
+
+  static const int initial_datapoints = 1;
+  static const int max_datapoints = 1024 * 1024;
+  static const int query_count = 200000;
+  static const int trials = 5; // Same data each time!
+
+  test<BlockedLinear<ComparisonCounter>>("B-tree, linear\t", initial_datapoints, max_datapoints, query_count, trials);
+  test<BlockedLinearRec<ComparisonCounter>>("B-tree, linear rec", initial_datapoints, max_datapoints, query_count, trials);
+  test<BlockedBinarySearch<ComparisonCounter>>("B-tree, bs\t", initial_datapoints, max_datapoints, query_count, trials);
+  test<BinarySearch<ComparisonCounter>>("Binary search\t", initial_datapoints, max_datapoints, query_count, trials);
+  test<BlockedDFSLinear<ComparisonCounter>>("DFS, linear\t", initial_datapoints, max_datapoints, query_count, trials);
 
   return 0;
 }

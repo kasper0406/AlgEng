@@ -5,16 +5,67 @@
 #include "math.h"
 #include <vector>
 #include <algorithm>
+#include <cassert>
 
 #include "constants.h"
 #include "ComparisonCounter.h"
-
-using namespace std;
 
 const int B = 32;
 const int d = B + 1;
 
 using namespace std;
+
+template<typename T>
+class Blocked {
+public:
+  static T* arr;
+  static T* numbers;
+  static size_t n;
+
+  static void preprocess(vector<int>& datapoints);
+  static int prev(int q);
+  static void cleanup();
+};
+
+template<typename T> T* Blocked<T>::arr = nullptr;
+template<typename T> T* Blocked<T>::numbers = nullptr;
+template<typename T> size_t Blocked<T>::n = 0;
+
+template<typename T>
+class BlockedBFS : public Blocked<T> {
+public:
+  static void preprocess(vector<int>& datapoints);
+};
+
+template<typename T>
+class BlockedDFS : public Blocked<T> {
+public:
+  static void preprocess(vector<int>& datapoints);
+};
+
+template<typename T>
+class BlockedLinear : public BlockedBFS<T> {
+public:
+  static int prev(int q);
+};
+
+template<typename T>
+class BlockedLinearRec : public BlockedBFS<T> {
+public:
+  static int prev(int q);
+};
+
+template<typename T>
+class BlockedBinarySearch : public BlockedBFS<T> {
+public:
+  static int prev(int q);
+};
+
+template<typename T>
+class BlockedDFSLinear : public BlockedDFS<T> {
+public:
+  static int prev(int q);
+};
 
 
 template<typename T>
@@ -112,7 +163,7 @@ int bs_scan_search_iter(int q, T* arr, int n)
     int cur_answer = -1;
     
     // While we are not out of bounds we search the block
-    while (B * block < n) {
+    while (B * block + 1 < n) {
         // Make a linear scan of the block
         for (int i = 0; i < B; i++) {
             const int index = B * block + i;
@@ -159,9 +210,9 @@ int bs_bs_search_iter(int q, T* arr, int n)
     int block = 0;
     // printf("Searching for %d\n", q);
     int cur_answer = -1;
-    
+
     // While we are not out of bounds we search the block
-    while (B * block < n) {
+    while (B * block + 1 < n) {
         // print_block(arr, block);
         
         // Find Pred(q) while only searching the block using BS
@@ -176,62 +227,115 @@ int bs_bs_search_iter(int q, T* arr, int n)
         //printf("\n");
         
         // printf("index = %d\n", index);
-        if (index != start - 1)
-            cur_answer = index;
+        if (index != start - 1) {
+          cur_answer = index;
+        }
         block = d * block + 2 + index - start;
     }
-    
+
     return cur_answer;
 };
 
+template<typename T>
+void build_dfs(T* arr, T* numbers, int n)
+{
+  int subtree_size = (n - B) / d;
+
+  for (int i = 0; i < B; i++) {
+    assert(BlockedDFSLinear<T>::arr + BlockedDFSLinear<T>::n > arr + i);
+    arr[i] = numbers[subtree_size + (subtree_size + 1) * i];
+  }
+
+  if (subtree_size == 0) return;
+
+  for (int i = 0; i < d; i++) {
+    T* arr_start = arr + B + i * subtree_size;
+    T* numbers_start = numbers + i * (subtree_size + 1);
+    build_dfs(arr_start, numbers_start, subtree_size);
+  }
+}
 
 template<typename T>
-class Blocked {
-public:
-  static T* arr;
-  static T* numbers;
-  static size_t n;
+int dfs_linear_scan(int q, T* arr, int n)
+{
+  T* cur_arr = arr;
+  int cur_answer = -1;
+  int next_n = n;
 
-  static void preprocess(vector<int>& datapoints);
-  static int prev(int q);
-  static void cleanup();
-};
+  // While we are not coming from a leaf we continue...
+  while (next_n != 0) {
+    // Subtree_size
+    next_n = (next_n - B) / d;
 
-template<typename T>
-class BlockedLinear : public Blocked<T> {
-public:
-  static int prev(int q);
-};
+    // Make a linear scan of the block
+    for (int i = 0; i < B; i++) {
+      const int index = cur_arr - arr + i;
+      const T value = cur_arr[i];
+      
+      if (q < value) {
+        // i'te pointer
+        cur_arr += B + i * next_n;
+        
+        break;
+      } else if (value < q) {
 
-template<typename T>
-class BlockedLinearRec : public Blocked<T> {
-public:
-  static int prev(int q);
-};
+        cur_answer = index;
 
-template<typename T>
-class BlockedBinarySearch : public Blocked<T> {
-public:
-  static int prev(int q);
-};
+        if (i == B - 1) {
 
-template<typename T>
-void Blocked<T>::preprocess(vector<int>& datapoints) {
-    sort(datapoints.begin(), datapoints.end());
-    n = (int)pow(d, max(1., ceil(log(datapoints.size()) / log(d))));
-    posix_memalign((void**)&arr, CACHE_LINE_SIZE, n * sizeof(T));
-    numbers = (T*) malloc(n * sizeof(T));
+          // Rightmost pointer
+          cur_arr += B + B * next_n;
 
-    // memcpy(numbers, &datapoints[0], datapoints.size() * sizeof(T));
-    for (int i = 0; i < datapoints.size(); i++)
-      numbers[i] = T(datapoints[i]);
-
-    for (int i = 0; i < n - datapoints.size(); i++) {
-      numbers[datapoints.size() + i] = T(numeric_limits<int>::max());
+          break;
+        }
+      } else {
+        // equal
+        return index;
+      }
     }
+  }
+
+  return cur_answer;
+}
+
+
+template<typename T>
+void BlockedBFS<T>::preprocess(vector<int>& datapoints) {
+  sort(datapoints.begin(), datapoints.end());
+  BlockedBFS<T>::n = (int)pow(d, max(1., ceil(log(datapoints.size()) / log(d))));
+  posix_memalign((void**)&BlockedBFS<T>::arr, CACHE_LINE_SIZE, BlockedBFS<T>::n * sizeof(T));
+  BlockedBFS<T>::numbers = (T*) malloc(BlockedBFS<T>::n * sizeof(T));
+
+  // memcpy(numbers, &datapoints[0], datapoints.size() * sizeof(T));
+  for (int i = 0; i < datapoints.size(); i++)
+    BlockedBFS<T>::numbers[i] = T(datapoints[i]);
+
+  for (int i = 0; i < BlockedBFS<T>::n - datapoints.size(); i++) {
+    BlockedBFS<T>::numbers[datapoints.size() + i] = T(numeric_limits<int>::max());
+  }
     
-    build(arr, 0, numbers, 0, n - 2);
-    ComparisonCounter::counter = 0;
+  build(BlockedBFS<T>::arr, 0, BlockedBFS<T>::numbers, 0, BlockedBFS<T>::n - 2);
+  ComparisonCounter::counter = 0;
+};
+
+template<typename T>
+void BlockedDFS<T>::preprocess(vector<int>& datapoints) {
+  sort(datapoints.begin(), datapoints.end());
+
+  BlockedDFS<T>::n = (int)pow(d, max(1., ceil(log(datapoints.size() + 1) / log(d)))) - 1;
+
+  posix_memalign((void**)&BlockedDFS<T>::arr, CACHE_LINE_SIZE, BlockedDFS<T>::n * sizeof(T));
+  BlockedDFS<T>::numbers = (T*) malloc(BlockedDFS<T>::n * sizeof(T));
+  // memcpy(numbers, &datapoints[0], datapoints.size() * sizeof(int));
+  for (int i = 0; i < datapoints.size(); i++)
+    BlockedDFS<T>::numbers[i] = T(datapoints[i]);
+
+  for (int i = 0; i < BlockedDFS<T>::n - datapoints.size(); i++) {
+    BlockedDFS<T>::numbers[datapoints.size() + i] = T(numeric_limits<int>::max());
+  }
+
+  build_dfs(BlockedDFS<T>::arr, BlockedDFS<T>::numbers, BlockedDFS<T>::n);
+  ComparisonCounter::counter = 0;
 };
 
 template<typename T>
@@ -255,6 +359,8 @@ int BlockedBinarySearch<T>::prev(int q) {
     return bs_bs_search_iter(q, Blocked<T>::arr, Blocked<T>::n);
 };
 
-template<typename T> T* Blocked<T>::arr = nullptr;
-template<typename T> T* Blocked<T>::numbers = nullptr;
-template<typename T> size_t Blocked<T>::n = 0;
+template<typename T>
+int BlockedDFSLinear<T>::prev(int q) {
+  return dfs_linear_scan(q, Blocked<T>::arr, Blocked<T>::n);
+};
+
