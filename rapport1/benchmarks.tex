@@ -1,0 +1,25 @@
+\subsection{Test setup}
+
+All the following benchmarks were performed on a Linux desktop which has 4 GB ram and a Core i3 550 CPU with the following specification:
+
+\begin{itemize}
+\item 2 * 3.2 GHz (no Turbo boost)
+\item 2 * 32 KB L1 instruction cache
+\item 2 * 32 KB L1 data cache
+\item 2 * 256 KB L2 cache
+\item Shared 4 MB L3 cache
+\item 64 byte cache lines
+\end{itemize}
+
+Measurements for L1 and L2 cache faults, branch mispredictions and instructions count was measured with PAPI. For some reason L3 cache faults was unavailable through PAPI. However, we expect the pattern after the cache is exceeded to  to be similar to L1 and L2. Comparison counts where measured with counting integrated into the source code. These counts was removed when running time was measured. The running time was wall time.
+
+% TODO: Type af cache?
+
+All tests were performed 5 times and the median were selected. The data were randomly generated with an uniform distribution. The range of the data was MIN\_INT to MAX\_INT - 1.
+
+% TODO: Hvorfor -1
+
+% TODO: Hvordan query data genereres
+% TODO: Er vigtigt, pga hvis vi fx har sortede queries vil vi kun faa et linaert antal cache faults.
+
+% TODO: Preprocessing er ikke talt med

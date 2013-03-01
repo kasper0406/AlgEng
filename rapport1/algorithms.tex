@@ -1,0 +1,104 @@
+The algorithms we have focused on is classic binary search (in-order layout), binary tree (BFS), binary tree (DFS) and a blocked tree with a BFS layout. All of the structures are stored in single arrays.
+
+% TODO: Maaske skal det foelgende ned til benchmark sektionen. I det tilfaelde skal binary search sektionen lige revideres.
+
+For tree structures we always constructed complete trees. In case the data weren't sufficient to fill the tree, dummy data were used. The dummy data were MAX\_INT's such that it would never be queried.
+
+% TODO: Ingen naevnevaerdi betydning for performance
+
+\subsection{Binary search}
+
+Contrary to the tree algorithms the binary search doesn't require any dummy data to be inserted.
+
+\subsubsection*{Cache faults (warm cache)}
+
+\begin{eqnarray*}
+\begin{array}{rcl}
+n & : & \textrm{Number of 32 bit ints} \\
+B & : & \textrm{Size of cacheline (in 32 bit ints)} \\
+M & : & \textrm{Size of cache (in 32 bit ints)}
+\end{array}
+\\
+\\
+\log_2 n - \log_2 B - \log_2 \frac{M}{B} 
+\end{eqnarray*}
+where $\log_2 B$ is the bottom where we make smaller jumps. $\log_2 \frac{M}{B}$ is the first $\frac{M}{B}$ cachelines we use. All the first elements we visit is far from eachother so we need a whole cacheline for each.
+
+% TODO: Branchmispredictions
+
+\subsection{Binary BFS layout}
+
+...
+
+\begin{eqnarray*}
+\mathrm{left}(i) & = & 2i \\
+\mathrm{right}(i) & = & 2i + 1
+\end{eqnarray*}
+
+\subsubsection*{Cache faults (warm cache)}
+
+\begin{eqnarray*}
+\begin{array}{rcl}
+n & : & \textrm{Number of 32 bit ints} \\
+B & : & \textrm{Size of cacheline (in 32 bit ints)} \\
+M & : & \textrm{Size of cache (in 32 bit ints)}
+\end{array}
+\\
+\\
+\log_2 n - \log_2 M 
+\end{eqnarray*}
+where $\log_2 M$ is the top of the tree.
+
+% TODO: Cache faults + mispredictions
+
+\subsection{Binary DFS layout}
+
+...
+
+\begin{eqnarray*}
+|L| & : & \textrm{Number of elements in left subtree} \\
+\\
+\mathrm{left}(i) & = & i + 1 \\
+\mathrm{right}(i) & = & i + |L| + 1
+\end{eqnarray*}
+
+\subsubsection*{Cache faults (warm cache)}
+
+\begin{eqnarray*}
+\begin{array}{rcl}
+n & : & \textrm{Number of 32 bit ints} \\
+B & : & \textrm{Size of cacheline (in 32 bit ints)} \\
+M & : & \textrm{Size of cache (in 32 bit ints)}
+\end{array}
+\\
+\\
+(\frac{1}{2}\frac{1}{B} + \frac{1}{2})\log_2 n - \log_2 B - \log_2 M 
+\end{eqnarray*}
+where $\log_2 M$ is the top of the tree. $\log_2 B$ is the last few levels where $|L|$ gets small enough such that a subtree is smaller than a cacheline. $\frac{1}{2}\frac{1}{B}$ is when we go left and $\frac{1}{2}$ is right.
+
+% TODO: Cache faults + mispredictions
+
+\subsection{Blocked BFS layout}
+
+The blocked BFS layout contains $d - 1$ elements per node/leaf where $d$ is the arity of the tree. These blocks are laid in a breadth-first layout.
+
+\begin{eqnarray*}
+d & : & \textrm{Arity of the tree} \\
+j & : & \textrm{Element in $i$ (leftmost: $0$)} \\
+\\
+\mathrm{element}(i, j) & = & d\cdot (i - 1) + j + 1
+\end{eqnarray*}
+
+% TODO: Cache faults + mispredictions
+
+Internally in the nodes we employed two different ways to scan through the elements. Linear scan and binary search.
+
+% TODO: Maaske ikke subsektioner, men cache faults + mispredictions skal maaske analyseres?
+
+\subsubsection{Linear scan}
+
+...
+
+\subsubsection{Binary search}
+
+...

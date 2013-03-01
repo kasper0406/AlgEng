@@ -24,115 +24,26 @@ Kasper Nielsen - 20091182}
 
 \section{Introduction}
 
-% TODO: Hvis vi tilfoejer dynamisk eller skewed mv., saa er der noget
-% der skal rettes i resten
-
-The purpose of the following rapport is to demonstrate that the complexity of algorithms heavily depends on the hardware the algorithm is running on. Cache faults, branch predictions etc. influences the performance.
-
-The data structure under test is a set $S$ containing $N$ integers which supports the following query:
-
-\begin{eqnarray*}
-\mathrm{Pred}(x) = \max \{ y \in S\ |\ y \leq x \}
-\end{eqnarray*}
-
+\input{introduction.tex}
+	
 \section{Algorithms and datastructures}
 
-The algorithms we have focused on is classic binary search (in-order layout), binary tree (BFS), binary tree (DFS) and a blocked tree with a BFS layout. All of the structures are stored in single arrays.
-
-% TODO: Maaske skal det foelgende ned til benchmark sektionen.
-
-For tree structures we always constructed complete trees. In case the data weren't sufficient to fill the tree, dummy data were used. The dummy data were MAX\_INT's such that it would never be queried.
-
-\subsection{Binary search}
-
-...
-
-\subsection{Binary BFS layout}
-
-...
-
-\begin{eqnarray*}
-\mathrm{left}(i) & = & 2i \\
-\mathrm{right}(i) & = & 2i + 1
-\end{eqnarray*}
-
-% TODO: Cache faults + mispredictions
-
-\subsection{Binary DFS layout}
-
-...
-
-\begin{eqnarray*}
-|L| & : & \textrm{Number of elements in left subtree} \\
-\\
-\mathrm{left}(i) & = & i + 1 \\
-\mathrm{right}(i) & = & i + |L| + 1
-\end{eqnarray*}
-
-% TODO: Cache faults + mispredictions
-
-\subsection{Blocked BFS layout}
-
-The blocked BFS layout contains $d - 1$ elements per node/leaf where $d$ is the arity of the tree. These blocks are laid in a breadth-first layout.
-
-\begin{eqnarray*}
-d & : & \textrm{Arity of the tree} \\
-j & : & \textrm{Element in $i$ (leftmost: $0$)} \\
-\\
-\mathrm{element}(i, j) & = & d\cdot (i - 1) + j + 1
-\end{eqnarray*}
-
-% TODO: Cache faults + mispredictions
-
-Internally in the nodes we employed two different ways to scan through the elements. Linear scan and binary search.
-
-% TODO: Maaske ikke subsektioner, men cache faults + mispredictions skal maaske analyseres?
-
-\subsubsection{Linear scan}
-
-...
-
-\subsubsection{Binary search}
-
-...
+\input{algorithms.tex}
 
 \section{Expectations}
 
-...
+\input{expectations.tex}
 
 \section{Implementation}
 
-...
-
-% TODO: Maaske hvordan vi talte comparisons?
+\input{implementation.tex}
 
 \section{Benchmarks}
 
-\subsection{Test setup}
-
-All the following benchmarks were performed on a Linux desktop which has 4 GB ram and a Core i3 550 CPU with the following specification:
-
-\begin{itemize}
-\item 2 * 3.2 GHz (no Turbo boost)
-\item 2 * 32 KB L1 instruction cache
-\item 2 * 32 KB L1 data cache
-\item 2 * 256 KB L2 cache
-\item Shared 4 MB L3 cache
-\item 64 byte cache lines
-\end{itemize}
-
-Measurements for L1 and L2 cache faults, branch mispredictions and instructions count was measured with PAPI. For some reason L3 cache faults was unavailable through PAPI. Comparison counts where measured with counting integrated into the source code. These counts was removed when running time was measured. The running time was wall time.
-
-% TODO: Type af cache?
-
-All tests were performed 5 times and the median were selected. The data were randomly generated with an uniform distribution. The range of the data was MIN\_INT to MAX\_INT - 1.
-
-% TODO: Hvordan query data genereres
-
-% TODO: Preprocessing er ikke talt med
+\input{benchmarks.tex}
 
 \section{Conclusion}
 
-...
+\input{conclusion.tex}
 
 \end{document}
