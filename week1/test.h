@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <unordered_set>
 #include <ctime>
@@ -27,7 +28,8 @@ using namespace std;
 using namespace std::chrono;
 
 vector<int> unique_random_data(const size_t length);
-vector<int> random_data(const size_t length);
+vector<int> random_data(const size_t length, long long seed);
+vector<int> real_random_data(const size_t length);
 
 struct CPUCounterInfo {
   long long L1_cache_misses;
@@ -52,7 +54,12 @@ struct Measurement {
 };
 
 template <typename Func>
-void measure(const string& description, int query_count, const size_t trials, Func& f) {
+void measure(ofstream& out,
+             const string& description,
+             int query_count,
+             const size_t trials,
+             Func& f)
+{
   const size_t iMin = 0;
   const size_t iLower = trials / 4;
   const size_t iMedian = trials / 2;
@@ -61,7 +68,7 @@ void measure(const string& description, int query_count, const size_t trials, Fu
   
   vector<Measurement> measurements;
   
-  cout << description << "\t" << trials << "\t";
+  out << description << "\t" << trials << "\t";
   
   for (unsigned int i = 0; i < trials; i++) {
     CPUCounterInfo cpu_counts = { 0, 0, 0, 0, 0 };
@@ -107,53 +114,54 @@ void measure(const string& description, int query_count, const size_t trials, Fu
   // Could be optimized with selection instead of sorting
   sort(measurements.begin(), measurements.end());
   
-  cout << fixed << measurements[iMin].time << "s\t";
-  cout << fixed << measurements[iLower].time << "s\t";
-  cout << fixed << measurements[iMedian].time << "s\t";
-  cout << fixed << measurements[iUpper].time << "s\t";
-  cout << fixed << measurements[iMax].time << "s";
+  out << fixed << measurements[iMin].time << "\t";
+  out << fixed << measurements[iLower].time << "\t";
+  out << fixed << measurements[iMedian].time << "\t";
+  out << fixed << measurements[iUpper].time << "\t";
+  out << fixed << measurements[iMax].time << "";
   
 #ifdef __linux__
-  cout << "\t";
+  out << "\t";
   
   // TODO: Also report results which are not the median!
-  cout << fixed << measurements[iMedian].cpu_counters.L1_cache_misses << "\t";
-  cout << fixed << measurements[iMedian].cpu_counters.L2_cache_misses << "\t";
-  cout << fixed << measurements[iMedian].cpu_counters.branch_mispredictions << "\t";
-  cout << fixed << measurements[iMedian].cpu_counters.tlb_misses << "\t";
-  cout << fixed << measurements[iMedian].cpu_counters.instructions;
+  out << fixed << measurements[iMedian].cpu_counters.L1_cache_misses << "\t";
+  out << fixed << measurements[iMedian].cpu_counters.L2_cache_misses << "\t";
+  out << fixed << measurements[iMedian].cpu_counters.branch_mispredictions << "\t";
+  out << fixed << measurements[iMedian].cpu_counters.tlb_misses << "\t";
+  out << fixed << measurements[iMedian].cpu_counters.instructions;
 #endif
 
   if (measurements[iMedian].comparisons != 0) {
-    cout << "\t" << fixed << measurements[iMedian].comparisons;
+    out << "\t" << fixed << measurements[iMedian].comparisons;
   } else {
-    cout << "\t" << fixed << "-";
+    out << "\t" << fixed << "-";
   }
   
-  cout << endl;
+  out << endl;
 };
 
 template <typename T>
-void test(string test,
+void test(ofstream& out,
+          string test,
           const size_t initial_datapoints,
           const size_t max_datapoints,
           const size_t query_count,
           const size_t trials) {
   size_t datapoints_size = initial_datapoints;
 
-  cout << "Test\t\t\tSize\tTrials\tMin\tLower\tMedian\tUpper\tMax";
+  out << "Test\tSize\tTrials\tMin [s]\tLower [s]\tMedian [s]\tUpper [s]\tMax [s]";
 #ifdef __linux__
-  cout << "\tL1 mis\tL2 mis\tBranch mis\tTLB mis\tInstructions";
+  out << "\tL1 mis\tL2 mis\tBranch mis\tTLB mis\tInstructions";
 #endif
-  cout << "\tComparisons";
-  cout << endl;
+  out << "\tComparisons";
+  out << endl;
     
   // Ensure that the queries aren't optimized away
   int result = 0;
   
   while (datapoints_size <= max_datapoints) {
-    auto datapoints = random_data(datapoints_size);
-    auto queries = random_data(query_count);
+    auto datapoints = random_data(datapoints_size, 0x859DBA58DA85);
+    auto queries = random_data(query_count, 0xDD89A4F39B);
     
     function<void ()> test_function = [datapoints, queries, &result]() -> void {
       int v = 0;
@@ -174,7 +182,7 @@ void test(string test,
     ss << test << "\t" << datapoints_size;
     
     T::preprocess(datapoints);
-    measure(ss.str(), query_count, trials, test_function);
+    measure(out, ss.str(), query_count, trials, test_function);
     T::cleanup();
     
     datapoints_size *= 2;

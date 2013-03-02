@@ -10,7 +10,7 @@
 #include "constants.h"
 #include "ComparisonCounter.h"
 
-const int B = 32;
+const int B = 1;
 const int d = B + 1;
 
 using namespace std;
