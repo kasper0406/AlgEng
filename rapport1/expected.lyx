@@ -110,7 +110,7 @@ I alt, ish.
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula $\log_{d}\, n\cdot E(X)-\log_{d}\frac{B}{d-1}-\log_{d}\frac{M}{d-1}$
+\begin_inset Formula $\log_{d}\, n\cdot E(X)-\log_{d}\frac{M}{d-1}$
 \end_inset
 
 
