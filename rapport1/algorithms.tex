@@ -1,16 +1,12 @@
-The algorithms we have focused on is classic binary search (in-order layout), binary tree (BFS), binary tree (DFS) and a blocked tree with a BFS layout. All of the structures are stored in single arrays.
+We have only considered static data structures which makes modifications to the data structures infeasible.
 
-% TODO: Maaske skal det foelgende ned til benchmark sektionen. I det tilfaelde skal binary search sektionen lige revideres.
+The algorithms we have focused on is classic binary search (in-order layout), binary tree (BFS), binary tree (DFS) and a blocked tree with BFS and DFS layout. All of the structures are stored in single arrays.
 
-For tree structures we always constructed complete trees. In case the data weren't sufficient to fill the tree, dummy data were used. The dummy data were MAX\_INT's such that it would never be queried.
+For tree structures we always constructed complete trees. In case the amount of data did not fill the tree, dummy data were used. The dummy data were MAX\_INT's. We never query MAX\_INT so we do not touch the dumma data. Thus the performance of the queries are not affected.
 
-% TODO: Ingen naevnevaerdi betydning for performance
+For each of the algorithms we theoretically analyzed the number of branch predictions and cache faults. The binary algorithms all have 50\% chance of a branch misprediction at each level and and analysis of those are therefore skipped. We made the assumption that the cache is hot because we test a huge number of queries in each test.
 
-\subsection{Binary search}
-
-Contrary to the tree algorithms the binary search doesn't require any dummy data to be inserted.
-
-\subsubsection*{Cache faults (warm cache)}
+In the following sections use these definitions:
 
 \begin{eqnarray*}
 \begin{array}{rcl}
@@ -18,13 +14,18 @@ n & : & \textrm{Number of 32 bit ints} \\
 B & : & \textrm{Size of cacheline (in 32 bit ints)} \\
 M & : & \textrm{Size of cache (in 32 bit ints)}
 \end{array}
-\\
-\\
+\end{eqnarray*}
+
+\subsection{Binary search}
+
+Contrary to the tree algorithms the binary search doesn't require any dummy data to be inserted.
+
+\subsubsection*{Expected cache faults}
+
+\begin{eqnarray*}
 \log_2 n - \log_2 B - \log_2 \frac{M}{B} 
 \end{eqnarray*}
-where $\log_2 B$ is the bottom where we make smaller jumps. $\log_2 \frac{M}{B}$ is the first $\frac{M}{B}$ cachelines we use. All the first elements we visit is far from eachother so we need a whole cacheline for each.
-
-% TODO: Branchmispredictions
+where $\log_2 B$ is the bottom where we make smaller jumps. All the first elements we visit is far from eachother so we need a whole cacheline for each. $\log_2 \frac{M}{B}$ is the top $\frac{M}{B}$ cachelines.
 
 \subsection{Binary BFS layout}
 
@@ -35,21 +36,12 @@ where $\log_2 B$ is the bottom where we make smaller jumps. $\log_2 \frac{M}{B}$
 \mathrm{right}(i) & = & 2i + 1
 \end{eqnarray*}
 
-\subsubsection*{Cache faults (warm cache)}
+\subsubsection*{Expected cache faults}
 
 \begin{eqnarray*}
-\begin{array}{rcl}
-n & : & \textrm{Number of 32 bit ints} \\
-B & : & \textrm{Size of cacheline (in 32 bit ints)} \\
-M & : & \textrm{Size of cache (in 32 bit ints)}
-\end{array}
-\\
-\\
 \log_2 n - \log_2 M 
 \end{eqnarray*}
 where $\log_2 M$ is the top of the tree.
-
-% TODO: Cache faults + mispredictions
 
 \subsection{Binary DFS layout}
 
@@ -62,21 +54,12 @@ where $\log_2 M$ is the top of the tree.
 \mathrm{right}(i) & = & i + |L| + 1
 \end{eqnarray*}
 
-\subsubsection*{Cache faults (warm cache)}
+\subsubsection*{Expected cache faults}
 
 \begin{eqnarray*}
-\begin{array}{rcl}
-n & : & \textrm{Number of 32 bit ints} \\
-B & : & \textrm{Size of cacheline (in 32 bit ints)} \\
-M & : & \textrm{Size of cache (in 32 bit ints)}
-\end{array}
-\\
-\\
 (\frac{1}{2}\frac{1}{B} + \frac{1}{2})\log_2 n - \log_2 B - \log_2 M 
 \end{eqnarray*}
 where $\log_2 M$ is the top of the tree. $\log_2 B$ is the last few levels where $|L|$ gets small enough such that a subtree is smaller than a cacheline. $\frac{1}{2}\frac{1}{B}$ is when we go left and $\frac{1}{2}$ is right.
-
-% TODO: Cache faults + mispredictions
 
 \subsection{Blocked BFS layout}
 
@@ -89,16 +72,81 @@ j & : & \textrm{Element in block $i$ (leftmost: $0$)} \\
 \mathrm{element}(i, j) & = & d\cdot (i - 1) + j + 1
 \end{eqnarray*}
 
-% TODO: Cache faults + mispredictions
+\subsubsection*{Expected cache faults}
+
+% TODO: Ikke dette billede
+
+% TODO: Maaske bare tag simplere model, hvor d - 1 altid er power of two? Eksemplerne skulle meget gerne give det samme! Udover selvfoelgelig at dem der ikke er power of two skal slettes.
+
+\includegraphics[width=1\textwidth]{blocks}
+
+\begin{eqnarray*}
+X & : & \textrm{\#cacheline we end up in}\\
+S & : & \textrm{\#a block's location from a cacheline boundary}\\
+\\
+m & = & \left\lfloor \frac{d-1+B-2}{B}\right\rfloor +1\textrm{ (\#max cachelines)}\\
+\\
+P(X=1\,|\, S=j) & = & \frac{\min\{B-j,\, d-1\}}{d-1}\\
+\\
+P(X=i\,|\, S=j) & = & \frac{B}{d-1}\\
+\\
+\underset{m\neq1}{P(X=m\,|\, S=j)} & = & 1-\sum_{i=1}^{m-1}P(X=i\,|\, S=j)\\
+\\ % TODO: 
+P(S=j) & = & \frac{P([d-1]_{B}\cdot[x]_{B}=j)}{\sum_{y=0}^{B-1}P([d-1]_{B}\cdot[x]_{B}=y)}\textrm{(\#possible congruence classes)}\\
+\\
+P(X=i) & = & \sum_{j=0}^{B-1}P(X=i\,|\, S=j)P(S=j)\\
+\\
+E(X) & = & \sum_{i=1}^{m}i\cdot P(X=i)
+\end{eqnarray*}
+
+\paragraph*{Cache faults}
+
+$\log_{d}\, n\cdot E(X)-\log_{d}\frac{M}{d-1}$
+
+where $\log_{d}\, n\cdot E(X)$ is the number of cache faults per level. But because we assume the cache is hot, the top of the tree ($\log_{d}\frac{M}{d-1}$) is in cache.
+
+\subsubsection*{Example, $B=16,\, M=2^{14},\, n=10^{6}$}
+
+\begin{tabular}{|c|c|}
+\hline 
+$d$ & Expected cache faults\tabularnewline
+\hline 
+\hline 
+2 & 5.59\tabularnewline
+\hline 
+5 & 3.42\tabularnewline
+\hline 
+9 & 2.82\tabularnewline
+\hline 
+16 & 4.64\tabularnewline
+\hline 
+17 & 2.43\tabularnewline
+\hline 
+18 & 4.793\tabularnewline
+\hline 
+33 & 4.14\tabularnewline
+\hline 
+\end{tabular}
+\\
+\\
+As we can see from the examples we should expect fewest cache faults when the block size is equal to the cacheline size. Furthermore, we can see that if blocks are not aligned with cacheline boundaries then the amount of cache faults increases.
+
+\subsubsection*{Scanning}
 
 Internally in the nodes we employed two different ways to scan through the elements. Linear scan and binary search.
 
-% TODO: Maaske ikke subsektioner, men cache faults + mispredictions skal maaske analyseres?
+% TODO: Mispredictions
 
-\subsubsection{Linear scan}
+\subsection{Blocked DFS layout}
 
-...
+As with the blocked BFS layout, this layout contains $d - 1$ elements per node/leaf where $d$ is the arity of the tree. These blocks are laid in a depth-first layout.
 
-\subsubsection{Binary search}
+\begin{eqnarray*}
+d & : & \textrm{Arity of the tree} \\
+j & : & \textrm{Element in block $i$ (leftmost: $0$)} \\
+|S| & : & \textrm{Number of elements in a subtree} \\
+\\
+\mathrm{element}(i, j) & = & i + j\cdot |S| + 1
+\end{eqnarray*}
 
-...
+% TODO: Cache faults + mispredictions
