@@ -85,7 +85,7 @@ Under antagelse at vi har uniform fordeling for hvor langt vi scanner og
 X & : & \textrm{\#cacheline we end up in}\\
 S & : & \textrm{\#elements the block is shifted from a cacheline boundary}\\
 \\
-m & = & \left\lfloor \frac{d-1+B-2}{B}\right\rfloor +1\textrm{ (max antal cachelines}\\
+m & = & \left\lfloor \frac{d-1+B-2}{B}\right\rfloor +1\textrm{ (max antal cachelines)}\\
 \\
 P(X=1\,|\, S=j) & = & \frac{\min\{B-j,\, d-1\}}{d-1}\\
 \\
@@ -915,7 +915,6 @@ Resultat (B=16, M=16384, n=1000000)
 </lyxtabular>
 
 \end_inset
-
 
 
 \begin_inset Newline newline
