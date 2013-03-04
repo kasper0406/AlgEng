@@ -1,13 +1,12 @@
-We have only considered static data structures which makes modifications to the data structures infeasible.
+We consider static data structures which makes modifications to the data structures infeasible.
 
-The algorithms we have focused on is classic binary search (in-order layout), binary tree (BFS), binary tree (DFS) and a blocked tree with BFS and DFS layout. All of the structures are stored in single arrays.
+The algorithms we have focused on is classic binary search (in-order layout), binary tree (BFS), binary tree (DFS) and a blocked tree with BFS and DFS layout. All data structures are stored in single arrays.
 
-For tree structures we always constructed complete trees. In case the amount of data did not fill the tree, dummy data were used. The dummy data were MAX\_INT's. We never query MAX\_INT so we do not touch the dumma data. Thus the performance of the queries are not affected.
+For tree structures we always construct complete trees. In case the amount of data does not fill the tree, dummy data are used. The dummy data are MAX\_INT's. We never query MAX\_INT so we do not touch the dumma data. Thus the performance of the queries are not affected.
 
-For each of the algorithms we theoretically analyzed the number of branch predictions and cache faults. The binary algorithms all have 50\% chance of a branch misprediction at each level and and analysis of those are therefore skipped. We made the assumption that the cache is hot because we test a huge number of queries in each test.
+For each of the algorithms we theoretically analyzed the number of branch predictions and cache faults. The binary algorithms all have 50\% chance of a branch misprediction at each level and analysis of those are therefore omitted. We made the assumption that the cache is hot because we use a large number of queries in each test.
 
-In the following sections use these definitions:
-
+In the following sections we use these definitions:
 \begin{eqnarray*}
 \begin{array}{rcl}
 n & : & \textrm{Number of 32 bit ints} \\
@@ -18,14 +17,16 @@ M & : & \textrm{Size of cache (in 32 bit ints)}
 
 \subsection{Binary search}
 
-Contrary to the tree algorithms the binary search doesn't require any dummy data to be inserted.
+Contrary to the tree algorithms the binary search does not require any dummy data to be inserted.
 
 \subsubsection*{Expected cache faults}
+
+% TODO: Er -log2 B korrekt? Nok naermere 1/2 af det? Taenker man stadig kan hoppe udenfor?
 
 \begin{eqnarray*}
 \log_2 n - \log_2 B - \log_2 \frac{M}{B} 
 \end{eqnarray*}
-where $\log_2 B$ is the bottom where we make smaller jumps. All the first elements we visit is far from eachother so we need a whole cacheline for each. $\log_2 \frac{M}{B}$ is the top $\frac{M}{B}$ cachelines.
+where $\log_2 B$ is the bottom where we make small jumps. The first elements we visit is far from each other so we need a whole cacheline for each. $\log_2 \frac{M}{B}$ is the "top" $\frac{M}{B}$ cachelines.
 
 \subsection{Binary BFS layout}
 
@@ -59,7 +60,7 @@ where $\log_2 M$ is the top of the tree.
 \begin{eqnarray*}
 (\frac{1}{2}\frac{1}{B} + \frac{1}{2})\log_2 n - \log_2 B - \log_2 M 
 \end{eqnarray*}
-where $\log_2 M$ is the top of the tree. $\log_2 B$ is the last few levels where $|L|$ gets small enough such that a subtree is smaller than a cacheline. $\frac{1}{2}\frac{1}{B}$ is when we go left and $\frac{1}{2}$ is right.
+where $\log_2 M$ is the top of the tree. $\log_2 B$ is the last few levels where $|L|$ gets small enough such that a subtree is smaller than a cacheline. $\frac{1}{2}\frac{1}{B}$ is when we go left and $\frac{1}{2}$ is when we go right.
 
 \subsection{Blocked BFS layout}
 
@@ -76,7 +77,7 @@ j & : & \textrm{Element in block $i$ (leftmost: $0$)} \\
 
 % TODO: Ikke dette billede
 
-% TODO: Maaske bare tag simplere model, hvor d - 1 altid er power of two? Eksemplerne skulle meget gerne give det samme! Udover selvfoelgelig at dem der ikke er power of two skal slettes.
+% TODO: Maaske bare tag simplere model, hvor d - 1 altid er power of two? Eksemplerne skulle meget gerne give det samme! Udover selvfoelgelig at dem der ikke er power of two skal slettes. I tilfaelde af at vi vaelger den model, saa kan det splittes op i 2 meget simple cases! Naar vi har en blok mindre end cacheline stoerrelse, og stoerre end.
 
 \includegraphics[width=1\textwidth]{blocks}
 
