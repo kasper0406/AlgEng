@@ -2,7 +2,7 @@ We consider static data structures which makes modifications to the data structu
 
 The algorithms we have focused on is classic binary search (in-order layout), binary tree (BFS), binary tree (DFS) and a blocked tree with BFS and DFS layout. All data structures are stored in single arrays.
 
-For tree structures we always construct complete trees. In case the amount of data does not fill the tree, dummy data are used. The dummy data are MAX\_INT's. We never query MAX\_INT so we do not touch the dumma data. Thus the performance of the queries are not affected.
+For tree structures we always construct complete trees. In case the amount of data does not fill the tree, dummy data are used. The dummy data are MAX\_INT's. We never query MAX\_INT so we do not touch the dumma data. Thus the performance of the queries should not be affected.
 
 For each of the algorithms we theoretically analyzed the number of branch predictions and cache faults. The binary algorithms all have 50\% chance of a branch misprediction at each level and analysis of those are therefore omitted. We made the assumption that the cache is hot because we use a large number of queries in each test.
 
@@ -73,31 +73,46 @@ j & : & \textrm{Element in block $i$ (leftmost: $0$)} \\
 \mathrm{element}(i, j) & = & d\cdot (i - 1) + j + 1
 \end{eqnarray*}
 
-\subsubsection*{Expected cache faults}
+\subsubsection*{Scanning}
 
-% TODO: Ikke dette billede
+Internally in the nodes we employed two different ways to scan through the elements. Linear scan and binary search.
 
-% TODO: Maaske bare tag simplere model, hvor d - 1 altid er power of two? Eksemplerne skulle meget gerne give det samme! Udover selvfoelgelig at dem der ikke er power of two skal slettes. I tilfaelde af at vi vaelger den model, saa kan det splittes op i 2 meget simple cases! Naar vi har en blok mindre end cacheline stoerrelse, og stoerre end.
+\subsubsection*{Expected cache faults, linear scan}
 
 \includegraphics[width=1\textwidth]{blocks}
 
+We have defined the following stochastic variables:
 \begin{eqnarray*}
-X & : & \textrm{\#cacheline we end up in}\\
-S & : & \textrm{\#a block's location from a cacheline boundary}\\
-\\
-m & = & \left\lfloor \frac{d-1+B-2}{B}\right\rfloor +1\textrm{ (\#max cachelines)}\\
-\\
+X & : & \textrm{Number of cachlines we visit}\\
+S & : & \textrm{A block's location from a cacheline boundary}
+\end{eqnarray*}
+The expected number of cache faults for each level is
+\begin{eqnarray*}
+E(X) = \sum_{i=1}^{m}i\cdot P(X=i)
+\end{eqnarray*}
+which is sum of the probabilities that we visit $i$ cachelines multiplied by $i$. We visit at most $m$ cachelines.
+\begin{eqnarray*}
+m = \left\lfloor \frac{d-1-2}{B}\right\rfloor + 2
+\end{eqnarray*}
+With the law of total probability, the probability that we visit $i$ cachelines can be written as the sum of the probabilities that we end up in $i$ given a certain skew multiplied by the probability of the skew.
+\begin{eqnarray*}
+P(X=i) = \sum_{j=0}^{B-1}P(X=i\,|\, S=j)P(S=j)
+\end{eqnarray*}
+In the following calculations we have assumed an uniform distribution of where the linear scan stops in the block. If $d - 1 < B - j$ (i.e. the block does not lie on a cacheline boundary) then the probability of visiting a single cacheline is 1. Otherwise, it is the size of the block overlapping with the first possible cacheline divided by the size of the block. The probability of visiting a cacheline in the middle is just the size of a cacheline divided by the size of the block. For the last cacheline, the probability is the complement of the rest combined.
+\begin{eqnarray*}
 P(X=1\,|\, S=j) & = & \frac{\min\{B-j,\, d-1\}}{d-1}\\
 \\
 P(X=i\,|\, S=j) & = & \frac{B}{d-1}\\
 \\
-\underset{m\neq1}{P(X=m\,|\, S=j)} & = & 1-\sum_{i=1}^{m-1}P(X=i\,|\, S=j)\\
-\\ % TODO: 
-P(S=j) & = & \frac{P([d-1]_{B}\cdot[x]_{B}=j)}{\sum_{y=0}^{B-1}P([d-1]_{B}\cdot[x]_{B}=y)}\textrm{(\#possible congruence classes)}\\
+\underset{m\neq1}{P(X=m\,|\, S=j)} & = & 1-\sum_{i=1}^{m-1}P(X=i\,|\, S=j)
+\end{eqnarray*}
+For the probability of starting with a skew $j$, we assumed an uniform distribution of the possible $j$'s and assumed the first block to be aligned with the cachelines. For example we have $P(S = 0) = P(S = 8) = \frac{1}{2}$ for $B = 16$, $d - 1 = 8$.
+\begin{eqnarray*}
+S_k & = & \{ 0 \leq x < B\ |\ x \in \mathbb{N} \wedge (d - 1)x\ \textrm{mod}\ B = k \}\\
 \\
-P(X=i) & = & \sum_{j=0}^{B-1}P(X=i\,|\, S=j)P(S=j)\\
+P(S_k) & = & \frac{|S_k|}{B}\\
 \\
-E(X) & = & \sum_{i=1}^{m}i\cdot P(X=i)
+P(S=j) & = & \frac{P(S_j)}{\sum_{i=0}^{B-1}P(S_i)}
 \end{eqnarray*}
 
 \paragraph*{Cache faults}
@@ -131,10 +146,6 @@ $d$ & Expected cache faults\tabularnewline
 \\
 \\
 As we can see from the examples we should expect fewest cache faults when the block size is equal to the cacheline size. Furthermore, we can see that if blocks are not aligned with cacheline boundaries then the amount of cache faults increases.
-
-\subsubsection*{Scanning}
-
-Internally in the nodes we employed two different ways to scan through the elements. Linear scan and binary search.
 
 % TODO: Mispredictions
 
