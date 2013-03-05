@@ -80,17 +80,18 @@ Internally in the nodes we employed two different ways to scan through the eleme
 \subsubsection*{Expected cache faults, linear scan}
 
 \includegraphics[width=1\textwidth]{blocks}
+% TODO: Numre paa cachelines
 
 We have defined the following stochastic variables:
 \begin{eqnarray*}
-X & : & \textrm{Number of cachlines we visit}\\
+X & : & \textrm{Number of cachelines we visit}\\
 S & : & \textrm{A block's location from a cacheline boundary}
 \end{eqnarray*}
 The expected number of cache faults for each level is
 \begin{eqnarray*}
 E(X) = \sum_{i=1}^{m}i\cdot P(X=i)
 \end{eqnarray*}
-which is sum of the probabilities that we visit $i$ cachelines multiplied by $i$. We visit at most $m$ cachelines.
+which is sum of the probabilities that we visit $i$ cachelines multiplied by $i$k were, where $m$ is the highest number of cachelines a block overlaps with.
 \begin{eqnarray*}
 m = \left\lfloor \frac{d-1-2}{B}\right\rfloor + 2
 \end{eqnarray*}
@@ -102,7 +103,7 @@ In the following calculations we have assumed an uniform distribution of where t
 \begin{eqnarray*}
 P(X=1\,|\, S=j) & = & \frac{\min\{B-j,\, d-1\}}{d-1}\\
 \\
-P(X=i\,|\, S=j) & = & \frac{B}{d-1}\\
+\underset{1 < i < m}{P(X=i\,|\, S=j)} & = & \frac{B}{d-1}\\
 \\
 \underset{m\neq1}{P(X=m\,|\, S=j)} & = & 1-\sum_{i=1}^{m-1}P(X=i\,|\, S=j)
 \end{eqnarray*}
@@ -110,9 +111,7 @@ For the probability of starting with a skew $j$, we assumed an uniform distribut
 \begin{eqnarray*}
 S_k & = & \{ 0 \leq x < B\ |\ x \in \mathbb{N} \wedge (d - 1)x\ \textrm{mod}\ B = k \}\\
 \\
-P(S_k) & = & \frac{|S_k|}{B}\\
-\\
-P(S=j) & = & \frac{P(S_j)}{\sum_{i=0}^{B-1}P(S_i)}
+P(S=j) & = & \frac{|S_k|}{B}
 \end{eqnarray*}
 
 \paragraph*{Cache faults}
