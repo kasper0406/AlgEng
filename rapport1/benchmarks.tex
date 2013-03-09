@@ -1,6 +1,6 @@
 \subsection{Test setup}
 
-All the following benchmarks were performed on a Linux desktop which has 4 GB ram and a Core i3 550 CPU with the following specification:
+All benchmarks were performed on a Linux desktop which has 4 GB ram and a Core i3 550 CPU with the following specification:
 
 \begin{itemize}
 \item 2 * 3.2 GHz (no Turbo boost)
@@ -11,15 +11,12 @@ All the following benchmarks were performed on a Linux desktop which has 4 GB ra
 \item 64 byte cache lines
 \end{itemize}
 
-Measurements for L1 and L2 cache faults, branch mispredictions and instructions count was measured with PAPI. For some reason L3 cache faults was unavailable through PAPI. However, we expect the pattern after the cache is exceeded to  to be similar to L1 and L2. Comparison counts where measured with counting integrated into the source code. These counts was removed when running time was measured. The running time was wall time.
+Measurements for L1 and L2 cache faults, branch mispredictions and executed instructions were measured with PAPI. For some reason L3 cache faults were unavailable through PAPI. However, we expect the pattern after the cache is exceeded to  to be similar to L1 and L2. Comparison counts were measured with counting integrated into the source code. These counters were removed when running time was measured. The running time was wall time.
 
 % TODO: Type af cache?
 
-All tests were performed 5 times and the median were selected. The data were randomly generated with an uniform distribution. The range of the data was MIN\_INT to MAX\_INT - 1.
+All tests were performed 5 times and the median was selected. The data were randomly generated with an uniform distribution. The range of the data was MIN\_INT to MAX\_INT - 1. As mentioned, the max value is MAX\_INT - 1 and not MAX\_INT, because MAX\_INT is used as dummy data. Queries were also randomly generated with the same distribution. Therefore, we were able to make the assumption that the top of the tree is in cache after some number of queries. In contrast, if the queries are sorted then for each query we would have the entire path or almost the entire path in cache. And we would get a linear number of cache faults in total.
 
-% TODO: Hvorfor -1
-
-% TODO: Hvordan query data genereres
-% TODO: Er vigtigt, pga hvis vi fx har sortede queries vil vi kun faa et linaert antal cache faults.
+% TODO: Noget af ovenstaaende burde nok op da det bruges i vores formeler.
 
 % TODO: Preprocessing er ikke talt med
