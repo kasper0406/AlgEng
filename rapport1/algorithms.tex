@@ -1,16 +1,15 @@
 We consider static data structures which makes modifications to the data structures infeasible.
-
 The algorithms we have focused on is classic binary search (in-order layout), binary tree (BFS), binary tree (DFS) and a blocked tree with BFS and DFS layout. All data structures are stored in single arrays.
 
 For tree structures we always construct complete trees. In case the amount of data does not fill the tree, dummy data are used. The dummy data are MAX\_INT's. We never query MAX\_INT so we do not touch the dumma data. Thus the performance of the queries should not be affected.
 
-For each of the algorithms we theoretically analyzed the number of branch predictions and cache faults. The binary algorithms all have 50\% chance of a branch misprediction at each level and analysis of those are therefore omitted. We made the assumption that the cache is hot because we use a large number of queries in each test.
+We have theoretically analyzed the number of branch predictions and cache faults for some of the algorithms. The binary algorithms all have 50\% chance of a branch misprediction at each level and analysis of those are therefore omitted. We made the assumption that the cache is hot because we use a large number of queries in each test.
 
 In the following sections we use these definitions:
 \begin{eqnarray*}
 \begin{array}{rcl}
-n & : & \textrm{Number of 32 bit ints} \\
-B & : & \textrm{Size of cacheline (in 32 bit ints)} \\
+n & : & \textrm{Dataset size (in 32 bit ints} \\
+B & : & \textrm{Size of cache line (in 32 bit ints)} \\
 M & : & \textrm{Size of cache (in 32 bit ints)}
 \end{array}
 \end{eqnarray*}
@@ -26,11 +25,9 @@ Contrary to the tree algorithms the binary search does not require any dummy dat
 \begin{eqnarray*}
 \log_2 n - \log_2 B - \log_2 \frac{M}{B} 
 \end{eqnarray*}
-where $\log_2 B$ is the bottom where we make small jumps. The first elements we visit is far from each other so we need a whole cacheline for each. $\log_2 \frac{M}{B}$ is the "top" $\frac{M}{B}$ cachelines.
+where $\log_2 B$ is the bottom where we make small jumps. The first elements we visit is far from each other so we need a whole cache line for each. $\log_2 \frac{M}{B}$ is the "top" $\frac{M}{B}$ cache lines.
 
 \subsection{Binary BFS layout}
-
-...
 
 \begin{eqnarray*}
 \mathrm{left}(i) & = & 2i \\
@@ -46,8 +43,6 @@ where $\log_2 M$ is the top of the tree.
 
 \subsection{Binary DFS layout}
 
-...
-
 \begin{eqnarray*}
 |L| & : & \textrm{Number of elements in left subtree} \\
 \\
@@ -57,10 +52,12 @@ where $\log_2 M$ is the top of the tree.
 
 \subsubsection*{Expected cache faults}
 
+% TODO: Passer det med log2 B?
+
 \begin{eqnarray*}
-(\frac{1}{2}\frac{1}{B} + \frac{1}{2})\log_2 n - \log_2 B - \log_2 M 
+(\frac{1}{2}\frac{1}{B} + \frac{1}{2})(\log_2 n - \log_2 B - \log_2 M) 
 \end{eqnarray*}
-where $\log_2 M$ is the top of the tree. $\log_2 B$ is the last few levels where $|L|$ gets small enough such that a subtree is smaller than a cacheline. $\frac{1}{2}\frac{1}{B}$ is when we go left and $\frac{1}{2}$ is when we go right.
+where $\log_2 M$ is the top of the tree. $\log_2 B$ is the last few levels where $|L|$ gets small enough such that a subtree is smaller than a cache line. $\frac{1}{2}\frac{1}{B}$ is when we go left and $\frac{1}{2}$ is when we go right.
 
 \subsection{Blocked BFS layout}
 
@@ -79,27 +76,51 @@ Internally in the nodes we employed two different ways to scan through the eleme
 
 \subsubsection*{Expected cache faults, linear scan}
 
-\includegraphics[width=1\textwidth]{blocks}
-% TODO: Numre paa cachelines
-
+\begin{tikzpicture}[scale=.7]
+	\begin{scope}
+		\draw[dotted, very thick] (-5, 0) rectangle (-3.5,1);
+		\draw[very thick] (-3.5, 0) rectangle (-3,1);
+		\draw[very thick] (-3, 0) rectangle (-1,1);
+		\draw[very thick] (-1, 0) rectangle (1,1);
+		\draw[very thick] (1, 0) rectangle (3,1);
+		\draw[very thick] (3, 0) rectangle (4,1);
+		\draw[dotted, very thick] (4, 0) rectangle (5,1);
+		
+		\node[anchor=center,scale=1] at (-3.25, .5) {1};
+		\node[anchor=center,scale=1] at (-2, .5) {2};
+		\node[anchor=center,scale=1] at (0, .5) {3};
+		\node[anchor=center,scale=1] at (2, .5) {4};
+		\node[anchor=center,scale=1] at (3.5, .5) {5};
+		
+		\draw[snake=brace, very thick] (-3, 1.2) -- (-1, 1.2);
+		\node[anchor=center,scale=1] at (-2, 1.7) {$B$};
+		
+		\draw[snake=brace, very thick,segment aspect=.535] (4, -0.2) -- (-3.45, -.2);
+		\node[anchor=center,scale=1] at (0, -.7) {$d-1$};
+		
+		\draw[snake=brace, very thick] (-3.55, -0.2) -- (-5, -.2);
+		\node[anchor=center,scale=1] at (-4.2, -.7) {$0\leq j < B$};
+	\end{scope}
+\end{tikzpicture}
+\\
 We have defined the following stochastic variables:
 \begin{eqnarray*}
-X & : & \textrm{Number of cachelines we visit}\\
-S & : & \textrm{A block's location from a cacheline boundary}
+X & : & \textrm{Number of cache lines we visit}\\
+S & : & \textrm{A block's location from a cache line boundary}
 \end{eqnarray*}
 The expected number of cache faults for each level is
 \begin{eqnarray*}
 E(X) = \sum_{i=1}^{m}i\cdot P(X=i)
 \end{eqnarray*}
-which is sum of the probabilities that we visit $i$ cachelines multiplied by $i$k were, where $m$ is the highest number of cachelines a block overlaps with.
+which is sum of the probabilities that we visit $i$ cache lines multiplied by $i$, where $m$ is the highest number of cache lines a block overlaps with.
 \begin{eqnarray*}
 m = \left\lfloor \frac{d-1-2}{B}\right\rfloor + 2
 \end{eqnarray*}
-With the law of total probability, the probability that we visit $i$ cachelines can be written as the sum of the probabilities that we end up in $i$ given a certain skew multiplied by the probability of the skew.
+With the law of total probability, the probability that we visit $i$ cache lines can be written as the sum of the probabilities that we end up in $i$ given a certain skew multiplied by the probability of the skew.
 \begin{eqnarray*}
 P(X=i) = \sum_{j=0}^{B-1}P(X=i\,|\, S=j)P(S=j)
 \end{eqnarray*}
-In the following calculations we have assumed an uniform distribution of where the linear scan stops in the block. If $d - 1 < B - j$ (i.e. the block does not lie on a cacheline boundary) then the probability of visiting a single cacheline is 1. Otherwise, it is the size of the block overlapping with the first possible cacheline divided by the size of the block. The probability of visiting a cacheline in the middle is just the size of a cacheline divided by the size of the block. For the last cacheline, the probability is the complement of the rest combined.
+In the following calculations we have assumed an uniform distribution of where the linear scan stops in the block. If $d - 1 < B - j$ (i.e. the block does not lie on a cache line boundary) then the probability of visiting a single cache line is 1. Otherwise, it is the size of the block overlapping with the first possible cache line divided by the size of the block. The probability of visiting a cache line in the middle is just the size of a cache line divided by the size of the block. For the last cache line, the probability is the complement of the rest combined.
 \begin{eqnarray*}
 P(X=1\,|\, S=j) & = & \frac{\min\{B-j,\, d-1\}}{d-1}\\
 \\
@@ -107,7 +128,7 @@ P(X=1\,|\, S=j) & = & \frac{\min\{B-j,\, d-1\}}{d-1}\\
 \\
 \underset{m\neq1}{P(X=m\,|\, S=j)} & = & 1-\sum_{i=1}^{m-1}P(X=i\,|\, S=j)
 \end{eqnarray*}
-For the probability of starting with a skew $j$, we assumed an uniform distribution of the possible $j$'s and assumed the first block to be aligned with the cachelines. For example we have $P(S = 0) = P(S = 8) = \frac{1}{2}$ for $B = 16$, $d - 1 = 8$.
+For the probability of starting with a skew $j$, we assumed an uniform distribution of the possible $j$'s and assumed the first block to be aligned with the cache lines. For example we have $P(S = 0) = P(S = 8) = \frac{1}{2}$ for $B = 16$, $d - 1 = 8$.
 \begin{eqnarray*}
 S_k & = & \{ 0 \leq x < B\ |\ x \in \mathbb{N} \wedge (d - 1)x\ \textrm{mod}\ B = k \}\\
 \\
@@ -117,36 +138,41 @@ P(S=j) & = & \frac{|S_k|}{B}
 \paragraph*{Cache faults}
 
 $\log_{d}\, n\cdot E(X)-\log_{d}\frac{M}{d-1}$
-
 where $\log_{d}\, n\cdot E(X)$ is the number of cache faults per level. But because we assume the cache is hot, the top of the tree ($\log_{d}\frac{M}{d-1}$) is in cache.
 
-\subsubsection*{Example, $B=16,\, M=2^{14},\, n=10^{6}$}
+% TODO: samme problem som ved DFS mht. formel?
+
+\subsubsection*{Example, $B=16,\, M=2^{16},\, n=2^{24}$}
 
 \begin{tabular}{|c|c|}
 \hline 
-$d$ & Expected cache faults\tabularnewline
+$d - 1$ & Expected cache faults\tabularnewline
 \hline 
 \hline 
-2 & 5.59\tabularnewline
+1 & 8\tabularnewline
 \hline 
-5 & 3.42\tabularnewline
+2 & 5.68\tabularnewline
 \hline 
-9 & 2.82\tabularnewline
+4 & 4.30\tabularnewline
 \hline 
-16 & 4.64\tabularnewline
+8 & 3.47\tabularnewline
 \hline 
-17 & 2.43\tabularnewline
+15 & 5.60\tabularnewline
 \hline 
-18 & 4.793\tabularnewline
+16 & 2.94\tabularnewline
 \hline 
-33 & 4.14\tabularnewline
+17 & 5.78\tabularnewline
+\hline 
+32 & 4.96\tabularnewline
 \hline 
 \end{tabular}
 \\
 \\
-As we can see from the examples we should expect fewest cache faults when the block size is equal to the cacheline size. Furthermore, we can see that if blocks are not aligned with cacheline boundaries then the amount of cache faults increases.
+As we can see from the examples we should expect fewest cache faults when the block size is equal to the cache line size. Furthermore, we can see that if blocks are not aligned with cache line boundaries then the amount of cache faults increases.
 
-% TODO: Mispredictions
+\subsubsection*{Expected branch mispredictions}
+
+For linear scan the worst case expected number of branch mispredictions is 2 for entering and leaving the main loop + 2 for each level when entering and leaving the linear scan within a block. For binary search we have $\frac{1}{2} \log_2 (d-1)$ for each level.
 
 \subsection{Blocked DFS layout}
 
@@ -160,4 +186,6 @@ j & : & \textrm{Element in block $i$ (leftmost: $0$)} \\
 \mathrm{element}(i, j) & = & i + j\cdot |S| + 1
 \end{eqnarray*}
 
-% TODO: Cache faults + mispredictions
+\subsubsection*{Expected branch mispredictions}
+
+The expected number of branch mispredictions is the same as for the blocked BFS layout.

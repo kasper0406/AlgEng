@@ -9,14 +9,22 @@ All benchmarks were performed on a Linux desktop which has 4 GB ram and a Core i
 \item 2 * 256 KB L2 cache
 \item Shared 4 MB L3 cache
 \item 64 byte cache lines
+\item Inclusive caches
+\item The associativity for the cache levels are 8, 8 and 16 respectively
+% http://www.ni.com/white-paper/11266/en#toc5
+\item Disabled adjacent cache line prefetcher
 \end{itemize}
 
-Measurements for L1 and L2 cache faults, branch mispredictions and executed instructions were measured with PAPI. For some reason L3 cache faults were unavailable through PAPI. However, we expect the pattern after the cache is exceeded to  to be similar to L1 and L2. Comparison counts were measured with counting integrated into the source code. These counters were removed when running time was measured. The running time was wall time.
+Initially, we measured L1 cache faults, L2 cache faults, branch predictions etc. using PAPI. However, we got results we found ridiculously high.
+For instance, we got 79 L2 cache faults for each binary search query where each query used 24 iterations.
+We would expect at most 24 L2 cache faults per query. And 24 cache faults should only occur when the cache is cold.
 
-% TODO: Type af cache?
+Consequently, we tried Intel's PAPI equivalent Intel Performance Counters Monitor (IPCM) and got a more sane 15 cache faults.
+That is still above what we expect according to the previously derived formulas but Core i3 use prefetchers and our formulas does not take associativity into account which could affect the number.
 
-All tests were performed 5 times and the median was selected. The data were randomly generated with an uniform distribution. The range of the data was MIN\_INT to MAX\_INT - 1. As mentioned, the max value is MAX\_INT - 1 and not MAX\_INT, because MAX\_INT is used as dummy data. Queries were also randomly generated with the same distribution. Therefore, we were able to make the assumption that the top of the tree is in cache after some number of queries. In contrast, if the queries are sorted then for each query we would have the entire path or almost the entire path in cache. And we would get a linear number of cache faults in total.
+We eventually settled on using the data from IPCM because they seemed more realistic and because we
+assume Intel knowns more about their hardware than third-parties does.
 
-% TODO: Noget af ovenstaaende burde nok op da det bruges i vores formeler.
+Comparison counts were measured with counting integrated into the source code. These counters were removed when running time was measured. The running time was wall time.
 
-% TODO: Preprocessing er ikke talt med
+All tests were performed 5 times and the median was selected. For each test we ran 10,000,000 queries. The data were randomly generated with an uniform distribution. The range of the data was MIN\_INT to MAX\_INT - 1. As mentioned, the max value is MAX\_INT - 1 and not MAX\_INT, because MAX\_INT is used as dummy data. Queries were also randomly generated with the same distribution. Therefore, we were able to make the assumption that the top of the tree is in cache after some number of queries. In contrast, if the queries are sorted then for each query we would have the entire path or almost the entire path in cache. And we would get a linear number of cache faults in total.
