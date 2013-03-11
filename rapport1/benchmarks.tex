@@ -50,11 +50,11 @@ not what we are experiencing when running the binary search algorithm on our
 test setup.
 
 \begin{figure}[h!]
-  \label{fig:bs_runningtime}
   \centering
   \includegraphics[width=\textwidth]{../week1/plots/outputs/bs_runningtime}
   \caption{Normalized time to perform 10 million queries. The input
     size axis is the base-2 logarithm to the input size.}
+  \label{fig:bs_runningtime}
 \end{figure}
 
 From Figure~\ref{fig:bs_runningtime} we see the first small increase
@@ -67,10 +67,10 @@ bottleneck. Figure~\ref{fig:bs_cachefaults} shows the number of cache
 faults per query. It clearly shows that there is a correlation between cache faults and the time to execute a query.
 
 \begin{figure}[h!]
-  \label{fig:bs_cachefaults}
   \centering
   \includegraphics[width=\textwidth]{../week1/plots/outputs/bs_cachefaults}
   \caption{Cache faults measured per query, and the expected number of cache faults.}
+  \label{fig:bs_cachefaults}
 \end{figure}
 
 Figure~\ref{fig:bs_cachefaults} shows that we get even more cache
@@ -84,10 +84,53 @@ performance using a BFS or DFS memory
 layout. Figure~\ref{fig:bfs_dfs_runningtime} shows the query times of
 such layouts.
 \begin{figure}[h!]
-  \label{fig:bfs_dfs_runningtime}
   \centering
   \includegraphics[width=\textwidth]{../week1/plots/outputs/bfs_dfs_runningtime}
   \caption{Normalized query time using BFS/DFS layouts.}
+  \label{fig:bfs_dfs_runningtime}
 \end{figure}
 Both these layouts performs better than the in-order binary search,
 but the DFS layout seems to perform worse than the BFS layout.
+
+
+\begin{figure}[h!]
+  \label{fig:bfs_dfs_cachefaults}
+  \centering
+  \includegraphics[width=\textwidth]{../week1/plots/outputs/bfs_dfs_cachefaults}
+  \caption{L2 cache faults per query of binary DFS and BFS layouts.}
+\end{figure}
+
+\begin{figure}[h!]
+  \label{fig:blocked_bfs_bs_runningtime}
+  \centering
+  \includegraphics[width=\textwidth]{../week1/plots/outputs/Btree_bs_runningtime}
+  \caption{Normalized running time using blocked BFS layout using binary search in each block.}
+\end{figure}
+
+\begin{figure}[h!]
+  \label{fig:blocked_bfs_branchmis_runningtime}
+  \centering
+  \includegraphics[width=\textwidth]{../week1/plots/outputs/Btree_branchmis}
+  \caption{Branch mispredictions in blocked BFS layout using binary search in each block.}
+\end{figure}
+
+\begin{figure}[h!]
+  \label{fig:blocked_bfs_lin_runningtime}
+  \centering
+  \includegraphics[width=\textwidth]{../week1/plots/outputs/Btree_lin_runningtime}
+  \caption{Normalized running time using blocked BFS layout using linear scan in each block.}
+\end{figure}
+
+\begin{figure}[h!]
+  \label{fig:blocked_dfs_lin_runningtime}
+  \centering
+  \includegraphics[width=\textwidth]{../week1/plots/outputs/DFS_runningtime}
+  \caption{Normalized running time using blocked DFS layout using linear scan in each block.}
+\end{figure}
+
+\begin{figure}[h!]
+  \label{fig:champions}
+  \centering
+  \includegraphics[width=\textwidth]{../week1/plots/outputs/bfs_dfs_16_runningtime}
+  \caption{Normalized running time of the best of the three approaches.}
+\end{figure}
