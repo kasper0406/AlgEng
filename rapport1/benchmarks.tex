@@ -57,10 +57,9 @@ test setup.
   \label{fig:bs_runningtime}
 \end{figure}
 
-From Figure~\ref{fig:bs_runningtime} we see the first small increase
+From figure~\ref{fig:bs_runningtime} we see the first small increase
 at input size \(2^{13}\), a somewhat larger increase at \(2^{16}\),
-and it behaves very badly after \(2^{20}\).
-
+and it behaves very badly with more than \(2^{20}\) elements.
 These numbers corresponds to the CPU's L1, L2 and L3 cache sizes. We
 therefore suspect cache faults to be the
 bottleneck. Figure~\ref{fig:bs_cachefaults} shows the number of cache
@@ -69,7 +68,7 @@ faults per query. It clearly shows that there is a correlation between cache fau
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\textwidth]{../week1/plots/outputs/bs_cachefaults}
-  \caption{Cache faults measured per query, and the expected number of cache faults.}
+  \caption{Cache faults measured per query and the expected number of cache faults.}
   \label{fig:bs_cachefaults}
 \end{figure}
 
@@ -90,47 +89,76 @@ such layouts.
   \label{fig:bfs_dfs_runningtime}
 \end{figure}
 Both these layouts performs better than the in-order binary search,
-but the DFS layout seems to perform worse than the BFS layout.
+but the DFS layout seems to perform worse than the BFS layout. This is quite unexpected as we expect fewer cache faults. The amount of cache faults is shown in figure~\ref{fig:bfs_dfs_cachefaults}. This plot is even more surprising. The cache faults for BFS and DFS is reversed compared to our expectations.
+
+We do not have a satisfactory explanation for these results. Cache associativity might play a role.
 
 
 \begin{figure}[h!]
-  \label{fig:bfs_dfs_cachefaults}
   \centering
   \includegraphics[width=\textwidth]{../week1/plots/outputs/bfs_dfs_cachefaults}
   \caption{L2 cache faults per query of binary DFS and BFS layouts.}
+    \label{fig:bfs_dfs_cachefaults}
 \end{figure}
 
+\subsection{Blocked BFS layout}
+
+As we have seen in the previous results cache faults play a major role in the performance of the algorithms. Therefore, we decided on testing a blocked BFS layout and various block sizes. We expect fewer cache faults and therefore higher performance.
+
+Figure \ref{fig:blocked_bfs_bs_runningtime} shows that the best performing block sizes are 16 ($d = 17$) and 32 ($d = 33$) when using binary search within the blocks. Our devised formulas indicates that block size 32 should result in slightly more cache faults which figure \ref{fig:blocked_bfs_bs_cachefaults} also shows. The increased number of cache faults is counterbalanced by the number of branch mispredictions which are shown in figure \ref{fig:blocked_bfs_branchmis_runningtime}. The amount of branch mispredictions for block size 32 is slightly lower because at each level we get an extra branch misprediction when the final element is found. And because the height of the tree is lower, we get fewer of those extra mispredictions.
+
+We want to reduce the number of branch mispredictions so instead of using binary search within the block we tried a linear scan. This should make the CPU optimize its pipeline. Figure \ref{fig:blocked_bfs_branchmis_runningtime} shows that linear scan induces fewer branch mispredictions.
+
+The performance when using linear scan is slightly better compared to binary search.
+
+\todo{Refs passer ikke}
+
 \begin{figure}[h!]
-  \label{fig:blocked_bfs_bs_runningtime}
   \centering
   \includegraphics[width=\textwidth]{../week1/plots/outputs/Btree_bs_runningtime}
-  \caption{Normalized running time using blocked BFS layout using binary search in each block.}
+  \caption{Normalized running time using blocked BFS layout with binary search in each block.}
+  \label{fig:blocked_bfs_bs_runningtime}
 \end{figure}
 
 \begin{figure}[h!]
-  \label{fig:blocked_bfs_branchmis_runningtime}
+
+  \centering
+  \includegraphics[width=\textwidth]{../week1/plots/outputs/Btree_bs_cachefaults}
+  \caption{L2 cache faults per query of using blocked BFS layout with binary search in each block.}
+  \label{fig:blocked_bfs_bs_cachefaults}
+\end{figure}
+
+\begin{figure}[h!]
+
   \centering
   \includegraphics[width=\textwidth]{../week1/plots/outputs/Btree_branchmis}
   \caption{Branch mispredictions in blocked BFS layout using binary search in each block.}
+  \label{fig:blocked_bfs_branchmis_runningtime}
 \end{figure}
 
 \begin{figure}[h!]
-  \label{fig:blocked_bfs_lin_runningtime}
+
   \centering
   \includegraphics[width=\textwidth]{../week1/plots/outputs/Btree_lin_runningtime}
   \caption{Normalized running time using blocked BFS layout using linear scan in each block.}
+  \label{fig:blocked_bfs_lin_runningtime}
 \end{figure}
 
+\subsection{Blocked DFS layout}
+
+For binary DFS layout we got more cache faults compared to BFS. This unexpected effect is reduced when the block size is increased. When the block size is 16 and above the effect is diminished completely as shown in \ref{fig:blocked_dfs_lin_runningtime}.
+
 \begin{figure}[h!]
-  \label{fig:blocked_dfs_lin_runningtime}
   \centering
   \includegraphics[width=\textwidth]{../week1/plots/outputs/DFS_runningtime}
   \caption{Normalized running time using blocked DFS layout using linear scan in each block.}
+  \label{fig:blocked_dfs_lin_runningtime}
 \end{figure}
 
 \begin{figure}[h!]
-  \label{fig:champions}
+
   \centering
   \includegraphics[width=\textwidth]{../week1/plots/outputs/bfs_dfs_16_runningtime}
   \caption{Normalized running time of the best of the three approaches.}
+  \label{fig:champions}
 \end{figure}
