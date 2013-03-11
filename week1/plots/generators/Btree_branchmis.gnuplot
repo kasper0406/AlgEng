@@ -12,7 +12,7 @@ set xrange [-1:25]
 
 set xtics 0,1,24
 
-set key vert right top reverse
+set key vert left top reverse
 set pointsize 2
 
 plot "../data/counters1/counters1_Btree_bs_16.dat" using (log2($2)):($11/10000000) title "BFS bs (d = 17)", \

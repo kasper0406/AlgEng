@@ -8,7 +8,7 @@ set output "../outputs/bfs_dfs_16_runningtime.pdf"
 set xlabel "Input size"
 set ylabel "Normalized running time [s] / 10M queries"
 set xrange [-1:25]
-set yrange [0.04:0.22]
+set yrange [0.04:0.19]
 
 set xtics 0,1,24
 
