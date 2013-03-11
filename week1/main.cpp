@@ -33,10 +33,10 @@ int sanity_check(int num_datapoints, int num_queries)
 
 template<typename Impl>
 void run_test(string name) {
-  static const int initial_datapoints = 1;
-  static const int max_datapoints = 1024 * 1024 * 32;
-  static const int query_count = 10000000;
-  static const int trials = 5; // Same data each time!
+  static const int initial_datapoints = 1024 * 1024 * 16;
+  static const int max_datapoints = 1024 * 1024 * 16;
+  static const int query_count = 1000;
+  static const int trials = 1; // Same data each time!
 
   stringstream filename;
   filename << "plots/data/" << name << "_" << B << ".dat";
@@ -49,19 +49,27 @@ void run_test(string name) {
 
 int main(int argc, char* argv[])
 {  
+cin.get();
+
   cout.precision(3);
 
+/*
   int errors = sanity_check(7, 10000);
   if (errors == 0)
     cout << "No errors. All good :D!" << endl;
   else
     cout << "Oh no! We have " << errors << " errors!" << endl;
+*/
 
+  run_test<BinarySearch<int>>("bstesting");
+
+/*
   run_test<BlockedLinear<ComparisonCounter>>("comps_Btree_lin");
   run_test<BlockedLinearRec<ComparisonCounter>>("comps_Btree_linrec");
   run_test<BlockedBinarySearch<ComparisonCounter>>("comps_Btree_bs");
-  run_test<BinarySearch<ComparisonCounter>>("comps_bs");
+
   run_test<BlockedDFSLinear<ComparisonCounter>>("comps_DFS_lin");
+*/
 
   return 0;
 }

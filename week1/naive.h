@@ -20,6 +20,8 @@ public:
   static void cleanup();
 };
 
+#include <iostream>
+
 template<typename T>
 inline int bs(int q, T* arr, int n)
 {
@@ -36,7 +38,7 @@ inline int bs(int q, T* arr, int n)
         else
             return mid;
     }
-    
+
     return max;
 };
 

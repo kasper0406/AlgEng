@@ -1,7 +1,7 @@
 For binary search, binary DFS and binary BFS our expectations are a similar number of branch mispredictions. In accordance with our predicted cache fault formulas, we expect to see more cache faults in binary search compared to binary BFS and more cache faults in binary BFS than in binary DFS.
 
-We would also expect the blocked layouts to have fewer cache faults than the binary layouts. And if the block size is equal to the cacheline size then BFS and DFS should perform equally. A block size smaller than the cacheline size is expected to perform slightly better with a DFS layout compared to a BFS layout.
+We would also expect the blocked layouts to have fewer cache faults than the binary layouts. And if the block size is equal to the cache line size then BFS and DFS should perform equally. A block size smaller than the cache line size is expected to perform slightly better with a DFS layout compared to a BFS layout. Furthermore, CPU prefetchers might read the next block into cache which means that if we go left in a DFS layout then the cache line is already loaded.
 
-% TODO: Data til at retfaerdiggoere expectations for blocked DFS boer laves i sektionen om blocked DFS.
+The amount of branch mispredictions is the same for the two blocked layouts. When the block size increases we expect fewer branch mispredictions compared to the binary layouts when linear scan is used.
 
-% TODO: Blocked layout branch mispredictions.
+Overall, we expect binary search to be the slowest and DFS and BFS to increase the relative performance to binary search when the block size increases. Due to an expected number of cache faults DFS is expected to be slightly faster than BFS layout. We would also expect linear scan for blocks to be faster than binary search because lower branch mispredictions means that we can predict the next cache line with a higher probability.
