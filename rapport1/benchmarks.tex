@@ -109,7 +109,7 @@ Figure \ref{fig:blocked_bfs_bs_runningtime} shows that the best performing block
 
 We want to reduce the number of branch mispredictions so instead of using binary search within the block we tried a linear scan. This should make the CPU optimize its pipeline. Figure \ref{fig:blocked_bfs_branchmis_runningtime} shows that linear scan induces fewer branch mispredictions.
 
-The performance when using linear scan is slightly better compared to binary search.
+The performance when using linear scan is slightly better compared to binary search. Fewer branch mispredictions compensates for the increased number of instructions/comparisons used in linear scan.
 
 \todo{Refs passer ikke}
 
@@ -154,6 +154,10 @@ For binary DFS layout we got more cache faults compared to BFS. This unexpected 
   \caption{Normalized running time using blocked DFS layout using linear scan in each block.}
   \label{fig:blocked_dfs_lin_runningtime}
 \end{figure}
+
+\subsection{Summary}
+
+The best three versions of binary search, BFS and DFS are shown in \ref{fig:champions}. To summarize, blocked linear scan algorithms have the highest throughput and they are far superior to binary search.
 
 \begin{figure}[h!]
 

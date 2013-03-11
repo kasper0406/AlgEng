@@ -1,1 +1,7 @@
-...
+We have succeeded in implementing the data structures as described in the project description. We have experimented with different layouts for minimizing cache faults and branch mispredictions in order to improve the performance of the queries.
+
+Our algorithms did not always give the expected results. Most surprising was the high number of cache faults when using a DFS layout with a small block size.
+
+However, we did succeed in devising algorithms which had fewer cache faults and branch mispredictions and therefore higher performance compared to the classic binary search commonly used. 
+
+Our best performing algorithm was a blocked BFS (or DFS) layout with a block size equal to the cache line size.
