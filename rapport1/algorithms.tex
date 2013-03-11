@@ -1,14 +1,14 @@
 We consider static data structures which makes modifications to the data structures infeasible.
 The algorithms we have focused on is classic binary search (in-order layout), binary tree (BFS), binary tree (DFS) and a blocked tree with BFS and DFS layout. All data structures are stored in single arrays.
 
-For tree structures we always construct complete trees. In case the amount of data does not fill the tree, dummy data are used. The dummy data are MAX\_INT's. We never query MAX\_INT so we do not touch the dumma data. Thus the performance of the queries should not be affected.
+For tree structures we always construct complete trees. In case the amount of data does not fill the tree, dummy data are used. The dummy data are MAX\_INT's. We never query MAX\_INT so we do not touch the dummy data. Thus the performance of the queries should not be affected.
 
-We have theoretically analyzed the number of branch predictions and cache faults for some of the algorithms. The binary algorithms all have 50\% chance of a branch misprediction at each level and analysis of those are therefore omitted. We made the assumption that the cache is hot because we use a large number of queries in each test.
+We have theoretically analysed the number of branch predictions and cache faults for some of the algorithms. The binary algorithms all have 50\% chance of a branch misprediction at each level and analysis of those are therefore omitted. We made the assumption that the cache is hot because we use a large number of queries in each test.
 
 In the following sections we use these definitions:
 \begin{eqnarray*}
 \begin{array}{rcl}
-n & : & \textrm{Dataset size (in 32 bit ints} \\
+n & : & \textrm{Dataset size (in 32 bit ints)} \\
 B & : & \textrm{Size of cache line (in 32 bit ints)} \\
 M & : & \textrm{Size of cache (in 32 bit ints)}
 \end{array}
@@ -20,7 +20,7 @@ Contrary to the tree algorithms the binary search does not require any dummy dat
 
 \subsubsection*{Expected cache faults}
 
-% TODO: Er -log2 B korrekt? Nok naermere 1/2 af det? Taenker man stadig kan hoppe udenfor?
+\todo{Er -log2 B korrekt? Nok naermere 1/2 af det? Taenker man stadig kan hoppe udenfor?}
 
 \begin{eqnarray*}
 \log_2 n - \log_2 B - \log_2 \frac{M}{B} 
@@ -52,7 +52,7 @@ where $\log_2 M$ is the top of the tree.
 
 \subsubsection*{Expected cache faults}
 
-% TODO: Passer det med log2 B?
+\todo{Passer det med log2 B?}
 
 \begin{eqnarray*}
 (\frac{1}{2}\frac{1}{B} + \frac{1}{2})(\log_2 n - \log_2 B - \log_2 M) 
@@ -140,7 +140,7 @@ P(S=j) & = & \frac{|S_k|}{B}
 $\log_{d}\, n\cdot E(X)-\log_{d}\frac{M}{d-1}$
 where $\log_{d}\, n\cdot E(X)$ is the number of cache faults per level. But because we assume the cache is hot, the top of the tree ($\log_{d}\frac{M}{d-1}$) is in cache.
 
-% TODO: samme problem som ved DFS mht. formel?
+\todo{samme problem som ved DFS mht. formel?}
 
 \subsubsection*{Example, $B=16,\, M=2^{16},\, n=2^{24}$}
 
@@ -172,7 +172,7 @@ As we can see from the examples we should expect fewest cache faults when the bl
 
 \subsubsection*{Expected branch mispredictions}
 
-For linear scan the worst case expected number of branch mispredictions is 2 for entering and leaving the main loop + 2 for each level when entering and leaving the linear scan within a block. For binary search we have $\frac{1}{2} \log_2 (d-1)$ for each level.
+For linear scan the expected number of branch mispredictions is 1 for entering and leaving  the main loop (both are assumed to predict correctly 50\% of the times) + 1 for each level when entering and leaving the linear scan within a block. For binary search we have $\frac{1}{2} \log_2 (d-1)$ for each level.
 
 \subsection{Blocked DFS layout}
 
