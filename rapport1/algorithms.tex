@@ -1,14 +1,14 @@
 We consider static data structures which makes modifications to the data structures infeasible.
 The algorithms we have focused on is classic binary search (in-order layout), binary tree (BFS), binary tree (DFS) and a blocked tree with BFS and DFS layout. All data structures are stored in single arrays.
 
-For tree structures we always construct complete trees. In case the amount of data does not fill the tree, dummy data are used. The dummy data are MAX\_INT's. We never query MAX\_INT so we do not touch the dumma data. Thus the performance of the queries should not be affected.
+For tree structures we always construct complete trees. In case the amount of data does not fill the tree, dummy data are used. The dummy data are MAX\_INT's. We never query MAX\_INT so we do not touch the dummy data. Thus the performance of the queries should not be affected.
 
-We have theoretically analyzed the number of branch predictions and cache faults for some of the algorithms. The binary algorithms all have 50\% chance of a branch misprediction at each level and analysis of those are therefore omitted. We made the assumption that the cache is hot because we use a large number of queries in each test.
+We have theoretically analysed the number of branch predictions and cache faults for some of the algorithms. The binary algorithms all have 50\% chance of a branch misprediction at each level and analysis of those are therefore omitted. We made the assumption that the cache is hot because we use a large number of queries in each test.
 
 In the following sections we use these definitions:
 \begin{eqnarray*}
 \begin{array}{rcl}
-n & : & \textrm{Dataset size (in 32 bit ints} \\
+n & : & \textrm{Dataset size (in 32 bit ints)} \\
 B & : & \textrm{Size of cache line (in 32 bit ints)} \\
 M & : & \textrm{Size of cache (in 32 bit ints)}
 \end{array}
