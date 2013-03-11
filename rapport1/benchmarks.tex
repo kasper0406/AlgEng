@@ -1,5 +1,7 @@
 \subsection{Test setup}
 
+Our program was written in C/C++ and compiled with Clang. All memory allocations were cache line boundary aligned.
+
 All benchmarks were performed on a Linux desktop which has 4 GB ram and a Core i3 550 CPU with the following specification:
 
 \begin{itemize}
@@ -22,12 +24,12 @@ We would expect at most 24 L2 cache faults per query. And 24 cache faults should
 Consequently, we tried Intel's PAPI equivalent Intel Performance Counters Monitor (IPCM) and got a more sane 15 cache faults.
 That is still above what we expect according to the previously derived formulas but Core i3 use prefetchers and our formulas does not take associativity into account which could affect the number.
 
-We eventually settled on using the data from IPCM because they seemed more realistic and because we
-assume Intel knowns more about their hardware than third-parties does.
+We eventually settled on using as much data from IPCM as possible because they seemed more realistic and because we
+assume Intel knowns more about their hardware than third-parties does. However, IPCM is not capable of measuring branch mispredictions. So for that we used PAPI.
 
 Comparison counts were measured with counting integrated into the source code. These counters were removed when running time was measured. The running time was wall time.
 
-% TODO: Preprocessing er ikke talt med
+\todo{Preprocessing er ikke talt med}
 
 All tests were performed 5 times and the median was selected. For each
 test we ran 10,000,000 queries. The data were randomly generated with
@@ -42,10 +44,10 @@ cache. And we would get a linear number of cache faults in total.
 
 \subsection{Binary Search}
 From the RAM model, we would expect the query time normalized with the
-logarithm of the input size, will be a
+logarithm of the input size, to be a
 constant. Figure~\ref{fig:bs_runningtime} clearly shows that this is
-not what we experience when running the binary search algorithm on our
-test computer.
+not what we are experiencing when running the binary search algorithm on our
+test setup.
 
 \begin{figure}[h!]
   \label{fig:bs_runningtime}
@@ -62,8 +64,7 @@ and it behaves very badly after \(2^{20}\).
 These numbers corresponds to the CPU's L1, L2 and L3 cache sizes. We
 therefore suspect cache faults to be the
 bottleneck. Figure~\ref{fig:bs_cachefaults} shows the number of cache
-faults per query. It clearly seems that there is a correlation between
-where we get cache faults and where the query time gets worse.
+faults per query. It clearly shows that there is a correlation between cache faults and the time to execute a query.
 
 \begin{figure}[h!]
   \label{fig:bs_cachefaults}
@@ -77,18 +78,16 @@ faults than we expect. We think this may be explained by cache
 associativity\todo{Should we detail our explanation of this?}.
 
 \subsection{BFS and DFS layout}
-In order to improve the query time for large inputs, we will try to
+In order to improve the query time for large inputs, we try to
 reduce the number of cache faults. We expect a better cache
 performance using a BFS or DFS memory
 layout. Figure~\ref{fig:bfs_dfs_runningtime} shows the query times of
 such layouts.
-
 \begin{figure}[h!]
   \label{fig:bfs_dfs_runningtime}
   \centering
   \includegraphics{../week1/plots/outputs/bfs_dfs_runningtime}
   \caption{Normalized query time using BFS/DFS layouts.}
 \end{figure}
-
 Both these layouts performs better than the in-order binary search,
 but the DFS layout seems to perform worse than the BFS layout.
