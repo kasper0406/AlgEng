@@ -17,19 +17,17 @@ All benchmarks were performed on a Linux desktop which has 4 GB ram and a Core i
 \item Disabled adjacent cache line prefetcher
 \end{itemize}
 
-Initially, we measured L1 cache faults, L2 cache faults, branch predictions etc. using PAPI. However, we got results we found ridiculously high.
+Initially, we measured L1 cache faults, L2 cache faults, branch mispredictions etc. using PAPI. However, we got results we found ridiculously high.
 For instance, we got 79 L2 cache faults for each binary search query where each query used 24 iterations.
 We would expect at most 24 L2 cache faults per query. And 24 cache faults should only occur when the cache is cold.
 
 Consequently, we tried Intel's PAPI equivalent Intel Performance Counters Monitor (IPCM) and got a more sane 15 cache faults.
-That is still above what we expect according to the previously derived formulas but Core i3 use prefetchers and our formulas does not take associativity into account which could affect the number.
+That is still above what we expect according to the previously derived formulas but Core i3 use prefetchers and our formulas does not take cache associativity into account which could affect the number.
 
 We eventually settled on using as much data from IPCM as possible because they seemed more realistic and because we
 assume Intel knowns more about their hardware than third-parties does. However, IPCM is not capable of measuring branch mispredictions. So for that we used PAPI.
 
 Comparison counts were measured with counting integrated into the source code. These counters were removed when running time was measured. The running time was wall time.
-
-\todo{Preprocessing er ikke talt med}
 
 All tests were performed 5 times and the median was selected. For each
 test we ran 10,000,000 queries. The data were randomly generated with
@@ -44,7 +42,7 @@ cache. And we would get a linear number of cache faults in total.
 
 \subsection{Binary Search}
 From the RAM model, we would expect the query time normalized with the
-logarithm of the input size, to be a
+logarithm of the input size, to be
 constant. Figure~\ref{fig:bs_runningtime} clearly shows that this is
 not what we are experiencing when running the binary search algorithm on our
 test setup.
@@ -58,7 +56,7 @@ test setup.
 \end{figure}
 
 From figure~\ref{fig:bs_runningtime} we see the first small increase
-at input size \(2^{13}\), a somewhat larger increase at \(2^{16}\),
+at input size \(2^{13}\), a somewhat larger increase at \(2^{16}\)
 and it behaves very badly with more than \(2^{20}\) elements.
 These numbers corresponds to the CPU's L1, L2 and L3 cache sizes. We
 therefore suspect cache faults to be the
@@ -74,7 +72,13 @@ faults per query. It clearly shows that there is a correlation between cache fau
 
 Figure~\ref{fig:bs_cachefaults} shows that we get even more cache
 faults than we expect. We think this may be explained by cache
-associativity\todo{Should we detail our explanation of this?}.
+associativity. The reason is that the number of elements in our data structure is
+always a power of 2. Thus every time we look up a element in the
+binary search, it will remain a constant modulo $2^i$ for some $i$.
+Hence, if the cache is implemented in such a way, that the most
+significant part of the memory address is used to look up in the
+cache, and not too many bits are used, we will end up always looking
+in the same part of the cache, leading to trashing of values.
 
 \subsection{BFS and DFS layout}
 In order to improve the query time for large inputs, we try to
@@ -89,9 +93,7 @@ such layouts.
   \label{fig:bfs_dfs_runningtime}
 \end{figure}
 Both these layouts performs better than the in-order binary search,
-but the DFS layout seems to perform worse than the BFS layout. This is quite unexpected as we expect fewer cache faults. The amount of cache faults is shown in figure~\ref{fig:bfs_dfs_cachefaults}. This plot is even more surprising. The cache faults for BFS and DFS is reversed compared to our expectations.
-
-We do not have a satisfactory explanation for these results. Cache associativity might play a role.
+but the DFS layout seems to perform worse than the BFS layout. This is quite unexpected as we expect fewer cache faults. The amount of cache faults is shown in figure~\ref{fig:bfs_dfs_cachefaults}. This plot is even more surprising. The cache faults for BFS and DFS is reversed compared to our expectations. We do not have a satisfactory explanation for these results. However, cache associativity might play a role.
 
 
 \begin{figure}[h!]
@@ -107,11 +109,11 @@ As we have seen in the previous results cache faults play a major role in the pe
 
 Figure \ref{fig:blocked_bfs_bs_runningtime} shows that the best performing block sizes are 16 ($d = 17$) and 32 ($d = 33$) when using binary search within the blocks. Our devised formulas indicates that block size 32 should result in slightly more cache faults which figure \ref{fig:blocked_bfs_bs_cachefaults} also shows. The increased number of cache faults is counterbalanced by the number of branch mispredictions which are shown in figure \ref{fig:blocked_bfs_branchmis_runningtime}. The amount of branch mispredictions for block size 32 is slightly lower because at each level we get an extra branch misprediction when the final element is found. And because the height of the tree is lower, we get fewer of those extra mispredictions.
 
+Figure \ref{fig:blocked_bfs_bs_runningtime} also shows a pattern at several periods where the performance suddenly jumps and then decreases. For instance, when $d = 33$ we see a jump at 6-7, 12-13 and 18-19. The jump occurs when the height of the tree increases by one.
+
 We want to reduce the number of branch mispredictions so instead of using binary search within the block we tried a linear scan. This should make the CPU optimize its pipeline. Figure \ref{fig:blocked_bfs_branchmis_runningtime} shows that linear scan induces fewer branch mispredictions.
 
 The performance when using linear scan is slightly better compared to binary search. Fewer branch mispredictions compensates for the increased number of instructions/comparisons used in linear scan.
-
-\todo{Refs passer ikke}
 
 \begin{figure}[h!]
   \centering

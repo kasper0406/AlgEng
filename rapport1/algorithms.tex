@@ -20,10 +20,8 @@ Contrary to the tree algorithms the binary search does not require any dummy dat
 
 \subsubsection*{Expected cache faults}
 
-\todo{Er -log2 B korrekt? Nok naermere 1/2 af det? Taenker man stadig kan hoppe udenfor?}
-
 \begin{eqnarray*}
-\log_2 n - \log_2 B - \log_2 \frac{M}{B} 
+\log_2 n - \frac{1}{2}\log_2 B - \log_2 \frac{M}{B} 
 \end{eqnarray*}
 where $\log_2 B$ is the bottom where we make small jumps. The first elements we visit is far from each other so we need a whole cache line for each. $\log_2 \frac{M}{B}$ is the "top" $\frac{M}{B}$ cache lines.
 
@@ -51,8 +49,6 @@ where $\log_2 M$ is the top of the tree.
 \end{eqnarray*}
 
 \subsubsection*{Expected cache faults}
-
-\todo{Passer det med log2 B?}
 
 \begin{eqnarray*}
 (\frac{1}{2}\frac{1}{B} + \frac{1}{2})(\log_2 n - \log_2 B - \log_2 M) 
@@ -139,8 +135,6 @@ P(S=j) & = & \frac{|S_k|}{B}
 
 $\log_{d}\, n\cdot E(X)-\log_{d}\frac{M}{d-1}$
 where $\log_{d}\, n\cdot E(X)$ is the number of cache faults per level. But because we assume the cache is hot, the top of the tree ($\log_{d}\frac{M}{d-1}$) is in cache.
-
-\todo{samme problem som ved DFS mht. formel?}
 
 \subsubsection*{Example, $B=16,\, M=2^{16},\, n=2^{24}$}
 

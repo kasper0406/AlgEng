@@ -2,6 +2,6 @@ We have succeeded in implementing the data structures as described in the projec
 
 Our algorithms did not always give the expected results. Most surprising was the high number of cache faults when using a DFS layout with a small block size.
 
-However, we did succeed in devising algorithms which had fewer cache faults and branch mispredictions and therefore higher performance compared to the classic binary search commonly used. 
+However, we did succeed in devising algorithms which had fewer cache faults and branch mispredictions and therefore higher performance compared to the classic binary search commonly used. All the algorithms have the same asymptotic running time but our results indicates that the specific hardware has a major influence on the final performance.
 
 Our best performing algorithm was a blocked BFS (or DFS) layout with a block size equal to the cache line size.
