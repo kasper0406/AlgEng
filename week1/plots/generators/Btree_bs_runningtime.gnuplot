@@ -16,6 +16,7 @@ set key vert right top reverse
 set pointsize 2
 
 plot "../data/ipcm/ipcm_Btree_bs_1.dat" using (log2($2)):($6/max(1, log2($2))) title "BFS (d = 2)", \
+     "../data/ipcm/ipcm_Btree_bs_8.dat" using (log2($2)):($6/max(1, log2($2))) title "BFS (d = 9)", \
      "../data/ipcm/ipcm_Btree_bs_16.dat" using (log2($2)):($6/max(1, log2($2))) title "BFS (d = 17)", \
      "../data/ipcm/ipcm_Btree_bs_32.dat" using (log2($2)):($6/max(1, log2($2))) title "BFS (d = 33)", \
-     "../data/ipcm/ipcm_Btree_bs_64.dat" using (log2($2)):($6/max(1, log2($2))) title "BFS (d = 65)"
+     "../data/ipcm/ipcm_Btree_bs_64.dat" using (log2($2)):($6/max(1, log2($2))) title "BFS (d = 65)" pt 8 lc 9
