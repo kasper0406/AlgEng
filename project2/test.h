@@ -101,7 +101,8 @@ M random_matrix(size_t n, size_t m) {
 template <typename M0, typename M1, typename Mres>
 void test_factor(ostream& out,
                  const size_t trials,
-                 size_t factor_pow2) {
+                 size_t factor_pow2,
+                 size_t max_size_pow2) {
   out << endl << "Test config" << endl;
   out << "A: " << M0::config() << endl;
   out << "B: " << M1::config() << endl;
@@ -109,7 +110,7 @@ void test_factor(ostream& out,
 
   out << "n\tp\tm\tTrials\tMin    [s]\tLower  [s]\tMedian [s]\tUpper  [s]\tMax [s]";
   out << endl;
-  for (int i = 6; i < 8; i++) {
+  for (int i = 6; i <= max_size_pow2; i++) {
     size_t n = (1 << (i - factor_pow2));
     size_t p = 1 << i;
     size_t m = (1 << (i - factor_pow2));
@@ -124,7 +125,8 @@ void test_factor(ostream& out,
 
 template <typename M0, typename M1, typename Mres>
 void test(ostream& out,
-          const size_t trials) {
-  test_factor<M0, M1, Mres>(out, trials, 0);
-  test_factor<M0, M1, Mres>(out, trials, 6);
+          const size_t trials,
+          size_t max_size_pow2) {
+  test_factor<M0, M1, Mres>(out, trials, 0, max_size_pow2);
+  test_factor<M0, M1, Mres>(out, trials, 6, max_size_pow2);
 }

@@ -32,5 +32,5 @@ void main() {
 
   M0 c = a.operator*<M1, M0>(b);
 
-  test<M0,M1,M0>(cout, 10);
+  test<M0,M1,M0>(cout, 10, 8);
 }
