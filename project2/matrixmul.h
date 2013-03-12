@@ -5,11 +5,14 @@
 #include <memory>
 #include <string>
 #include "matrix.h"
+#include <iostream>
+
+using namespace std;
 
 class Naive {
 public:
   template <typename M0, typename M1, typename Mres>
-  static Mres multiply(const M0 a, const M1 b) {
+  static Mres multiply(const M0& a, const M1& b) {
     assert(a.columns() == b.rows());
 
     Mres c(a.rows(), b.columns());
@@ -25,7 +28,8 @@ public:
         c(i, j) = e;
       }
     }
-
+    
+    // Move semantics
     return c;
   };
 

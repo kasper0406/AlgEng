@@ -17,8 +17,17 @@ class Matrix {
 public:
   typedef typename Layout::Element Element;
 
-  Matrix(size_t n, size_t m) : data(Layout(n, m)) {
-  };
+  explicit Matrix(size_t n, size_t m) : data(Layout(n, m)) { };
+  Matrix(Matrix&& other) : data(move(other.data)) { cout << "Matrix. Moving resource." << endl; }
+  Matrix(const Matrix& other) : data(other.data) { throw exception("Do not copy matrices!"); }
+  Matrix& operator=(Matrix&& other)
+  {
+    cout << "Matrix Assignment" << endl;
+    if (this != &other) {
+      data = other.data;
+    }
+    return *this;
+  }
 
   Matrix(size_t n, size_t m, vector<vector<typename Element>> elements) : Matrix(n, m) {
     assert(elements.size() == n);
@@ -41,7 +50,7 @@ public:
   };
 
   template <typename M1, typename Mres>
-  Mres operator*(const M1 other) const {
+  Mres operator*(const M1& other) const {
     return MatrixMul::multiply<type, M1, Mres>(*this, other);
   };
 
