@@ -6,7 +6,7 @@
 #include "test.h"
 
 typedef Matrix<RowBased<int32_t>, Naive> M0;
-typedef Matrix<RowBased<double>, Naive> M1;
+typedef Matrix<ColumnBased<double>, Naive> M1;
 
 using namespace std;
 
