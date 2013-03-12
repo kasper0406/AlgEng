@@ -1,0 +1,16 @@
+In this section we will describe the different algorithms and memory
+layouts we have used.
+
+\subsection{Simple multiplication}
+We started out implementing the simple conventional matrix
+multiplication algorithm where we stored the matrices using a row
+based layout.
+
+Expectations of cache faults here....
+We do not expect any significant amount of branch mispredictions.
+
+In order to improve the number of cache faults, we have tried to use a
+column base layout in the right operand in the multiplication. We
+expect this to give us a bit better cache performance. This approach
+has the drawback of limiting a matrix only to be used on one side of a
+multiplication.
