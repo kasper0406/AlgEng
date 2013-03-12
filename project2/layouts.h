@@ -39,4 +39,8 @@ public:
   static string config() {
     return "row-based";
   };
+
+  ~RowBased() {
+    delete[] data;
+  };
 };
