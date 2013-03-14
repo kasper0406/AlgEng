@@ -101,6 +101,7 @@ M random_matrix(size_t n, size_t m) {
   return a;
 };
 
+#ifndef _WINDOWS
 void generate_plot(string outputfile, string data) {
   stringstream ss;
 
@@ -136,6 +137,7 @@ void generate_plot(string outputfile, string data) {
   fputs(ss.str().c_str(), gnuplot);
   pclose(gnuplot);
 }
+#endif
 
 template <typename M0, typename M1, typename Mres>
   void print_header(ostream& out, size_t factor_pow2) {
