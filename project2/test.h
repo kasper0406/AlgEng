@@ -71,10 +71,6 @@ void measure(ostream& out,
     auto beginning = high_resolution_clock::now();
     
 #ifdef __linux__
-    PCM * m = PCM::getInstance();
-    // program counters, and on a failure just exit
-    if (m->program() != PCM::Success)
-      throw runtime_error("Failed to start PCM.");
     SystemCounterState before_sstate = getSystemCounterState();
 #endif
 
@@ -88,9 +84,6 @@ void measure(ostream& out,
     measurement.l3_cache_hits        = getL3CacheHits(before_sstate, after_sstate);
     measurement.l3_cache_misses      = getL3CacheMisses(before_sstate, after_sstate);
     measurement.instructions_retired = getInstructionsRetired(before_sstate, after_sstate);
-
-    m->cleanup();
-    delete m;
 #endif
 
     high_resolution_clock::duration duration =
@@ -160,6 +153,7 @@ void generate_plot(string outputfile, string data) {
      << "set y2tics nomirror tc lt 2" << endl
 
      << "set logscale y" << endl
+     << "set logscale y2" << endl
      << "set grid mytics" << endl
 
      << "set key vert left top reverse" << endl
@@ -236,11 +230,27 @@ void test_factor(ostream& out,
 #endif
 }
 
+#ifdef __linux__
+PCM *m;
+#endif
+
 template <typename M0, typename M1, typename Mres>
 void test(ostream& out,
           const size_t trials,
           uint64_t min_size_total,
           uint64_t max_size_total) {
+#ifdef __linux__
+  m = PCM::getInstance();
+  // program counters, and on a failure just exit
+  if (m->program() != PCM::Success)
+    throw runtime_error("Failed to start PCM.");
+#endif
+
   test_factor<M0, M1, Mres>(out, trials, 0, min_size_total, max_size_total);
   test_factor<M0, M1, Mres>(out, trials, 6, min_size_total, max_size_total);
+
+#ifdef __linux__
+  m->cleanup();
+  delete m;
+#endif
 }
