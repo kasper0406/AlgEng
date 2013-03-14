@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
     M0 c = a.operator*<M1, M0>(b);
     cout << "main end" << endl;
   }*/
-  test<M0,M1,M0>(cout, 5, 1024, 1024 * 1024);
+  test<M0,M1,M0>(cout, 5, 1024, 1024 * 1024 * 1024);
   cout << "done" << endl;
 
   return 0;

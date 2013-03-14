@@ -74,7 +74,10 @@ void measure(ostream& out,
   out << fixed << measurements[iLower].time << "\t";
   out << fixed << measurements[iMedian].time << "\t";
   out << fixed << measurements[iUpper].time << "\t";
-  out << fixed << measurements[iMax].time << "";
+  out << fixed << measurements[iMax].time << "\t";
+
+  // TODO: Cache misses
+  out << "0\t0";
   
   out << endl;
 };
@@ -98,19 +101,63 @@ M random_matrix(size_t n, size_t m) {
   return a;
 };
 
+void generate_plot(string outputfile, string data) {
+  stringstream ss;
+
+  ss << "log2(x) = log(x)/log(2)" << endl
+     << "max(a,b) = (a > b) ? a : b" << endl
+
+     << "set terminal pdf enhanced font \"Helvetica, 10\" size 6,4" << endl
+     << "set output \"./plots/" << outputfile << ".pdf\"" << endl
+
+     << "set xlabel \"Input size\"" << endl
+     << "set xtics 0, 1" << endl
+     << "set offset 1, 1" << endl
+
+     << "set ylabel \"Normalized running time [s]\"" << endl
+     << "set y2label \"Cache misses\"" << endl
+
+     << "set ytics nomirror tc lt 1" << endl
+     << "set y2tics nomirror tc lt 2" << endl
+
+     << "set logscale y" << endl
+     << "set grid mytics" << endl
+
+     << "set key vert left top reverse" << endl
+     << "set pointsize 2" << endl
+
+     << "plot '-' using (log2($1*$2*$3)):($7) title \"Time\" axes x1y1 with linespoints, \
+              '-' using (log2($1*$2*$3)):($10) title \"L1 cache misses\" axes x1y2 with linespoints, \
+              '-' using (log2($1*$2*$3)):($11) title \"L2 cache misses\" axes x1y2 with linespoints" << endl
+
+    << data << endl << "e" << endl << data << endl << "e" << endl << data << endl << "e" << endl;
+
+  FILE *gnuplot = popen("gnuplot", "w");
+  fputs(ss.str().c_str(), gnuplot);
+  pclose(gnuplot);
+}
+
+template <typename M0, typename M1, typename Mres>
+  void print_header(ostream& out, size_t factor_pow2) {
+  out << endl << "Test config" << endl
+      << "Factor: " << factor_pow2 << endl
+      << "A: " << M0::config() << endl
+      << "B: " << M1::config() << endl
+      << "C: " << Mres::config() << endl
+      << "n\tp\tm\tTrials\tMin    [s]\tLower  [s]\tMedian [s]\tUpper  [s]\tMax [s]\tL1 miss\tL2 miss" << endl;
+}
+
 template <typename M0, typename M1, typename Mres>
 void test_factor(ostream& out,
                  const size_t trials,
                  size_t factor_pow2,
                  uint64_t min_size_total,
                  uint64_t max_size_total) {
-  out << endl << "Test config" << endl;
-  out << "A: " << M0::config() << endl;
-  out << "B: " << M1::config() << endl;
-  out << "C: " << Mres::config() << endl;
+  stringstream results;
 
-  out << "n\tp\tm\tTrials\tMin    [s]\tLower  [s]\tMedian [s]\tUpper  [s]\tMax [s]";
-  out << endl;
+  print_header<M0, M1, Mres>(results, factor_pow2);
+  print_header<M0, M1, Mres>(out, factor_pow2);
+
   int i = factor_pow2 - 1;
   while (true) {
     i++;
@@ -128,12 +175,21 @@ void test_factor(ostream& out,
     M1 b = random_matrix<M1>(p, m);
 
     string test = to_string(n) + "\t" + to_string(p) + "\t" + to_string(m);
+    stringstream measurement;
 #ifdef _WINDOWS
-    measure(out, test, trials, [&a, &b]() { return a.operator*<M1, Mres>(b); });
+    measure(measurement, test, trials, [&a, &b]() { return a.operator*<M1, Mres>(b); });
 #else
-    measure(out, test, trials, [&a, &b]() { return a.template operator*<M1, Mres>(b); });
+    measure(measurement, test, trials, [&a, &b]() { return a.template operator*<M1, Mres>(b); });
 #endif
+
+    out << measurement.str();
+    results << measurement.str();
   }
+
+#ifndef _WINDOWS
+  string name = M0::config() + "_" + M1::config() + "_" + Mres::config() + "_" + to_string(factor_pow2);
+  generate_plot(name, results.str());
+#endif
 }
 
 template <typename M0, typename M1, typename Mres>
