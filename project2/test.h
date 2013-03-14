@@ -128,7 +128,11 @@ void test_factor(ostream& out,
     M1 b = random_matrix<M1>(p, m);
 
     string test = to_string(n) + "\t" + to_string(p) + "\t" + to_string(m);
+#ifdef _WINDOWS
+    measure(out, test, trials, [&a, &b]() { return a.operator*<M1, Mres>(b); });
+#else
     measure(out, test, trials, [&a, &b]() { return a.template operator*<M1, Mres>(b); });
+#endif
   }
 }
 
