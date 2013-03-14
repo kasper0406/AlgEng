@@ -102,7 +102,8 @@ template <typename M0, typename M1, typename Mres>
 void test_factor(ostream& out,
                  const size_t trials,
                  size_t factor_pow2,
-                 size_t max_size_pow2) {
+                 uint64_t min_size_total,
+                 uint64_t max_size_total) {
   out << endl << "Test config" << endl;
   out << "A: " << M0::config() << endl;
   out << "B: " << M1::config() << endl;
@@ -110,23 +111,32 @@ void test_factor(ostream& out,
 
   out << "n\tp\tm\tTrials\tMin    [s]\tLower  [s]\tMedian [s]\tUpper  [s]\tMax [s]";
   out << endl;
-  for (int i = 6; i <= max_size_pow2; i++) {
+  int i = factor_pow2 - 1;
+  while (true) {
+    i++;
+
     size_t n = (1 << (i - factor_pow2));
     size_t p = 1 << i;
     size_t m = (1 << (i - factor_pow2));
+
+    uint64_t total_size = (uint64_t)n * (uint64_t)p * (uint64_t)m;
+
+    if (total_size < min_size_total) continue;
+    if (total_size > max_size_total) break;
 
     M0 a = random_matrix<M0>(n, p);
     M1 b = random_matrix<M1>(p, m);
 
     string test = to_string(n) + "\t" + to_string(p) + "\t" + to_string(m);
-    measure(out, test, trials, [a, b]() { return a.operator*<M1, Mres>(b); });
+    measure(out, test, trials, [&a, &b]() { return a.operator*<M1, Mres>(b); });
   }
 }
 
 template <typename M0, typename M1, typename Mres>
 void test(ostream& out,
           const size_t trials,
-          size_t max_size_pow2) {
-  test_factor<M0, M1, Mres>(out, trials, 0, max_size_pow2);
-  test_factor<M0, M1, Mres>(out, trials, 6, max_size_pow2);
+          uint64_t min_size_total,
+          uint64_t max_size_total) {
+  test_factor<M0, M1, Mres>(out, trials, 0, min_size_total, max_size_total);
+  test_factor<M0, M1, Mres>(out, trials, 6, min_size_total, max_size_total);
 }

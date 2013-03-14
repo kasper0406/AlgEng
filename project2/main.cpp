@@ -12,7 +12,7 @@ using namespace std;
 
 void main() {
   cout.precision(8);
-  {
+  /*{
     M0 a(2, 3);
     M1 b(3, 2);
 
@@ -32,6 +32,7 @@ void main() {
     cout << "inden *" << endl;
     M0 c = a.operator*<M1, M0>(b);
     cout << "main end" << endl;
-    //test<M0,M1,M0>(cout, 10, 8);
-  }
+  }*/
+  test<M0,M1,M0>(cout, 5, 1024, 1024 * 1024);
+  cout << "done" << endl;
 }

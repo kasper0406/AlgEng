@@ -18,6 +18,22 @@ public:
   explicit BaseLayout(size_t n, size_t m) : n(n), m(m) {
   };
 
+  BaseLayout(BaseLayout&& other)
+  {
+    n = other.n;
+    m = other.m;
+  }
+
+  BaseLayout& operator=(BaseLayout&& other)
+  {
+    if (this != &other)
+    {
+      n = other.n;
+      m = other.m;
+    }
+    return *this;
+  }
+
   inline size_t rows() const {
     return n;
   };
@@ -32,21 +48,20 @@ class DataLayout : public BaseLayout<Element> {
 public:
   Element* data;
 
-  DataLayout(DataLayout&& other) : BaseLayout(n, m)
+  DataLayout(DataLayout&& other) : BaseLayout(move(other))
   {
-    std::cout << "Layout. Moving resource." << std::endl;
     data = other.data;
     other.data = nullptr;
   }
 
   DataLayout& operator=(DataLayout&& other)
   {
-    cout << "Layout Assignment" << endl;
     if (this != &other)
     {
       delete[] data;
 
       data = other.data;
+      BaseLayout::operator= (move(other));
 
       other.data = nullptr;
     }
@@ -54,11 +69,9 @@ public:
   }
 
   explicit DataLayout(size_t n, size_t m) : BaseLayout(n, m), data(new Element[n * m]) {
-    cout << "Constructor" << endl;
   };
 
   ~DataLayout() {
-    cout << "Layout Free " << data << endl;
     if (data != nullptr)
       delete[] data;
   };
