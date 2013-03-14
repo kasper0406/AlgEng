@@ -2,12 +2,17 @@ In this section we will describe the different algorithms and memory
 layouts we have used.
 
 \subsection{Simple multiplication}
-We started out implementing the simple conventional matrix
+
+\subsubsection{Row-based layout}
+We started out implementing the simple conventional $O(n^3)$ matrix
 multiplication algorithm where we stored the matrices using a row
 based layout.
 
-Expectations of cache faults here....
+\todo{Expectations of cache faults here....}
+
 We do not expect any significant amount of branch mispredictions.
+
+\subsubsection{Combined row-based and column-based layout}
 
 In order to improve the number of cache faults, we have tried to use a
 column base layout in the right operand in the multiplication. We
@@ -15,6 +20,6 @@ expect this to give us a bit better cache performance. This approach
 has the drawback of limiting a matrix only to be used on one side of a
 multiplication.
 
- * Rekursiv blocked layout
- * Specielle instruktioner til at parrelelisere simple multiplikationer
- * Flertrådet
+\todo{* Rekursiv blocked layout}
+\todo{* Specielle instruktioner til at parrelelisere simple multiplikationer}
+\todo{* Flertrådet}
