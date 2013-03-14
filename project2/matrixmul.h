@@ -19,7 +19,7 @@ public:
 
     for (uint32_t i = 0; i < a.rows(); i++) {
       for (uint32_t j = 0; j < b.columns(); j++) {
-        Mres::Element e(0);
+        typename Mres::Element e(0);
 
         for (uint32_t k = 0; k < a.columns(); k++) {
           e += a(i, k) * b(k, j);

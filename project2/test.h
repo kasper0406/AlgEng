@@ -41,7 +41,7 @@ template <typename Func>
 void measure(ostream& out,
              const string& description,
              const size_t trials,
-             Func& f)
+             Func f)
 {
   const size_t iMin = 0;
   const size_t iLower = trials / 4;
@@ -128,7 +128,7 @@ void test_factor(ostream& out,
     M1 b = random_matrix<M1>(p, m);
 
     string test = to_string(n) + "\t" + to_string(p) + "\t" + to_string(m);
-    measure(out, test, trials, [&a, &b]() { return a.operator*<M1, Mres>(b); });
+    measure(out, test, trials, [&a, &b]() { return a.template operator*<M1, Mres>(b); });
   }
 }
 

@@ -10,7 +10,7 @@ typedef Matrix<ColumnBased<double>, Naive> M1;
 
 using namespace std;
 
-void main() {
+int main(int argc, char *argv[]) {
   cout.precision(8);
   /*{
     M0 a(2, 3);
@@ -35,4 +35,6 @@ void main() {
   }*/
   test<M0,M1,M0>(cout, 5, 1024, 1024 * 1024);
   cout << "done" << endl;
+
+  return 0;
 }

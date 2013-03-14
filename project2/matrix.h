@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <stdexcept>
 #include <memory>
 #include <cassert>
 #include <vector>
@@ -19,7 +20,7 @@ public:
 
   explicit Matrix(size_t n, size_t m) : data(Layout(n, m)) { };
   Matrix(Matrix&& other) : data(move(other.data)) { cout << "Matrix. Moving resource." << endl; }
-  Matrix(const Matrix& other) : data(other.data) { throw exception("Do not copy matrices!"); }
+  Matrix(const Matrix& other) : data(other.data) { throw logic_error("Do not copy matrices!"); }
   Matrix& operator=(Matrix&& other)
   {
     cout << "Matrix Assignment" << endl;
@@ -29,7 +30,7 @@ public:
     return *this;
   }
 
-  Matrix(size_t n, size_t m, vector<vector<typename Element>> elements) : Matrix(n, m) {
+  Matrix(size_t n, size_t m, vector<vector<Element>> elements) : Matrix(n, m) {
     assert(elements.size() == n);
 
     for (uint32_t i = 0; i < elements.size(); i++) {
@@ -41,17 +42,17 @@ public:
     }
   };
 
-  inline typename Element operator()(size_t row, size_t column) const {
+  inline Element operator()(size_t row, size_t column) const {
     return data(row, column);
   };
     
-  inline typename Element& operator()(size_t row, size_t column) {
+  inline Element& operator()(size_t row, size_t column) {
     return data(row, column);
   };
 
   template <typename M1, typename Mres>
   Mres operator*(const M1& other) const {
-    return MatrixMul::multiply<type, M1, Mres>(*this, other);
+    return MatrixMul::template multiply<type, M1, Mres>(*this, other);
   };
 
   inline size_t rows() const {

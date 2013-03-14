@@ -8,12 +8,12 @@
 
 using namespace std;
 
-template <typename Element>
+template <typename E>
 class BaseLayout {
 public:
   size_t n, m;
 
-  typedef Element Element;
+  typedef E Element;
 
   explicit BaseLayout(size_t n, size_t m) : n(n), m(m) {
   };
@@ -48,7 +48,7 @@ class DataLayout : public BaseLayout<Element> {
 public:
   Element* data;
 
-  DataLayout(DataLayout&& other) : BaseLayout(move(other))
+  DataLayout(DataLayout&& other) : BaseLayout<Element>(move(other))
   {
     data = other.data;
     other.data = nullptr;
@@ -61,14 +61,14 @@ public:
       delete[] data;
 
       data = other.data;
-      BaseLayout::operator= (move(other));
+      BaseLayout<Element>::operator= (move(other));
 
       other.data = nullptr;
     }
     return *this;
   }
 
-  explicit DataLayout(size_t n, size_t m) : BaseLayout(n, m), data(new Element[n * m]) {
+  explicit DataLayout(size_t n, size_t m) : BaseLayout<Element>(n, m), data(new Element[n * m]) {
   };
 
   ~DataLayout() {
@@ -81,22 +81,22 @@ template <typename Element>
 class RowBased : public DataLayout<Element> {
 public:
   // Constructors and move semantics
-  explicit RowBased(size_t n, size_t m) : DataLayout(n, m) { };
-  RowBased(RowBased&& other) : DataLayout(move(other)) { };
+  explicit RowBased(size_t n, size_t m) : DataLayout<Element>(n, m) { };
+  RowBased(RowBased&& other) : DataLayout<Element>(move(other)) { };
   RowBased& operator=(RowBased&& other)
   {
-    DataLayout::operator= (move(other));
+    DataLayout<Element>::operator= (move(other));
     return *this;
   }
 
   inline Element operator()(size_t row, size_t column) const {
-    assert(row < n && column < m);
-    return data[row * m + column];
+    assert(row < this->n && column < this->m);
+    return this->data[row * this->m + column];
   };
     
   inline Element& operator()(size_t row, size_t column) {
-    assert(row < n && column < m);
-    return data[row * m + column];
+    assert(row < this->n && column < this->m);
+    return this->data[row * this->m + column];
   };
 
   static string config() {
@@ -108,22 +108,22 @@ template <typename Element>
 class ColumnBased : public DataLayout<Element> {
 public:
   // Constructors and move semantics
-  explicit ColumnBased(size_t n, size_t m) : DataLayout(n, m) { };
-  ColumnBased(ColumnBased&& other) : DataLayout(move(other)) { };
+  explicit ColumnBased(size_t n, size_t m) : DataLayout<Element>(n, m) { };
+  ColumnBased(ColumnBased&& other) : DataLayout<Element>(move(other)) { };
   ColumnBased& operator=(ColumnBased&& other)
   {
-    DataLayout::operator= (move(other));
+    DataLayout<Element>::operator= (move(other));
     return *this;
   }
 
   inline Element operator()(size_t row, size_t column) const {
-    assert(row < n && column < m);
-    return data[column * n + row];
+    assert(row < this->n && column < this->m);
+    return this->data[column * this->n + row];
   };
     
   inline Element& operator()(size_t row, size_t column) {
-    assert(row < n && column < m);
-    return data[column * n + row];
+    assert(row < this->n && column < this->m);
+    return this->data[column * this->n + row];
   };
 
   static string config() {
