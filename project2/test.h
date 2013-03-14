@@ -20,21 +20,24 @@
 
 #ifdef __linux__
 #include <papi.h>
+#include </ipcm/cpucounters.h>
 #endif
 
 using namespace std;
 using namespace std::chrono;
 
 struct Measurement {
-  Measurement(double time)
-    : time(time)
-  { }
-
   bool operator<(const Measurement& o) const {
     return time < o.time;
   }
 
-  double time;
+  double time = 0;
+
+  uint64_t l2_cache_hits = 0;
+  uint64_t l2_cache_misses = 0;
+  uint64_t l3_cache_hits = 0;
+  uint64_t l3_cache_misses = 0;
+  uint64_t instructions_retired = 0;
 };
 
 template <typename Func>
@@ -54,17 +57,40 @@ void measure(ostream& out,
   out << description << "\t" << trials << "\t";
   
   for (unsigned int i = 0; i < trials; i++) {
+    Measurement measurement;
+
     auto beginning = high_resolution_clock::now();
     
-    // Run the actual test
-    f();
-               
+#ifdef __linux__
+    PCM * m = PCM::getInstance();
+    // program counters, and on a failure just exit
+    if (m->program() != PCM::Success)
+      throw runtime_error("Failed to start PCM.");
+    SystemCounterState before_sstate = getSystemCounterState();
+#endif
+
+    // Run code to be benchmarked
+    f();      
+
+#ifdef __linux__
+    SystemCounterState after_sstate = getSystemCounterState();
+    measurement.l2_cache_hits        = getL2CacheHits(before_sstate, after_sstate);
+    measurement.l2_cache_misses      = getL2CacheMisses(before_sstate, after_sstate);
+    measurement.l3_cache_hits        = getL3CacheHits(before_sstate, after_sstate);
+    measurement.l3_cache_misses      = getL3CacheMisses(before_sstate, after_sstate);
+    measurement.instructions_retired = getInstructionsRetired(before_sstate, after_sstate);
+
+    m->cleanup();
+    delete m;
+#endif
+
     high_resolution_clock::duration duration =
     high_resolution_clock::now() - beginning;
     
     double time_spent = duration_cast<milliseconds>(duration).count() / 1000.;
 
-    measurements.push_back(Measurement(time_spent));
+    measurement.time = time_spent;
+    measurements.push_back(measurement);
   }
   
   // Could be optimized with selection instead of sorting
@@ -76,8 +102,11 @@ void measure(ostream& out,
   out << fixed << measurements[iUpper].time << "\t";
   out << fixed << measurements[iMax].time << "\t";
 
-  // TODO: Cache misses
-  out << "0\t0";
+  out << fixed << measurements[iMedian].l2_cache_hits << "\t";
+  out << fixed << measurements[iMedian].l2_cache_misses << "\t";
+  out << fixed << measurements[iMedian].l3_cache_hits << "\t";
+  out << fixed << measurements[iMedian].l3_cache_misses << "\t";
+  out << fixed << measurements[iMedian].instructions_retired << "\t";
   
   out << endl;
 };
@@ -127,8 +156,8 @@ void generate_plot(string outputfile, string data) {
      << "set pointsize 2" << endl
 
      << "plot '-' using (log2($1*$2*$3)):($7) title \"Time\" axes x1y1 with linespoints, \
-              '-' using (log2($1*$2*$3)):($10) title \"L1 cache misses\" axes x1y2 with linespoints, \
-              '-' using (log2($1*$2*$3)):($11) title \"L2 cache misses\" axes x1y2 with linespoints" << endl
+              '-' using (log2($1*$2*$3)):($11) title \"L1 cache misses\" axes x1y2 with linespoints, \
+              '-' using (log2($1*$2*$3)):($13) title \"L2 cache misses\" axes x1y2 with linespoints" << endl
 
     << data << endl << "e" << endl << data << endl << "e" << endl << data << endl << "e" << endl;
 
@@ -144,7 +173,11 @@ template <typename M0, typename M1, typename Mres>
       << "A: " << M0::config() << endl
       << "B: " << M1::config() << endl
       << "C: " << Mres::config() << endl
-      << "n\tp\tm\tTrials\tMin    [s]\tLower  [s]\tMedian [s]\tUpper  [s]\tMax [s]\tL1 miss\tL2 miss" << endl;
+      << "n\tp\tm\tTrials\tMin    [s]\tLower  [s]\tMedian [s]\tUpper  [s]\tMax [s]";
+
+  out << "\tL2 hits\tL2 misses\tL3 hits\tL3 misses\tInst. ret.";
+
+  out << endl;
 }
 
 template <typename M0, typename M1, typename Mres>
