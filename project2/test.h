@@ -27,17 +27,26 @@ using namespace std;
 using namespace std::chrono;
 
 struct Measurement {
+  Measurement()
+  : time(0),
+    l2_cache_hits(0),
+    l2_cache_misses(0),
+    l3_cache_hits(0),
+    l3_cache_misses(0),
+    instructions_retired(0)
+  { }
+
   bool operator<(const Measurement& o) const {
     return time < o.time;
   }
 
-  double time = 0;
+  double time;
 
-  uint64_t l2_cache_hits = 0;
-  uint64_t l2_cache_misses = 0;
-  uint64_t l3_cache_hits = 0;
-  uint64_t l3_cache_misses = 0;
-  uint64_t instructions_retired = 0;
+  uint64_t l2_cache_hits;
+  uint64_t l2_cache_misses;
+  uint64_t l3_cache_hits;
+  uint64_t l3_cache_misses;
+  uint64_t instructions_retired;
 };
 
 template <typename Func>
