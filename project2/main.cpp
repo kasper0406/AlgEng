@@ -5,10 +5,11 @@
 #include "matrixmul.h"
 #include "test.h"
 
-typedef Matrix<RowBased<double>, Naive> M0;
-typedef Matrix<ColumnBased<double>, Naive> M1;
+typedef Matrix<RowBased<double>, Naive> RN;
+typedef Matrix<ZCurve<double>, Naive> RZ;
+typedef Matrix<ColumnBased<double>, Naive> CN;
 
-typedef Matrix<RowBased<double>, Recursive<4>> Mrecursive;
+typedef Matrix<RowBased<double>, Recursive<4>> RR;
 
 using namespace std;
 
@@ -41,8 +42,16 @@ int main(int argc, char *argv[]) {
   }
    */
   
-  test<Mrecursive,Mrecursive,Mrecursive>(cout, 5, 32*32*32, 1024 * 1024 * 1024);
+  test<RR,RR,RR>(cout, 5, 32*32*32, 1024 * 1024 * 1024);
   cout << "done" << endl;
+  
+  // Test 1
+  //test<RN,RN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
+  //test<RN,CN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
+
+  // Test 2
+  //test<RN,RN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
+  //test<RZ,RZ,RZ>(cout, 1, 1024, 1024 * 1024 * 1024);
 
   return 0;
 }

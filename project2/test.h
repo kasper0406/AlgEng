@@ -104,11 +104,13 @@ void measure(ostream& out,
   out << fixed << measurements[iUpper].time << "\t";
   out << fixed << measurements[iMax].time << "\t";
 
+#ifdef __linux__
   out << fixed << measurements[iMedian].l2_cache_hits << "\t";
   out << fixed << measurements[iMedian].l2_cache_misses << "\t";
   out << fixed << measurements[iMedian].l3_cache_hits << "\t";
   out << fixed << measurements[iMedian].l3_cache_misses << "\t";
   out << fixed << measurements[iMedian].instructions_retired << "\t";
+#endif
   
   out << endl;
 };
@@ -179,8 +181,9 @@ template <typename M0, typename M1, typename Mres>
       << "B: " << M1::config() << endl
       << "C: " << Mres::config() << endl
       << "n\tp\tm\tTrials\tMin    [s]\tLower  [s]\tMedian [s]\tUpper  [s]\tMax [s]";
-
+#ifdef __linux__
   out << "\tL2 hits\tL2 misses\tL3 hits\tL3 misses\tInst. ret.";
+#endif
 
   out << endl;
 }
@@ -247,7 +250,7 @@ void test(ostream& out,
 #endif
 
   test_factor<M0, M1, Mres>(out, trials, 0, min_size_total, max_size_total);
-  test_factor<M0, M1, Mres>(out, trials, 6, min_size_total, max_size_total);
+  //test_factor<M0, M1, Mres>(out, trials, 6, min_size_total, max_size_total);
 
 #ifdef __linux__
   m->cleanup();

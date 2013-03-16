@@ -140,3 +140,53 @@ public:
     return "column-based";
   };
 };
+
+template <typename Element>
+class ZCurve : public DataLayout<Element> {
+public:
+  // Constructors and move semantics
+  explicit ZCurve(size_t n, size_t m) : DataLayout<Element>(n, m) { };
+  ZCurve(ZCurve&& other) : DataLayout<Element>(move(other)) { };
+  ZCurve& operator=(ZCurve&& other)
+  {
+    DataLayout<Element>::operator= (move(other));
+    return *this;
+  }
+
+  inline size_t interleave_bits(size_t row, size_t column) const {
+    static const size_t B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF};
+    static const size_t S[] = {1, 2, 4, 8};
+
+    size_t x = row;
+    size_t y = column;
+    size_t z;
+
+    x = (x | (x << S[3])) & B[3];
+    x = (x | (x << S[2])) & B[2];
+    x = (x | (x << S[1])) & B[1];
+    x = (x | (x << S[0])) & B[0];
+
+    y = (y | (y << S[3])) & B[3];
+    y = (y | (y << S[2])) & B[2];
+    y = (y | (y << S[1])) & B[1];
+    y = (y | (y << S[0])) & B[0];
+
+    z = x | (y << 1);
+
+    return z;
+  };
+
+  inline Element operator()(size_t row, size_t column) const {
+    assert(row < this->n && column < this->m);
+    return this->data[interleave_bits(row, column)];
+  };
+    
+  inline Element& operator()(size_t row, size_t column) {
+    assert(row < this->n && column < this->m);
+    return this->data[interleave_bits(row, column)];
+  };
+
+  static string config() {
+    return "z-curve";
+  };
+};
