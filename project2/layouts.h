@@ -5,6 +5,7 @@
 #include <cassert>
 #include <string>
 #include <iostream>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -72,7 +73,14 @@ public:
     return *this;
   }
 
-  explicit DataLayout(size_t n, size_t m) : BaseLayout<Element>(n, m), data(new Element[n * m]) {
+  explicit DataLayout(size_t n, size_t m) : BaseLayout<Element>(n, m), data(nullptr) {
+#ifndef WINDOWS
+    int res = posix_memalign((void**)&data, CACHE_LINE_SIZE, n * m * sizeof(Element));
+    if (res != 0)
+      throw runtime_error("Could not allocate memory!");
+#elif
+    data = new Element[n * m];
+#endif
   };
 
   inline void overwrite_entries(Element e) {
@@ -82,9 +90,17 @@ public:
   }
 
   ~DataLayout() {
-    if (data != nullptr)
+    if (data != nullptr) {
+#ifndef WINDOWS
       delete[] data;
+#elif
+      free(data);
+#endif
+    }
   };
+  
+private:
+  static const size_t CACHE_LINE_SIZE = 64;
 };
 
 template <typename Element>
