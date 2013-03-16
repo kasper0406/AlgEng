@@ -284,7 +284,7 @@ void sanity_check() {
 
     M a0 = a.convert<M>();
     M b0 = b.convert<M>();
-    M c0 = a0.operator*<M, M>(b0);
+    M c0 = a0.template operator*<M, M>(b0);
 
     if (c.operator!=<M>(c0)) {
       cout << "Sanity check failed!" << endl;
