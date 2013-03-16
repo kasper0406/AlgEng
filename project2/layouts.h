@@ -74,11 +74,11 @@ public:
   }
 
   explicit DataLayout(size_t n, size_t m) : BaseLayout<Element>(n, m), data(nullptr) {
-#ifndef WINDOWS
+#ifndef _WINDOWS
     int res = posix_memalign((void**)&data, CACHE_LINE_SIZE, n * m * sizeof(Element));
     if (res != 0)
       throw runtime_error("Could not allocate memory!");
-#elif
+#else
     data = new Element[n * m];
 #endif
   };
