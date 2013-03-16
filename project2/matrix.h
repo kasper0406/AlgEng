@@ -19,7 +19,7 @@ public:
   typedef typename Layout::Element Element;
 
   explicit Matrix(size_t n, size_t m) : data(Layout(n, m)) { };
-  Matrix(Matrix&& other) : data(move(other.data)) { cout << "Matrix. Moving resource." << endl; }
+  Matrix(Matrix&& other) : data(move(other.data)) {  }
   Matrix(const Matrix& other) : data(other.data) { throw logic_error("Do not copy matrices!"); }
   Matrix& operator=(Matrix&& other)
   {

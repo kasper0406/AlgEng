@@ -250,7 +250,7 @@ void test(ostream& out,
 #endif
 
   test_factor<M0, M1, Mres>(out, trials, 0, min_size_total, max_size_total);
-  test_factor<M0, M1, Mres>(out, trials, 6, min_size_total, max_size_total);
+  //test_factor<M0, M1, Mres>(out, trials, 6, min_size_total, max_size_total);
 
 #ifdef __linux__
   m->cleanup();

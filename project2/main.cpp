@@ -5,8 +5,9 @@
 #include "matrixmul.h"
 #include "test.h"
 
-typedef Matrix<RowBased<double>, Naive> MR;
-typedef Matrix<ColumnBased<double>, Naive> MC;
+typedef Matrix<RowBased<double>, Naive> RN;
+typedef Matrix<ZCurve<double>, Naive> RZ;
+typedef Matrix<ColumnBased<double>, Naive> CN;
 
 using namespace std;
 
@@ -14,8 +15,12 @@ int main(int argc, char *argv[]) {
   cout.precision(8);
   
   // Test 1
-  test<MR,MR,MR>(cout, 1, 1024, 1024 * 1024 * 1024);
-  test<MR,MC,MR>(cout, 1, 1024, 1024 * 1024 * 1024);
+  //test<RN,RN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
+  //test<RN,CN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
+
+  // Test 2
+  test<RN,RN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
+  test<RZ,RZ,RZ>(cout, 1, 1024, 1024 * 1024 * 1024);
 
   return 0;
 }
