@@ -13,6 +13,7 @@ using namespace std;
 int main(int argc, char *argv[]) {
   cout.precision(8);
   
+  // Test 1
   test<MR,MR,MR>(cout, 1, 1024, 1024 * 1024 * 1024);
   test<MR,MC,MR>(cout, 1, 1024, 1024 * 1024 * 1024);
 
