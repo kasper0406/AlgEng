@@ -7,7 +7,7 @@ IF(${LINUX})
   set(CMAKE_CXX_COMPUILER "clang++")
   set(CMAKE_BUILD_TYPE Release)
   set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -lpthread -lrt")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -lpthread -lrt")
 
   add_library(
     ipcm_lib
