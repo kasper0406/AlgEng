@@ -17,6 +17,7 @@
 #include <random>
 #include <cassert>
 #include <stdexcept>
+#include "layouts.h"
 
 #ifdef __linux__
 #include <papi.h>
@@ -115,7 +116,6 @@ void measure(ostream& out,
   out << endl;
 };
 
-random_device rd;
 mt19937 generator(100);
 uniform_real_distribution<double> distribution(0.0, 10000);
 auto random_double = bind(distribution, generator);
@@ -256,4 +256,41 @@ void test(ostream& out,
   m->cleanup();
   delete m;
 #endif
+}
+
+typedef Matrix<RowBased<double>, Naive> RN;
+
+template <typename M>
+void sanity_check() {
+  size_t factor_pow2 = 0;
+  size_t min_size_total = 16;
+  size_t max_size_total = 1024 * 1024;
+  int i = factor_pow2 - 1;
+  while (true) {
+    i++;
+
+    size_t n = (1 << (i - factor_pow2));
+    size_t p = 1 << i;
+    size_t m = (1 << (i - factor_pow2));
+
+    uint64_t total_size = (uint64_t)n * (uint64_t)p * (uint64_t)m;
+
+    if (total_size < min_size_total) continue;
+    if (total_size > max_size_total) break;
+
+    RN a = random_matrix<RN>(n, p);
+    RN b = random_matrix<RN>(p, m);
+    RN c = a.operator*<RN, RN>(b);
+
+    M a0 = a.convert<M>();
+    M b0 = b.convert<M>();
+    M c0 = a0.operator*<M, M>(b0);
+
+    if (c.operator!=<M>(c0)) {
+      cout << "Sanity check failed!" << endl;
+      break;
+    }
+  }
+
+  cout << "Sanity check completed." << endl;
 }

@@ -56,6 +56,40 @@ public:
     return data(row, column);
   };
 
+  template <typename M>
+  M convert() {
+    M other(this->rows(), this->columns());
+
+    for (uint32_t i = 0; i < this->rows(); i++) {
+      for (uint32_t j = 0; j < this->columns(); j++) {
+        other(i, j) = data(i, j);
+      }
+    }
+
+    return other;
+  };
+
+  template <typename M>
+  bool operator==(const M& other) const {
+    if (this->rows() != other.rows() || this->rows() != other.columns()) {
+      return false;
+    }
+
+    for (uint32_t i = 0; i < this->rows(); i++) {
+      for (uint32_t j = 0; j < this->columns(); j++) {
+        if (abs(data(i, j) - other(i, j)) > 0.0000000000001)
+          return false;
+      }
+    }
+
+    return true;
+  };
+
+  template <typename M>
+  bool operator!=(const M& other) const {
+    return !this->operator==(other);
+  };
+
   template <typename M1, typename Mres>
   Mres operator*(const M1& other) const {
     return MatrixMul::template multiply<type, M1, Mres>(*this, other);
