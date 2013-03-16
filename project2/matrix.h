@@ -20,12 +20,12 @@ public:
 
   explicit Matrix(size_t n, size_t m) : data(Layout(n, m)) { };
 
-  explicit Matrix(size_t n, size_t m, typename Layout::Element init) : Matrix(n, m)
+  explicit Matrix(size_t n, size_t m, typename Layout::Element init) : data(Layout(n, m))
   {
     data.overwrite_entries(init);
   }
 
-  Matrix(Matrix&& other) : data(move(other.data)) { cout << "Matrix. Moving resource." << endl; }
+  Matrix(Matrix&& other) : data(move(other.data)) { }
   Matrix(const Matrix& other) : data(other.data) { throw logic_error("Do not copy matrices!"); }
   Matrix& operator=(Matrix&& other)
   {
