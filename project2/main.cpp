@@ -39,8 +39,8 @@ int main(int argc, char *argv[]) {
   //test<RN,CN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
 
   // Test 2 (Z-curve)
-  //test<RN,RN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
-  //test<ZN,ZN,ZN>(cout, 1, 1024, 1024 * 1024 * 1024);
+  test<RN,RN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
+  test<ZN,ZN,ZN>(cout, 1, 1024, 1024 * 1024 * 1024);
 
   // Test 3 (Recursive)
   /*test<RN,RN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
@@ -54,8 +54,8 @@ int main(int argc, char *argv[]) {
   test<RP,CP,RP>(cout, 1, 1024, 1024 * 1024 * 1024);*/
 
   // Test 5 (Tiled recursive row/column vs. naive row/column)
-  test<RN,CN,RN>(cout, 1, 1024, 2048ULL * 2048ULL * 2048ULL);
-  test<RTR,CTR,RTR>(cout, 1, 1024, 2048ULL * 2048ULL * 2048ULL);
+  /*test<RN,CN,RN>(cout, 1, 1024, 2048ULL * 2048ULL * 2048ULL);
+  test<RTR,CTR,RTR>(cout, 1, 1024, 2048ULL * 2048ULL * 2048ULL);*/
 
   return 0;
 }

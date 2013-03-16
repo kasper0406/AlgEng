@@ -284,7 +284,11 @@ void sanity_check() {
 
     M a0 = a.convert<M>();
     M b0 = b.convert<M>();
+#ifndef _WINDOWS
     M c0 = a0.template operator*<M, M>(b0);
+#else
+    M c0 = a0.operator*<M, M>(b0);
+#endif
 
     if (c.operator!=<M>(c0)) {
       cout << "Sanity check failed!" << endl;
