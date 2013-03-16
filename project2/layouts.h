@@ -92,9 +92,9 @@ public:
   ~DataLayout() {
     if (data != nullptr) {
 #ifndef WINDOWS
-      delete[] data;
-#elif
       free(data);
+#else
+      delete[] data;
 #endif
     }
   };
