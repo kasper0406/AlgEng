@@ -41,6 +41,10 @@ public:
   inline size_t columns() const {
     return m;
   };
+
+  inline void overwrite_entries(Element e) {
+    throw runtime_error("Not implemented!");
+  }
 };
 
 template <typename Element>
@@ -70,6 +74,12 @@ public:
 
   explicit DataLayout(size_t n, size_t m) : BaseLayout<Element>(n, m), data(new Element[n * m]) {
   };
+
+  inline void overwrite_entries(Element e) {
+    const uint32_t size = this->n * this->m;
+    for (uint32_t i = 0; i < size; i++)
+      data[i] = e;
+  }
 
   ~DataLayout() {
     if (data != nullptr)
