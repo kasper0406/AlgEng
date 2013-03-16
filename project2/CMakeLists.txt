@@ -23,8 +23,6 @@ IF(${LINUX})
     PROPERTIES
     LINKER_LANGUAGE CXX
   )
-
-  target_link_libraries(Project2 ipcm_lib)
 ENDIF(${LINUX})
 
 add_executable(Project2 main.cpp
@@ -32,4 +30,7 @@ add_executable(Project2 main.cpp
                         layouts.h
                         matrixmul.h
                         test.h)
-
+                        
+IF(${LINUX})
+    target_link_libraries(Project2 ipcm_lib)
+ENDIF(${LINUX})
