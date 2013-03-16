@@ -10,6 +10,10 @@ typedef Matrix<ZCurve<double>, Naive> RZ;
 typedef Matrix<ColumnBased<double>, Naive> CN;
 
 typedef Matrix<RowBased<double>, Recursive<4>> RR;
+typedef Matrix<ZCurve<double>, Recursive<4>> RRZ;
+
+typedef Matrix<RowTiled<4, 4, double>, Recursive<4>> RTR;
+typedef Matrix<ColumnTiled<4, 4, double>, Recursive<4>> CTR;
 
 using namespace std;
 
@@ -42,7 +46,18 @@ int main(int argc, char *argv[]) {
   }
    */
   
-  test<RR,RR,RR>(cout, 5, 32*32*32, 1024 * 1024 * 1024);
+  /*
+  CTR test(4, 4,
+           { { 1, 2, 3, 4 },
+             { 5, 6, 7, 8 },
+             { 9, 10, 11, 12 },
+             { 13, 14, 15, 16} });
+  
+  cout << test(0,0) << endl;
+   */
+  
+  //test<RR,RR,RR>(cout, 5, 32*32*32, 1024 * 1024 * 1024);
+  test<RTR,CTR,RTR>(cout, 5, 32*32*32, 1024 * 1024 * 1024);
   cout << "done" << endl;
   
   // Test 1
