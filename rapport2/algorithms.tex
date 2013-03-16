@@ -22,17 +22,30 @@ multiplication.
 
 \subsection{Recursive multiplication}
 
-...
+For exploiting more kinds of layouts we implemented the recursive algorithm.
 
 \subsubsection{Z-curve layout}
 
-...
+The first idea was to use a Z-curved layout. One major advantage of this layout is that improves locality on all levels of the recursive multiplication. The drawback is that the index calculations are time consuming. On x86 we get approximately 50 bitwise operations each time. However, this can be improved by incrementally constructing the Z-curve numbers. The upcoming Intel Haswell architecture has support for bit permutations which will improve the situation.
 
-\todo{Haswell}
+In the recursive algorithm we used 4*4 as a base case for switching to the naive algorithm.
+
+\todo{Hvorfor faar vi saa mange cache faults?}
+
+\todo{Lav dem inkrementielt?}
 
 \subsubsection{Tiled layout}
 
+A tiled layout is a compromise between locality and performance of index calculations. When the recursive algorithm reaches blocks of the same size as the tiles, it switches to the naive algorithm. And the naive algorithm functions without any modifications.
+
+\subsection{Special instructions}
+
 ...
 
-\todo{* Specielle instruktioner til at parrelelisere simple multiplikationer}
-\todo{* Flertrådet}
+\subsection{Parallelization}
+
+\subsubsection{Combined row-based and column-based layout}
+
+The naive algorithm which is used for this combined is easily parallelizable because we can assign intervals of rows for each thread. The result matrix is stored in a row-based layout so writing is separated so cache thrashing should not be a problem.
+
+...

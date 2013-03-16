@@ -39,8 +39,8 @@ int main(int argc, char *argv[]) {
   //test<RN,CN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
 
   // Test 2 (Z-curve)
-  test<RN,RN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
-  test<ZR,ZR,ZR>(cout, 1, 1024, 1024 * 1024 * 1024);
+  /*test<RN,RN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
+  test<ZN,ZN,ZN>(cout, 1, 1024, 1024 * 1024 * 1024);*/
 
   // Test 3 (Recursive)
   /*test<RN,RN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
