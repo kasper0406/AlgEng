@@ -4,8 +4,10 @@
 #include <cassert>
 #include <memory>
 #include <string>
-#include "matrix.h"
 #include <iostream>
+#include <thread>
+#include <vector>
+#include "matrix.h"
 
 using namespace std;
 
@@ -35,6 +37,58 @@ public:
 
   static string config() {
     return "naive";
+  };
+};
+
+template <size_t T>
+class ParallelNaive {
+public:
+  template <typename M0, typename M1, typename Mres>
+  static Mres multiply(const M0& a, const M1& b) {
+    assert(a.columns() == b.rows());
+
+    Mres c(a.rows(), b.columns());
+
+    vector<thread> threads;
+
+    size_t a_rows = a.rows();
+    size_t slice = a_rows / T;
+
+    for(int t = 0; t < T; ++t){
+      uint32_t from = t * slice;
+      uint32_t to = t == T - 1 ? a_rows : (t + 1) * slice;
+
+      auto run = [&a, &b, &c, from, to](){
+        for (uint32_t i = from; i < to; i++) {
+          for (uint32_t j = 0; j < b.columns(); j++) {
+            typename Mres::Element e(0);
+
+            for (uint32_t k = 0; k < a.columns(); k++) {
+              e += a(i, k) * b(k, j);
+            }
+
+            c(i, j) = e;
+          }
+        }
+      };
+
+      if (t == T - 1) {
+        run();
+      } else {
+        threads.push_back(thread(run));
+      }
+    }
+
+    for(auto& thread : threads){
+      thread.join();
+    }
+    
+    // Move semantics
+    return c;
+  };
+
+  static string config() {
+    return to_string(T) + "parallel naive";
   };
 };
 

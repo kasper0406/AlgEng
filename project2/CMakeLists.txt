@@ -37,7 +37,11 @@ add_executable(Project2 main.cpp
                         layouts.h
                         matrixmul.h
                         test.h)
-target_link_libraries(Project2 pthread)
+
+IF(UNIX)
+    target_link_libraries(Project2 pthread)
+ENDIF(UNIX)
+
 IF(${LINUX})
   target_link_libraries(Project2 ipcm_lib rt)
 ENDIF(${LINUX})
