@@ -5,6 +5,7 @@
 #include <cassert>
 #include <string>
 #include <iostream>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -72,7 +73,14 @@ public:
     return *this;
   }
 
-  explicit DataLayout(size_t n, size_t m) : BaseLayout<Element>(n, m), data(new Element[n * m]) {
+  explicit DataLayout(size_t n, size_t m) : BaseLayout<Element>(n, m), data(nullptr) {
+#ifndef WINDOWS
+    int res = posix_memalign((void**)&data, CACHE_LINE_SIZE, n * m * sizeof(Element));
+    if (res != 0)
+      throw runtime_error("Could not allocate memory!");
+#elif
+    data = new Element[n * m];
+#endif
   };
 
   inline void overwrite_entries(Element e) {
@@ -82,9 +90,17 @@ public:
   }
 
   ~DataLayout() {
-    if (data != nullptr)
+    if (data != nullptr) {
+#ifndef WINDOWS
       delete[] data;
+#elif
+      free(data);
+#endif
+    }
   };
+  
+private:
+  static const size_t CACHE_LINE_SIZE = 64;
 };
 
 template <typename Element>
@@ -188,5 +204,71 @@ public:
 
   static string config() {
     return "z-curve";
+  };
+};
+
+template <uint32_t W, uint32_t H, typename Element>
+class RowTiled : public DataLayout<Element> {
+public:
+  // Constructors and move semantics
+  explicit RowTiled(size_t n, size_t m) : DataLayout<Element>(n, m) { };
+  RowTiled(RowTiled&& other) : DataLayout<Element>(move(other)) { };
+  RowTiled& operator=(RowTiled&& other)
+  {
+    DataLayout<Element>::operator= (move(other));
+    return *this;
+  }
+  
+  inline size_t calculate_index(size_t row, size_t column) const {
+    const uint32_t C = column / W;
+    const uint32_t R = row / H;
+    return C * H * W + R * H * this->n + (row % H) * W + (column % W);
+  }
+  
+  inline Element operator()(size_t row, size_t column) const {
+    assert(row < this->n && column < this->m);
+    return this->data[calculate_index(row, column)];
+  };
+  
+  inline Element& operator()(size_t row, size_t column) {
+    assert(row < this->n && column < this->m);
+    return this->data[calculate_index(row, column)];
+  };
+  
+  static string config() {
+    return "row-tiled" + to_string(W) + "x" + to_string(H);
+  };
+};
+
+template <uint32_t W, uint32_t H, typename Element>
+class ColumnTiled : public DataLayout<Element> {
+public:
+  // Constructors and move semantics
+  explicit ColumnTiled(size_t n, size_t m) : DataLayout<Element>(n, m) { };
+  ColumnTiled(ColumnTiled&& other) : DataLayout<Element>(move(other)) { };
+  ColumnTiled& operator=(ColumnTiled&& other)
+  {
+    DataLayout<Element>::operator= (move(other));
+    return *this;
+  }
+  
+  inline size_t calculate_index(size_t row, size_t column) const {
+    const uint32_t C = column / W;
+    const uint32_t R = row / H;
+    return C * H * W + R * H * this->n + (row % H) + (column % W) * H;
+  }
+  
+  inline Element operator()(size_t row, size_t column) const {
+    assert(row < this->n && column < this->m);
+    return this->data[calculate_index(row, column)];
+  };
+  
+  inline Element& operator()(size_t row, size_t column) {
+    assert(row < this->n && column < this->m);
+    return this->data[calculate_index(row, column)];
+  };
+  
+  static string config() {
+    return "column-tiled-" + to_string(W) + "x" + to_string(H);
   };
 };
