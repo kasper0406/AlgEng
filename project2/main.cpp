@@ -10,6 +10,7 @@ typedef Matrix<ColumnBased<double>, Naive> CN;
 typedef Matrix<ZCurve<double>, Naive> ZN;
 
 typedef Matrix<RowBased<double>, Recursive<4>> RR;
+typedef Matrix<ColumnBased<double>, Recursive<4>> RC;
 typedef Matrix<ZCurve<double>, Recursive<4>> RRZ;
 
 typedef Matrix<RowTiled<4, 4, double>, Recursive<4>> RTR;
@@ -51,6 +52,10 @@ int main(int argc, char *argv[]) {
   // Test 4 (Parallel row column)
   /*test<RN,CN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
   test<RP,CP,RP>(cout, 1, 1024, 1024 * 1024 * 1024);*/
+
+  // Test 5 (Tiled recursive row/column vs. naive row/column)
+  test<RN,CN,RN>(cout, 1, 1024, 2048ULL * 2048ULL * 2048ULL);
+  test<RTR,CTR,RTR>(cout, 1, 1024, 2048ULL * 2048ULL * 2048ULL);
 
   return 0;
 }
