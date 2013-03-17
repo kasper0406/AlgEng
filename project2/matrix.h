@@ -10,13 +10,10 @@
 
 using namespace std;
 
-template <class Layout, typename MatrixMul>
+template <class L, typename MatrixMul>
 class Matrix {
-  Layout data;
-
-  typedef Matrix<Layout, MatrixMul> type;
-
 public:
+  typedef L Layout;
   typedef typename Layout::Element Element;
 
   explicit Matrix(size_t n, size_t m) : data(Layout(n, m)) { };
@@ -55,6 +52,14 @@ public:
     
   inline Element& operator()(size_t row, size_t column) {
     return data(row, column);
+  };
+    
+  inline Element at(size_t index) const {
+    return data.at(index);
+  };
+    
+  inline Element& at(size_t index) {
+    return data.at(index);
   };
 
   template <typename M>
@@ -107,4 +112,8 @@ public:
   static string config() {
     return Layout::config() + " " + MatrixMul::config();
   };
+    
+private:
+  typedef Matrix<Layout, MatrixMul> type;    
+  Layout data;
 };

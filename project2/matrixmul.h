@@ -92,7 +92,84 @@ public:
   };
 };
 
-template<int B>
+class GenericBCMultiplier
+{
+public:
+  template<typename M0, typename M1, typename Mres>
+  inline static void multiply(Mres& result, const M0& a, const M1& b,
+                       uint32_t a_row_start, uint32_t a_row_stop,
+                       uint32_t a_col_start, uint32_t a_col_stop,
+                       uint32_t b_row_start, uint32_t b_row_stop,
+                       uint32_t b_col_start, uint32_t b_col_stop,
+                       uint32_t res_row_start, uint32_t res_row_stop,
+                       uint32_t res_col_start, uint32_t res_col_stop)
+  {
+    const uint32_t n = a_col_stop - a_col_start;
+    for (uint32_t i = res_row_start; i < res_row_stop; i++) {
+      for (uint32_t j = res_col_start; j < res_col_stop; j++) {
+        // Load result element
+        typename Mres::Element e = result(i, j);
+        
+        for (uint32_t k = 0; k < n; k++) {
+          e += a(i, a_col_start + k) * b(b_row_start + k, j);
+        }
+        
+        result(i, j) = e;
+      }
+    }
+  }
+};
+
+class TiledBCMultiplier
+{
+public:
+  template<typename M0, typename M1, typename Mres>
+  inline static void multiply(Mres& result, const M0& a, const M1& b,
+                       uint32_t a_row_start, uint32_t a_row_stop,
+                       uint32_t a_col_start, uint32_t a_col_stop,
+                       uint32_t b_row_start, uint32_t b_row_stop,
+                       uint32_t b_col_start, uint32_t b_col_stop,
+                       uint32_t res_row_start, uint32_t res_row_stop,
+                       uint32_t res_col_start, uint32_t res_col_stop)
+  {
+    const size_t C_a = a_col_start / M0::Layout::WIDTH;
+    const size_t R_a = a_row_start / M0::Layout::HEIGHT;
+    const size_t a_start_index = C_a * M0::Layout::WIDTH * M0::Layout::HEIGHT + R_a * M0::Layout::HEIGHT * a.columns();
+    
+    const size_t C_b = b_col_start / M1::Layout::WIDTH;
+    const size_t R_b = b_row_start / M1::Layout::HEIGHT;
+    const size_t b_start_index = C_b * M1::Layout::WIDTH * M1::Layout::HEIGHT + R_b * M1::Layout::HEIGHT * b.columns();
+    
+    const size_t C_res = res_col_start / Mres::Layout::WIDTH;
+    const size_t R_res = res_row_start / Mres::Layout::HEIGHT;
+    const size_t res_start_index = C_res * Mres::Layout::WIDTH * Mres::Layout::HEIGHT + R_res * Mres::Layout::HEIGHT * result.columns();
+    
+    const uint32_t m = a_row_stop - a_row_start;
+    const uint32_t n = a_col_stop - a_col_start;
+    const uint32_t p = b_col_stop - b_col_start;
+    
+    // Base case: Do standard multiplication
+    for (uint32_t i = 0; i < m; i++) {
+      // TODO: Consider how to make this work with arbitrary tiling!!!
+      const size_t a_start_row = a_start_index + i * M0::Layout::WIDTH;
+      const size_t res_start_row = res_start_index + i * Mres::Layout::WIDTH;
+      
+      for (uint32_t j = 0; j < p; j++) {
+        // Load result element
+        typename Mres::Element& e = result.at(res_start_row + j);
+        
+        for (uint32_t k = 0; k < n; k++) {
+          // e += a(i, a_col_start + k) * b(b_row_start + k, j);
+          e += a.at(a_start_row + k) * b.at(b_start_index + j * M1::Layout::HEIGHT + k);
+        }
+        
+        // result.at(res_start_row + j) = e;
+      }
+    }
+  }
+};
+
+template<int B, typename BaseCaseMultiplier>
 class Recursive {
 public:
   template <typename M0, typename M1, typename Mres>
@@ -134,20 +211,17 @@ private:
     assert(p == res_col_stop - res_col_start);
 
     if (m <= B && n <= B && p <= B) {
-      // Base case: Do standard multiplication
-      for (uint32_t i = res_row_start; i < res_row_stop; i++) {
-        for (uint32_t j = res_col_start; j < res_col_stop; j++) {
-          // Load result element
-          typename Mres::Element e = result(i, j);
-
-          for (uint32_t k = 0; k < n; k++) {
-            e += a(i, a_col_start + k) * b(b_row_start + k, j);
-          }
-
-          result(i, j) = e;
-        }
-      }
-
+#ifndef _WINDOWS
+      BaseCaseMultiplier::template multiply<M0, M1, Mres>(result, a, b,
+                                                          a_row_start, a_row_stop, a_col_start, a_col_stop,
+                                                          b_row_start, b_row_stop, b_col_start, b_col_stop,
+                                                          res_row_start, res_row_stop, res_col_start, res_col_stop);
+#else
+      BaseCaseMultiplier::multiply<M0, M1, Mres>(result, a, b,
+                                                 a_row_start, a_row_stop, a_col_start, a_col_stop,
+                                                 b_row_start, b_row_stop, b_col_start, b_col_stop,
+                                                 res_row_start, res_row_stop, res_col_start, res_col_stop);
+#endif
     } else if (m > p && m >= n) {
       // Split a
       const uint32_t mid = m / 2;

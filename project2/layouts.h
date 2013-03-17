@@ -88,6 +88,16 @@ public:
     for (uint32_t i = 0; i < size; i++)
       data[i] = e;
   }
+  
+  inline Element at(size_t index) const {
+    assert(index < this->n * this->m);
+    return this->data[index];
+  };
+  
+  inline Element& at(size_t index) {
+    assert(index < this->n * this->m);
+    return this->data[index];
+  };
 
   ~DataLayout() {
     if (data != nullptr) {
@@ -210,6 +220,9 @@ public:
 template <uint32_t W, uint32_t H, typename Element>
 class RowTiled : public DataLayout<Element> {
 public:
+  static const uint32_t WIDTH = W;
+  static const uint32_t HEIGHT = H;
+  
   // Constructors and move semantics
   explicit RowTiled(size_t n, size_t m) : DataLayout<Element>(n, m) { };
   RowTiled(RowTiled&& other) : DataLayout<Element>(move(other)) { };
@@ -243,6 +256,9 @@ public:
 template <uint32_t W, uint32_t H, typename Element>
 class ColumnTiled : public DataLayout<Element> {
 public:
+  static const uint32_t WIDTH = W;
+  static const uint32_t HEIGHT = H;
+  
   // Constructors and move semantics
   explicit ColumnTiled(size_t n, size_t m) : DataLayout<Element>(n, m) { };
   ColumnTiled(ColumnTiled&& other) : DataLayout<Element>(move(other)) { };
