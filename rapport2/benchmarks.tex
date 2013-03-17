@@ -1,8 +1,6 @@
 \subsection{Test setup}
 
-Our program was written in C/C++ and compiled with Clang. All memory allocations were cache line boundary aligned.
-
-\todo{Tjek at det rent faktisk ogsaa er gjort.}
+Our program was written in C/C++ and compiled with Clang. All memory allocations were cache line boundary aligned. For parallelization we used C++11 cross-platform library \texttt{<thread>}.
 
 All benchmarks were performed on a Linux desktop which has 4 GB ram and a Core i3 550 CPU with the following specification:
 
@@ -44,4 +42,16 @@ an uniform distribution. The range of the data was 0 to
   \centering
   \includegraphics[width=\textwidth]{rncnrn0.pdf}
   \label{fig:rncnrn0}
+\end{figure}
+
+\subsection{Recursive multiplication}
+
+\subsubsection{Z-curve layout}
+
+\ref{fig:zrzrzr0}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{zrzrzr0.pdf}
+  \label{fig:zrzrzr0}
 \end{figure}

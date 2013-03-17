@@ -12,6 +12,7 @@ typedef Matrix<ColumnBased<double>, Naive> CN;
 typedef Matrix<ZCurve<double>, Naive> ZN;
 
 typedef Matrix<RowBased<double>, Recursive<4, GenericBCMultiplier>> RR;
+typedef Matrix<ColumnBased<double>, Recursive<4, GenericBCMultiplier>> RC;
 typedef Matrix<ZCurve<double>, Recursive<4, GenericBCMultiplier>> RRZ;
 
 typedef Matrix<RowTiled<B, B, double>, Recursive<B, TiledBCMultiplier>> RTR;
@@ -47,8 +48,8 @@ int main(int argc, char *argv[]) {
   //test<RN,CN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
 
   // Test 2 (Z-curve)
-  //test<RN,RN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
-  //test<ZN,ZN,ZN>(cout, 1, 1024, 1024 * 1024 * 1024);
+  /*test<RN,RN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
+  test<ZN,ZN,ZN>(cout, 1, 1024, 1024 * 1024 * 1024);*/
 
   // Test 3 (Recursive)
   /*test<RN,RN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
@@ -60,6 +61,10 @@ int main(int argc, char *argv[]) {
   // Test 4 (Parallel row column)
   /*test<RN,CN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
   test<RP,CP,RP>(cout, 1, 1024, 1024 * 1024 * 1024);*/
+
+  // Test 5 (Tiled recursive row/column vs. naive row/column)
+  /*test<RN,CN,RN>(cout, 1, 1024, 2048ULL * 2048ULL * 2048ULL);
+  test<RTR,CTR,RTR>(cout, 1, 1024, 2048ULL * 2048ULL * 2048ULL);*/
 
   return 0;
 }
