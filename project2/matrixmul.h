@@ -219,11 +219,69 @@ private:
 };
 template<int B> const array<int, B * B> ZLayoutBCMultiplier<B>::offsets = ZLayoutBCMultiplier<B>::makeIndexes();
 
+// TODO: Assumes equal columns and rows! and base of two!
+template<int B, typename BaseCaseMultiplier>
+class Strassen {
+public:
+  template <typename M0, typename M1, typename Mres>
+  static Mres multiply(const M0& a, const M1& b) {
+    assert(a.columns() == b.rows());
+
+    size_t n = a.rows();
+    size_t p = a.columns();
+    size_t m = b.columns();
+
+    if (m <= B && n <= B && p <= B) {
+      Mres c(a.rows(), b.columns(), 0); // TODO: Init necessary?
+#ifndef _WINDOWS
+      BaseCaseMultiplier::template multiply<M0, M1, Mres>(c, a, b,
+                                                          0, a.rows(), 0, a.columns(),
+                                                          0, b.rows(), 0, b.columns(),
+                                                          0, a.rows(), 0, b.columns());
+#else
+      BaseCaseMultiplier::multiply<M0, M1, Mres>(c, a, b,
+                                                 0, a.rows(), 0, a.columns(),
+                                                 0, b.rows(), 0, b.columns(),
+                                                 0, a.rows(), 0, b.columns());
+#endif
+
+      return c;
+    } else {
+      size_t new_n = n / 2;
+      size_t new_p = p / 2;
+      size_t new_m = m / 2;
+
+      M0 a11(a, 0, new_n, 0, new_p);
+      M0 a12(a, new_n, n, 0, new_p);
+      M0 a21(a, 0, new_n, new_p, p);
+      M0 a22(a, new_n, n, new_p, p);
+
+      M1 b11(a, 0, new_p, 0, new_m);
+      M1 b12(a, new_p, p, 0, new_m);
+      M1 b21(a, 0, new_p, new_m, m);
+      M1 b22(a, new_p, p, new_m, m);
+
+      /*
+      Mres c11 = a11.operator*<M0, M1>(b11).operator+<Mres, Mres>(a12.operator*<M0, M1>(b21));
+      Mres c12 = a11.operator*<M0, M1>(b12).operator+<Mres, Mres>(a12.operator*<M0, M1>(b22));
+      Mres c21 = a21.operator*<M0, M1>(b11).operator+<Mres, Mres>(a22.operator*<M0, M1>(b21));
+      Mres c22 = a21.operator*<M0, M1>(b12).operator+<Mres, Mres>(a22.operator*<M0, M1>(b22));
+
+      return Mres(c11, c12, c21, c22);
+       */
+    }
+  };
+
+  static string config() {
+    return "strassen-" + to_string(B);
+  };
+};
+
 template<int B, typename BaseCaseMultiplier>
 class Recursive {
 public:
   template <typename M0, typename M1, typename Mres>
-    static Mres multiply(const M0& a, const M1& b) {
+  static Mres multiply(const M0& a, const M1& b) {
     assert(a.columns() == b.rows());
 
     Mres c(a.rows(), b.columns(), 0);
@@ -312,99 +370,6 @@ private:
   }
 };
 
-template<int B, typename BaseCaseMultiplier>
-class FooBarBaz {
-public:
-  template <typename M0, typename M1, typename Mres>
-  static Mres multiply(const M0& a, const M1& b) {
-    assert(a.columns() == b.rows());
-    
-    Mres c(a.rows(), b.columns(), 0);
-    do_multiplication(c, a, b,
-                      0, a.rows(), 0, a.columns(),
-                      0, b.rows(), 0, b.columns(),
-                      0, c.rows(), 0, c.columns());
-    
-    return c;
-  }
-  
-  static string config() {
-    return "recursive-" + to_string(B);
-  };
-  
-  
-private:
-  // Assumption c is 0 initialized
-  template <typename M0, typename M1, typename Mres>
-  static void do_multiplication(Mres& result, const M0& a, const M1& b,
-                                uint32_t a_row_start, uint32_t a_row_stop,
-                                uint32_t a_col_start, uint32_t a_col_stop,
-                                uint32_t b_row_start, uint32_t b_row_stop,
-                                uint32_t b_col_start, uint32_t b_col_stop,
-                                uint32_t res_row_start, uint32_t res_row_stop,
-                                uint32_t res_col_start, uint32_t res_col_stop)
-  {
-    // Notation from article
-    const uint32_t m = a_row_stop - a_row_start;
-    const uint32_t n = a_col_stop - a_col_start;
-    assert(n == b_row_stop - b_row_start);
-    const uint32_t p = b_col_stop - b_col_start;
-    
-    assert(m == res_row_stop - res_row_start);
-    assert(p == res_col_stop - res_col_start);
-    
-    if (m <= B && n <= B && p <= B) {
-#ifndef _WINDOWS
-      BaseCaseMultiplier::template multiply<M0, M1, Mres>(result, a, b,
-                                                          a_row_start, a_row_stop, a_col_start, a_col_stop,
-                                                          b_row_start, b_row_stop, b_col_start, b_col_stop,
-                                                          res_row_start, res_row_stop, res_col_start, res_col_stop);
-#else
-      BaseCaseMultiplier::multiply<M0, M1, Mres>(result, a, b,
-                                                 a_row_start, a_row_stop, a_col_start, a_col_stop,
-                                                 b_row_start, b_row_stop, b_col_start, b_col_stop,
-                                                 res_row_start, res_row_stop, res_col_start, res_col_stop);
-#endif
-    } else if (m > p && m >= n) {
-      // Split a
-      const uint32_t mid = m / 2;
-      do_multiplication(result, a, b,
-                        a_row_start, a_row_start + mid, a_col_start, a_col_stop,
-                        b_row_start, b_row_stop, b_col_start, b_col_stop,
-                        res_row_start, res_row_start + mid, res_col_start, res_col_stop);
-      do_multiplication(result, a, b,
-                        a_row_start + mid, a_row_stop, a_col_start, a_col_stop,
-                        b_row_start, b_row_stop, b_col_start, b_col_stop,
-                        res_row_start + mid, res_row_stop, res_col_start, res_col_stop);
-    } else if (n > max(m, p)) {
-      // Split both
-      const uint32_t mid = n / 2;
-      do_multiplication(result, a, b,
-                        a_row_start, a_row_stop, a_col_start, a_col_start + mid,
-                        b_row_start, b_row_start + mid, b_col_start, b_col_stop,
-                        res_row_start, res_row_stop, res_col_start, res_col_stop);
-      do_multiplication(result, a, b,
-                        a_row_start, a_row_stop, a_col_start + mid, a_col_stop,
-                        b_row_start + mid, b_row_stop, b_col_start, b_col_stop,
-                        res_row_start, res_row_stop, res_col_start, res_col_stop);
-    } else {
-      assert(p >= max(m, n));
-      
-      // Split b
-      const uint32_t mid = p / 2;
-      do_multiplication(result, a, b,
-                        a_row_start, a_row_stop, a_col_start, a_col_stop,
-                        b_row_start, b_row_stop, b_col_start, b_col_start + mid,
-                        res_row_start, res_row_stop, res_col_start, res_col_start + mid);
-      do_multiplication(result, a, b,
-                        a_row_start, a_row_stop, a_col_start, a_col_stop,
-                        b_row_start, b_row_stop, b_col_start + mid, b_col_stop,
-                        res_row_start, res_row_stop, res_col_start + mid, res_col_stop);
-      
-    }
-  }
-};
-
 /*
  * CreateThreadDepth: Depth in recursion where recursive calls are spawned
  *   in new threads. Hence 2^{CreateThreadLevel} threads will be created!
@@ -417,10 +382,13 @@ public:
     assert(a.columns() == b.rows());
     
     Mres c(a.rows(), b.columns(), 0);
-    do_multiplication(c, a, b,
-                      0, a.rows(), 0, a.columns(),
-                      0, b.rows(), 0, b.columns(),
-                      0, c.rows(), 0, c.columns());
+    Multiplier<M0, M1, Mres> multiplier(c, a, b);
+    multiplier.do_multiplication(0, a.rows(), 0, a.columns(),
+                                 0, b.rows(), 0, b.columns(),
+                                 0, c.rows(), 0, c.columns(),
+                                 0);
+    multiplier.join();
+    
     return c;
   }
   
@@ -430,26 +398,32 @@ public:
   
   
 private:
-  /*
-  // Assumption c is 0 initialized
   template <typename M0, typename M1, typename Mres>
-  static void do_multiplication(Mres& result, const M0& a, const M1& b)
-  {
-    vector<thread> threads;
-    threads.reserve(1 << CreateThreadDepth);
-    mutex
+  class Multiplier {
+  private:
+    Mres& result;
+    const M0& a;
+    const M1& b;
     
-    function<void(uint32_t,uint32_t,uint32_t,uint32_t,
-                  uint32_t,uint32_t,uint32_t,uint32_t,
-                  uint32_t,uint32_t,uint32_t,uint32_t,
-                  uint32_t)> recurse;
-    recurse = [&result, &a, &b, &recurse] (uint32_t a_row_start, uint32_t a_row_stop,
-                                           uint32_t a_col_start, uint32_t a_col_stop,
-                                           uint32_t b_row_start, uint32_t b_row_stop,
-                                           uint32_t b_col_start, uint32_t b_col_stop,
-                                           uint32_t res_row_start, uint32_t res_row_stop,
-                                           uint32_t res_col_start, uint32_t res_col_stop,
-                                           uint32_t thread_depth) {
+    vector<thread> threads;
+    mutex threads_mutex;
+    
+  public:
+    Multiplier(Mres& result, const M0& a, const M1& b)
+      : result(result), a(a), b(b)
+    {
+      threads.reserve(1 << CreateThreadDepth);
+    }
+    
+    // Assumption c is 0 initialized
+    void do_multiplication(uint32_t a_row_start, uint32_t a_row_stop,
+                           uint32_t a_col_start, uint32_t a_col_stop,
+                           uint32_t b_row_start, uint32_t b_row_stop,
+                           uint32_t b_col_start, uint32_t b_col_stop,
+                           uint32_t res_row_start, uint32_t res_row_stop,
+                           uint32_t res_col_start, uint32_t res_col_stop,
+                           unsigned short thread_depth)
+    {
       // Notation from article
       const uint32_t m = a_row_stop - a_row_start;
       const uint32_t n = a_col_stop - a_col_start;
@@ -474,139 +448,81 @@ private:
       } else if (m > p && m >= n) {
         // Split a
         const uint32_t mid = m / 2;
-        thread t(recurse,
-                 a_row_start, a_row_start + mid, a_col_start, a_col_stop,
-                 b_row_start, b_row_stop, b_col_start, b_col_stop,
-                 res_row_start, res_row_start + mid, res_col_start, res_col_stop,
-                 thread_depth + 1);
+        auto run = [a_row_start, a_col_start, a_col_stop,
+                    b_row_start, b_row_stop, b_col_start, b_col_stop,
+                    res_row_start, res_col_start, res_col_stop,
+                    thread_depth, mid, this] () {
+          do_multiplication(a_row_start, a_row_start + mid, a_col_start, a_col_stop,
+                            b_row_start, b_row_stop, b_col_start, b_col_stop,
+                            res_row_start, res_row_start + mid, res_col_start, res_col_stop,
+                            thread_depth + 1);
+        };
+        if (thread_depth < CreateThreadDepth) {
+          threads_mutex.lock();
+          threads.push_back(thread(run));
+          threads_mutex.unlock();
+        } else {
+          run();
+        }
         
-        
-        
-        recurse(a_row_start + mid, a_row_stop, a_col_start, a_col_stop,
-                b_row_start, b_row_stop, b_col_start, b_col_stop,
-                res_row_start + mid, res_row_stop, res_col_start, res_col_stop,
-                thread_depth + 1);
-        
-        //run1();
-        //run2();
+        do_multiplication(a_row_start + mid, a_row_stop, a_col_start, a_col_stop,
+                          b_row_start, b_row_stop, b_col_start, b_col_stop,
+                          res_row_start + mid, res_row_stop, res_col_start, res_col_stop,
+                          thread_depth + 1);
       } else if (n > max(m, p)) {
         // Split both
         const uint32_t mid = n / 2;
-        recurse(a_row_start, a_row_stop, a_col_start, a_col_start + mid,
-                b_row_start, b_row_start + mid, b_col_start, b_col_stop,
-                res_row_start, res_row_stop, res_col_start, res_col_stop,
-                thread_depth);
-        recurse(a_row_start, a_row_stop, a_col_start + mid, a_col_stop,
-                b_row_start + mid, b_row_stop, b_col_start, b_col_stop,
-                res_row_start, res_row_stop, res_col_start, res_col_stop,
-                thread_depth);
+        do_multiplication(a_row_start, a_row_stop, a_col_start, a_col_start + mid,
+                          b_row_start, b_row_start + mid, b_col_start, b_col_stop,
+                          res_row_start, res_row_stop, res_col_start, res_col_stop,
+                          thread_depth);
+        do_multiplication(a_row_start, a_row_stop, a_col_start + mid, a_col_stop,
+                          b_row_start + mid, b_row_stop, b_col_start, b_col_stop,
+                          res_row_start, res_row_stop, res_col_start, res_col_stop,
+                          thread_depth);
       } else {
         assert(p >= max(m, n));
         
         // Split b
         const uint32_t mid = p / 2;
-        //auto run1 = [&]() {
-        recurse(a_row_start, a_row_stop, a_col_start, a_col_stop,
-                b_row_start, b_row_stop, b_col_start, b_col_start + mid,
-                res_row_start, res_row_stop, res_col_start, res_col_start + mid,
-                thread_depth + 1);
-        //};
-        //auto run2 = [&]() {
-        recurse(a_row_start, a_row_stop, a_col_start, a_col_stop,
-                b_row_start, b_row_stop, b_col_start + mid, b_col_stop,
-                res_row_start, res_row_stop, res_col_start + mid, res_col_stop,
-                thread_depth + 1);
-        //};
+        auto run = [a_row_start, a_row_stop, a_col_start, a_col_stop,
+                    b_row_start, b_row_stop, b_col_start,
+                    res_row_start, res_row_stop, res_col_start,
+                    thread_depth, mid, this] () {
+          do_multiplication(a_row_start, a_row_stop, a_col_start, a_col_stop,
+                            b_row_start, b_row_stop, b_col_start, b_col_start + mid,
+                            res_row_start, res_row_stop, res_col_start, res_col_start + mid,
+                            thread_depth + 1);
+        };
+        if (thread_depth < CreateThreadDepth) {
+          threads_mutex.lock();
+          threads.push_back(thread(run));
+          threads_mutex.unlock();
+        } else {
+          run();
+        }
         
-        //run1();
-        //run2();
+        do_multiplication(a_row_start, a_row_stop, a_col_start, a_col_stop,
+                          b_row_start, b_row_stop, b_col_start + mid, b_col_stop,
+                          res_row_start, res_row_stop, res_col_start + mid, res_col_stop,
+                          thread_depth + 1);
       }
-    };
-    
-    recurse(0, a.rows(), 0, a.columns(),
-            0, b.rows(), 0, b.columns(),
-            0, result.rows(), 0, result.columns(),
-            0);
-  }
-   */
-  
-  // Assumption c is 0 initialized
-  template <typename M0, typename M1, typename Mres>
-  static void do_multiplication(Mres& result, const M0& a, const M1& b,
-                                uint32_t a_row_start, uint32_t a_row_stop,
-                                uint32_t a_col_start, uint32_t a_col_stop,
-                                uint32_t b_row_start, uint32_t b_row_stop,
-                                uint32_t b_col_start, uint32_t b_col_stop,
-                                uint32_t res_row_start, uint32_t res_row_stop,
-                                uint32_t res_col_start, uint32_t res_col_stop)
-  {
-    vector<thread> threads;
-    threads.reserve(1 << CreateThreadDepth);
-    mutex thread_list_mutex;
-    
-    // Notation from article
-    const uint32_t m = a_row_stop - a_row_start;
-    const uint32_t n = a_col_stop - a_col_start;
-    assert(n == b_row_stop - b_row_start);
-    const uint32_t p = b_col_stop - b_col_start;
-    
-    assert(m == res_row_stop - res_row_start);
-    assert(p == res_col_stop - res_col_start);
-    
-    if (m <= B && n <= B && p <= B) {
-#ifndef _WINDOWS
-      BaseCaseMultiplier::template multiply<M0, M1, Mres>(result, a, b,
-                                                          a_row_start, a_row_stop, a_col_start, a_col_stop,
-                                                          b_row_start, b_row_stop, b_col_start, b_col_stop,
-                                                          res_row_start, res_row_stop, res_col_start, res_col_stop);
-#else
-      BaseCaseMultiplier::multiply<M0, M1, Mres>(result, a, b,
-                                                 a_row_start, a_row_stop, a_col_start, a_col_stop,
-                                                 b_row_start, b_row_stop, b_col_start, b_col_stop,
-                                                 res_row_start, res_row_stop, res_col_start, res_col_stop);
-#endif
-    } else if (m > p && m >= n) {
-      // Split a
-      const uint32_t mid = m / 2;
-      // auto run = [&] () {
-        do_multiplication(result, a, b,
-                          a_row_start, a_row_start + mid, a_col_start, a_col_stop,
-                          b_row_start, b_row_stop, b_col_start, b_col_stop,
-                          res_row_start, res_row_start + mid, res_col_start, res_col_stop);
-      // };
-      // run();
-      do_multiplication(result, a, b,
-                        a_row_start + mid, a_row_stop, a_col_start, a_col_stop,
-                        b_row_start, b_row_stop, b_col_start, b_col_stop,
-                        res_row_start + mid, res_row_stop, res_col_start, res_col_stop);
-    } else if (n > max(m, p)) {
-      // Split both
-      const uint32_t mid = n / 2;
-      do_multiplication(result, a, b,
-                        a_row_start, a_row_stop, a_col_start, a_col_start + mid,
-                        b_row_start, b_row_start + mid, b_col_start, b_col_stop,
-                        res_row_start, res_row_stop, res_col_start, res_col_stop);
-      do_multiplication(result, a, b,
-                        a_row_start, a_row_stop, a_col_start + mid, a_col_stop,
-                        b_row_start + mid, b_row_stop, b_col_start, b_col_stop,
-                        res_row_start, res_row_stop, res_col_start, res_col_stop);
-    } else {
-      assert(p >= max(m, n));
-      
-      // Split b
-      const uint32_t mid = p / 2;
-      // auto run = [&] () {
-        do_multiplication(result, a, b,
-                          a_row_start, a_row_stop, a_col_start, a_col_stop,
-                          b_row_start, b_row_stop, b_col_start, b_col_start + mid,
-                          res_row_start, res_row_stop, res_col_start, res_col_start + mid);
-      //};
-      //run();
-      do_multiplication(result, a, b,
-                        a_row_start, a_row_stop, a_col_start, a_col_stop,
-                        b_row_start, b_row_stop, b_col_start + mid, b_col_stop,
-                        res_row_start, res_row_stop, res_col_start + mid, res_col_stop);
-      
     }
-  }
+    
+    void join() {
+      while (!threads.empty()) {
+        threads_mutex.lock();
+        if (threads.empty())
+          continue;
+        
+        thread th;
+        swap(th, threads.back());
+        
+        threads.pop_back();
+        threads_mutex.unlock();
+        
+        th.join();
+      }
+    }
+  };
 };

@@ -115,10 +115,10 @@ void measure(ostream& out,
   
   out << endl;
 };
-
-mt19937 generator(100);
-uniform_real_distribution<double> distribution(0.0, 10000);
-auto random_double = bind(distribution, generator);
+    
+mt19937 generator(0xDEADBEEF);
+uniform_real_distribution<double> distribution(-1., 1.);
+// auto random_double = bind(distribution, generator);
 
 template <typename M>
 M random_matrix(size_t n, size_t m) {
@@ -126,8 +126,9 @@ M random_matrix(size_t n, size_t m) {
 
   for (uint32_t i = 0; i < n; i++) {
     for (uint32_t j = 0; j < m; j++) {
-      typename M::Element e(random_double());
-      a(0, 0) = e;
+      // typename M::Element e(random_double());
+      typename M::Element e(distribution(generator));
+      a(i, j) = e;
     }
   }
 
@@ -293,6 +294,10 @@ void sanity_check() {
 
     if (c.operator!=<M0>(c0)) {
       cout << "Sanity check failed!" << endl;
+      cout << "A:" << endl << a.to_string();
+      cout << "B:" << endl << b.to_string();
+      cout << "C:" << endl << c.to_string();
+      cout << "C':" << endl << c0.to_string();
       break;
     }
   }
