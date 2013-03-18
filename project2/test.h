@@ -117,7 +117,7 @@ void measure(ostream& out,
 };
 
 mt19937 generator(100);
-uniform_real_distribution<double> distribution(0.0, 10000);
+uniform_real_distribution<double> distribution(-1., 1.);
 auto random_double = bind(distribution, generator);
 
 template <typename M>

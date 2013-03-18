@@ -219,11 +219,67 @@ private:
 };
 template<int B> const array<int, B * B> ZLayoutBCMultiplier<B>::offsets = ZLayoutBCMultiplier<B>::makeIndexes();
 
+// TODO: Assumes equal columns and rows! and base of two!
+template<int B, typename BaseCaseMultiplier>
+class Strassen {
+public:
+  template <typename M0, typename M1, typename Mres>
+  static Mres multiply(const M0& a, const M1& b) {
+    assert(a.columns() == b.rows());
+
+    size_t n = a.rows();
+    size_t p = a.columns();
+    size_t m = b.columns();
+
+    if (m <= B && n <= B && p <= B) {
+      Mres c(a.rows(), b.columns(), 0); // TODO: Init necessary?
+#ifndef _WINDOWS
+      BaseCaseMultiplier::template multiply<M0, M1, Mres>(c, a, b,
+                                                          0, a.rows(), 0, a.columns(),
+                                                          0, b.rows(), 0, b.columns(),
+                                                          0, a.rows(), 0, b.columns());
+#else
+      BaseCaseMultiplier::multiply<M0, M1, Mres>(c, a, b,
+                                                 0, a.rows(), 0, a.columns(),
+                                                 0, b.rows(), 0, b.columns(),
+                                                 0, a.rows(), 0, b.columns());
+#endif
+
+      return c;
+    } else {
+      size_t new_n = n / 2;
+      size_t new_p = p / 2;
+      size_t new_m = m / 2;
+
+      M0 a11(a, 0, new_n, 0, new_p);
+      M0 a12(a, new_n, n, 0, new_p);
+      M0 a21(a, 0, new_n, new_p, p);
+      M0 a22(a, new_n, n, new_p, p);
+
+      M1 b11(a, 0, new_p, 0, new_m);
+      M1 b12(a, new_p, p, 0, new_m);
+      M1 b21(a, 0, new_p, new_m, m);
+      M1 b22(a, new_p, p, new_m, m);
+
+      Mres c11 = a11.operator*<M0, M1>(b11).operator+<Mres, Mres>(a12.operator*<M0, M1>(b21));
+      Mres c12 = a11.operator*<M0, M1>(b12).operator+<Mres, Mres>(a12.operator*<M0, M1>(b22));
+      Mres c21 = a21.operator*<M0, M1>(b11).operator+<Mres, Mres>(a22.operator*<M0, M1>(b21));
+      Mres c22 = a21.operator*<M0, M1>(b12).operator+<Mres, Mres>(a22.operator*<M0, M1>(b22));
+
+      return Mres(c11, c12, c21, c22);
+    }
+  };
+
+  static string config() {
+    return "strassen-" + to_string(B);
+  };
+};
+
 template<int B, typename BaseCaseMultiplier>
 class Recursive {
 public:
   template <typename M0, typename M1, typename Mres>
-    static Mres multiply(const M0& a, const M1& b) {
+  static Mres multiply(const M0& a, const M1& b) {
     assert(a.columns() == b.rows());
 
     Mres c(a.rows(), b.columns(), 0);

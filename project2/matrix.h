@@ -46,6 +46,44 @@ public:
     }
   };
 
+  Matrix(const Matrix& other, uint32_t from_n, uint32_t to_n, uint32_t from_m, uint32_t to_m) : data(Layout(to_n - from_n, to_m - from_m)) {
+    for (uint32_t i = from_n; i < to_n; i++) {
+      for (uint32_t j = from_m; j < to_m; j++) {
+        data(i - from_n, j - from_m) = other(i, j);
+      }
+    }
+  };
+
+  Matrix(const Matrix& a11, const Matrix& a12, const Matrix& a21, const Matrix& a22) : data(Layout(a11.rows() + a21.rows(), a11.columns() + a21.columns())) {
+    assert(a11.rows() == a12.rows());
+    assert(a21.rows() == a22.rows());
+    assert(a11.columns() == a21.columns());
+    assert(a12.columns() == a22.columns());
+
+
+    // A11 and A12
+    for (uint32_t i = 0; i < a11.rows(); i++) {
+      for (uint32_t j = 0; j < a11.columns(); j++) {
+        data(i, j) = a11(i, j);
+      }
+
+      for (uint32_t j = 0; j < a12.columns(); j++) {
+        data(i, j + a11.columns()) = a12(i, j);
+      }
+    }
+
+    // A21 and A22
+    for (uint32_t i = 0; i < a21.rows(); i++) {
+      for (uint32_t j = 0; j < a21.columns(); j++) {
+        data(i + a11.rows(), j) = a21(i, j);
+      }
+
+      for (uint32_t j = 0; j < a22.columns(); j++) {
+        data(i + a11.rows(), j + a21.columns()) = a22(i, j);
+      }
+    }
+  };
+
   inline Element operator()(size_t row, size_t column) const {
     return data(row, column);
   };
@@ -99,6 +137,23 @@ public:
   template <typename M1, typename Mres>
   Mres operator*(const M1& other) const {
     return MatrixMul::template multiply<type, M1, Mres>(*this, other);
+  };
+
+  template <typename M1, typename Mres>
+  Mres operator+(const M1& other) const {
+    assert(this->columns() == other.columns());
+    assert(this->rows() == other.rows());
+
+    Mres c(this->rows(), this->columns());
+
+    for (uint32_t i = 0; i < this->rows(); i++) {
+      for (uint32_t j = 0; j < this->columns(); j++) {
+        c(i, j) = this->operator()(i, j) + other(i, j);
+      }
+    }
+    
+    // Move semantics
+    return c;
   };
 
   inline size_t rows() const {

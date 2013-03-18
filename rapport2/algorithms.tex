@@ -26,9 +26,9 @@ For exploiting more kinds of layouts we implemented the recursive algorithm.
 
 \subsubsection{Z-curve layout}
 
-The first idea was to use a Z-curved layout. One major advantage of this layout is that improves locality on all levels of the recursive multiplication. The drawback is that the index calculations are time consuming. On x86 we get approximately 50 bitwise operations each time. However, this can be improved by incrementally constructing the Z-curve numbers. The upcoming Intel Haswell architecture has support for bit permutations which will improve the situation.
+The first idea was to use a Z-curved layout. One major advantage of this layout is that improves locality on all levels of the recursive multiplication. The drawback is that the index calculations are time consuming. On x86 we get approximately 50 bitwise operations each time. However, this can be improved by incrementally constructing the Z-curve numbers or by precomputing offsets at base cases. The upcoming Intel Haswell architecture has support for bit permutations which will improve the situation.
 
-In the recursive algorithm we used 4*4 as a base case for switching to the naive algorithm.
+In the recursive algorithm we used 8*8 as a base case for switching to the naive algorithm.
 
 \todo{Lav dem inkrementielt?}
 
