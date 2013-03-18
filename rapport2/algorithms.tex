@@ -33,6 +33,7 @@ In the recursive algorithm we used 4*4 as a base case for switching to the naive
 \todo{Hvorfor faar vi saa mange cache faults?}
 
 \todo{Lav dem inkrementielt?}
+\todo{stadig flere cache faults, saa ikke gjort inkrementielt}
 
 \subsubsection{Tiled layout}
 
@@ -49,3 +50,5 @@ A tiled layout is a compromise between locality and performance of index calcula
 The naive algorithm which is used for this combined is easily parallelizable because we can assign intervals of rows for each thread. The result matrix is stored in a row-based layout so writing is separated so cache thrashing should not be a problem.
 
 ...
+
+\todo{todo, mere l2 cache}
