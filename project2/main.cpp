@@ -66,9 +66,11 @@ int main(int argc, char *argv[]) {
   /*test<RN,CN,RN>(cout, 1, 1024, 2048ULL * 2048ULL * 2048ULL);
   test<RTR,CTR,RTR>(cout, 1, 1024, 2048ULL * 2048ULL * 2048ULL);*/
 
+  // Rapport tests
+  test<RN,RN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
   test<RN,CN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);
-  test<RTR,CTR,RTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 64ULL);
   test<RZBC,RZBC,RZBC>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
+  test<RTR,CTR,RTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
 
   return 0;
 }
