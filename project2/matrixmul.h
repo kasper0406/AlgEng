@@ -382,12 +382,7 @@ public:
     assert(a.columns() == b.rows());
     
     Mres c(a.rows(), b.columns(), 0);
-    Multiplier<M0, M1, Mres> multiplier(c, a, b);
-    multiplier.do_multiplication(0, a.rows(), 0, a.columns(),
-                                 0, b.rows(), 0, b.columns(),
-                                 0, c.rows(), 0, c.columns(),
-                                 0);
-    multiplier.join();
+    Multiplier<M0, M1, Mres>(c, a, b)();
     
     return c;
   }
@@ -408,21 +403,13 @@ private:
     vector<thread> threads;
     mutex threads_mutex;
     
-  public:
-    Multiplier(Mres& result, const M0& a, const M1& b)
-      : result(result), a(a), b(b)
-    {
-      threads.reserve(1 << CreateThreadDepth);
-    }
-    
-    // Assumption c is 0 initialized
-    void do_multiplication(uint32_t a_row_start, uint32_t a_row_stop,
-                           uint32_t a_col_start, uint32_t a_col_stop,
-                           uint32_t b_row_start, uint32_t b_row_stop,
-                           uint32_t b_col_start, uint32_t b_col_stop,
-                           uint32_t res_row_start, uint32_t res_row_stop,
-                           uint32_t res_col_start, uint32_t res_col_stop,
-                           unsigned short thread_depth)
+    void visit(uint32_t a_row_start, uint32_t a_row_stop,
+               uint32_t a_col_start, uint32_t a_col_stop,
+               uint32_t b_row_start, uint32_t b_row_stop,
+               uint32_t b_col_start, uint32_t b_col_stop,
+               uint32_t res_row_start, uint32_t res_row_stop,
+               uint32_t res_col_start, uint32_t res_col_stop,
+               unsigned short thread_depth)
     {
       // Notation from article
       const uint32_t m = a_row_stop - a_row_start;
@@ -452,10 +439,10 @@ private:
                     b_row_start, b_row_stop, b_col_start, b_col_stop,
                     res_row_start, res_col_start, res_col_stop,
                     thread_depth, mid, this] () {
-          do_multiplication(a_row_start, a_row_start + mid, a_col_start, a_col_stop,
-                            b_row_start, b_row_stop, b_col_start, b_col_stop,
-                            res_row_start, res_row_start + mid, res_col_start, res_col_stop,
-                            thread_depth + 1);
+          visit(a_row_start, a_row_start + mid, a_col_start, a_col_stop,
+                b_row_start, b_row_stop, b_col_start, b_col_stop,
+                res_row_start, res_row_start + mid, res_col_start, res_col_stop,
+                thread_depth + 1);
         };
         if (thread_depth < CreateThreadDepth) {
           threads_mutex.lock();
@@ -465,21 +452,21 @@ private:
           run();
         }
         
-        do_multiplication(a_row_start + mid, a_row_stop, a_col_start, a_col_stop,
-                          b_row_start, b_row_stop, b_col_start, b_col_stop,
-                          res_row_start + mid, res_row_stop, res_col_start, res_col_stop,
-                          thread_depth + 1);
+        visit(a_row_start + mid, a_row_stop, a_col_start, a_col_stop,
+              b_row_start, b_row_stop, b_col_start, b_col_stop,
+              res_row_start + mid, res_row_stop, res_col_start, res_col_stop,
+              thread_depth + 1);
       } else if (n > max(m, p)) {
         // Split both
         const uint32_t mid = n / 2;
-        do_multiplication(a_row_start, a_row_stop, a_col_start, a_col_start + mid,
-                          b_row_start, b_row_start + mid, b_col_start, b_col_stop,
-                          res_row_start, res_row_stop, res_col_start, res_col_stop,
-                          thread_depth);
-        do_multiplication(a_row_start, a_row_stop, a_col_start + mid, a_col_stop,
-                          b_row_start + mid, b_row_stop, b_col_start, b_col_stop,
-                          res_row_start, res_row_stop, res_col_start, res_col_stop,
-                          thread_depth);
+        visit(a_row_start, a_row_stop, a_col_start, a_col_start + mid,
+              b_row_start, b_row_start + mid, b_col_start, b_col_stop,
+              res_row_start, res_row_stop, res_col_start, res_col_stop,
+              thread_depth);
+        visit(a_row_start, a_row_stop, a_col_start + mid, a_col_stop,
+              b_row_start + mid, b_row_stop, b_col_start, b_col_stop,
+              res_row_start, res_row_stop, res_col_start, res_col_stop,
+              thread_depth);
       } else {
         assert(p >= max(m, n));
         
@@ -489,10 +476,10 @@ private:
                     b_row_start, b_row_stop, b_col_start,
                     res_row_start, res_row_stop, res_col_start,
                     thread_depth, mid, this] () {
-          do_multiplication(a_row_start, a_row_stop, a_col_start, a_col_stop,
-                            b_row_start, b_row_stop, b_col_start, b_col_start + mid,
-                            res_row_start, res_row_stop, res_col_start, res_col_start + mid,
-                            thread_depth + 1);
+          visit(a_row_start, a_row_stop, a_col_start, a_col_stop,
+                b_row_start, b_row_stop, b_col_start, b_col_start + mid,
+                res_row_start, res_row_stop, res_col_start, res_col_start + mid,
+                thread_depth + 1);
         };
         if (thread_depth < CreateThreadDepth) {
           threads_mutex.lock();
@@ -502,10 +489,10 @@ private:
           run();
         }
         
-        do_multiplication(a_row_start, a_row_stop, a_col_start, a_col_stop,
-                          b_row_start, b_row_stop, b_col_start + mid, b_col_stop,
-                          res_row_start, res_row_stop, res_col_start + mid, res_col_stop,
-                          thread_depth + 1);
+        visit(a_row_start, a_row_stop, a_col_start, a_col_stop,
+              b_row_start, b_row_stop, b_col_start + mid, b_col_stop,
+              res_row_start, res_row_stop, res_col_start + mid, res_col_stop,
+              thread_depth + 1);
       }
     }
     
@@ -523,6 +510,23 @@ private:
         
         th.join();
       }
+    }
+    
+  public:
+    Multiplier(Mres& result, const M0& a, const M1& b)
+      : result(result), a(a), b(b)
+    {
+      threads.reserve(1 << CreateThreadDepth);
+    }
+    
+    // Assumption c is 0 initialized
+    void operator() ()
+    {
+      visit(0, a.rows(), 0, a.columns(),
+            0, b.rows(), 0, b.columns(),
+            0, result.rows(), 0, result.columns(),
+            0);
+      join();
     }
   };
 };
