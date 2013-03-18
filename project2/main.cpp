@@ -46,6 +46,8 @@ int main(int argc, char *argv[]) {
   test<RTR,CTR,RTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
   
   // test<RZBC,RZBC,RZBC>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 64ULL);
+  //test<RTR,CTR,RTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 64ULL);
+  //test<RZBC,RZBC,RZBC>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 64ULL);
   //test<RN,CN,RN>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 64ULL);
 
   // Test 1 (Row column)
@@ -70,6 +72,12 @@ int main(int argc, char *argv[]) {
   // Test 5 (Tiled recursive row/column vs. naive row/column)
   /*test<RN,CN,RN>(cout, 1, 1024, 2048ULL * 2048ULL * 2048ULL);
   test<RTR,CTR,RTR>(cout, 1, 1024, 2048ULL * 2048ULL * 2048ULL);*/
+
+  // Rapport tests
+  //test<RN,RN,RN>(cout, 3, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
+  // test<RN,CN,RN>(cout, 3, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
+  // test<RZBC,RZBC,RZBC>(cout, 3, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
+  // test<RTR,CTR,RTR>(cout, 3, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
 
   return 0;
 }
