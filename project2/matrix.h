@@ -6,6 +6,7 @@
 #include <cassert>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <cmath>
 
 using namespace std;
@@ -166,6 +167,20 @@ public:
 
   static string config() {
     return Layout::config() + " " + MatrixMul::config();
+  };
+
+  string to_string() {
+    stringstream ss;
+    ss.precision(3);
+
+    for (uint32_t i = 0; i < this->rows(); i++) {
+      for (uint32_t j = 0; j < this->columns(); j++) {
+        ss << data(i, j) << "\t";
+      }
+      ss << endl;
+    }
+
+    return ss.str();
   };
     
 private:

@@ -293,6 +293,10 @@ void sanity_check() {
 
     if (c.operator!=<M0>(c0)) {
       cout << "Sanity check failed!" << endl;
+      cout << "A:" << endl << a.to_string();
+      cout << "B:" << endl << b.to_string();
+      cout << "C:" << endl << c.to_string();
+      cout << "C':" << endl << c0.to_string();
       break;
     }
   }
