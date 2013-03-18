@@ -18,6 +18,7 @@ typedef Matrix<ZCurve<double>, Recursive<4, GenericBCMultiplier>> RRZ;
 typedef Matrix<ZCurve<double>, Recursive<B, ZLayoutBCMultiplier<B>>> RZBC;
 
 typedef Matrix<RowTiled<B, B, double>, Recursive<B, TiledBCMultiplier>> RTR;
+typedef Matrix<RowTiled<B, B, double>, FooBarBaz<B, TiledBCMultiplier>> FOO;
 typedef Matrix<RowTiled<B, B, double>, ParallelRecursive<B, TiledBCMultiplier, 1>> RTRP;
 typedef Matrix<ColumnTiled<B, B, double>, Recursive<B, GenericBCMultiplier>> CTR;
 
@@ -42,8 +43,8 @@ int main(int argc, char *argv[]) {
   sanity_check<RZBC, RZBC>();
    */
 
-  test<RTRP,CTR,RTRP>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
   test<RTR,CTR,RTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
+  test<RTRP,CTR,RTRP>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
   
   // test<RZBC,RZBC,RZBC>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 64ULL);
   //test<RTR,CTR,RTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 64ULL);
