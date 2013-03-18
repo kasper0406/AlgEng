@@ -156,7 +156,7 @@ void generate_plot(string outputfile, string data) {
 
      << "set logscale y" << endl
      << "set logscale y2" << endl
-     << "set grid mytics" << endl
+     << "set grid my2tics" << endl
 
      << "set key vert left top reverse" << endl
      << "set pointsize 2" << endl
@@ -250,7 +250,7 @@ void test(ostream& out,
 #endif
 
   test_factor<M0, M1, Mres>(out, trials, 0, min_size_total, max_size_total);
-  //test_factor<M0, M1, Mres>(out, trials, 6, min_size_total, max_size_total);
+  //test_factor<M0, M1, Mres>(out, trials, 6, min_size_total, max_size_total); TODO
 
 #ifdef __linux__
   m->cleanup();
