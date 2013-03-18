@@ -162,8 +162,8 @@ void generate_plot(string outputfile, string data) {
      << "set pointsize 2" << endl
 
      << "plot '-' using (log2($1*$2*$3)):($7) title \"Time\" axes x1y1 with linespoints, \
-              '-' using (log2($1*$2*$3)):($11) title \"L1 cache misses\" axes x1y2 with linespoints, \
-              '-' using (log2($1*$2*$3)):($13) title \"L2 cache misses\" axes x1y2 with linespoints" << endl
+              '-' using (log2($1*$2*$3)):($11) title \"L2 cache misses\" axes x1y2 with linespoints, \
+              '-' using (log2($1*$2*$3)):($13) title \"L3 cache misses\" axes x1y2 with linespoints" << endl
 
     << data << endl << "e" << endl << data << endl << "e" << endl << data << endl << "e" << endl;
 
