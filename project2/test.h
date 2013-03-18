@@ -156,7 +156,7 @@ void generate_plot(string outputfile, string data) {
 
      << "set logscale y" << endl
      << "set logscale y2" << endl
-     << "set grid mytics" << endl
+     << "set grid my2tics" << endl
 
      << "set key vert left top reverse" << endl
      << "set pointsize 2" << endl
