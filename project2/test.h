@@ -265,6 +265,7 @@ void sanity_check() {
   size_t factor_pow2 = 0;
   size_t min_size_total = 512;
   size_t max_size_total = 1024 * 1024;
+  
   int i = factor_pow2 - 1;
   while (true) {
     i++;

@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <thread>
+#include <array>
 #include <vector>
 #include "matrix.h"
 
@@ -168,6 +169,55 @@ public:
     }
   }
 };
+
+template<int B>
+class ZLayoutBCMultiplier
+{
+public:
+  template<typename M0, typename M1, typename Mres>
+  inline static void multiply(Mres& result, const M0& a, const M1& b,
+                              uint32_t a_row_start, uint32_t a_row_stop,
+                              uint32_t a_col_start, uint32_t a_col_stop,
+                              uint32_t b_row_start, uint32_t b_row_stop,
+                              uint32_t b_col_start, uint32_t b_col_stop,
+                              uint32_t res_row_start, uint32_t res_row_stop,
+                              uint32_t res_col_start, uint32_t res_col_stop)
+  {
+    assert(a_row_stop - a_row_start == B &&
+           a_col_stop - a_col_start == B &&
+           b_col_stop - b_col_start == B);
+    
+    const size_t start_a = ZCurve<int>::interleave_bits(a_row_start, a_col_start);
+    const size_t start_b = ZCurve<int>::interleave_bits(b_row_start, b_col_start);
+    const size_t start_res = ZCurve<int>::interleave_bits(res_row_start, res_col_start);
+    
+    for (uint32_t i = 0; i < B; i++) {
+      for (uint32_t j = 0; j < B; j++) {
+        // Load result element
+        typename Mres::Element& e = result.at(start_res + offsets[i * B + j]);
+        
+        for (uint32_t k = 0; k < B; k++) {
+          // e += a(i, a_col_start + k) * b(b_row_start + k, j);
+          e += a.at(start_a + offsets[i * B + k]) * b.at(start_b + offsets[k * B + j]);
+        }
+      }
+    }
+  }
+  
+private:
+  static array<int, B * B> makeIndexes() {
+    array<int, B * B> indexes;
+    
+    for (int i = 0; i < B; i++) {
+      for (int j = 0; j < B; j++)
+        indexes[i * B + j] = ZCurve<int>::interleave_bits(i, j);
+    }
+    return indexes;
+  }
+  
+  const static array<int, B * B> offsets;
+};
+template<int B> const array<int, B * B> ZLayoutBCMultiplier<B>::offsets = ZLayoutBCMultiplier<B>::makeIndexes();
 
 template<int B, typename BaseCaseMultiplier>
 class Recursive {

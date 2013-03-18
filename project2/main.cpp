@@ -15,6 +15,8 @@ typedef Matrix<RowBased<double>, Recursive<4, GenericBCMultiplier>> RR;
 typedef Matrix<ColumnBased<double>, Recursive<4, GenericBCMultiplier>> RC;
 typedef Matrix<ZCurve<double>, Recursive<4, GenericBCMultiplier>> RRZ;
 
+typedef Matrix<ZCurve<double>, Recursive<B, ZLayoutBCMultiplier<B>>> RZBC;
+
 typedef Matrix<RowTiled<B, B, double>, Recursive<B, TiledBCMultiplier>> RTR;
 typedef Matrix<ColumnTiled<B, B, double>, Recursive<B, GenericBCMultiplier>> CTR;
 
@@ -28,20 +30,18 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
   cout.precision(8);
-
-  assert(false);
   
-  /*
   sanity_check<RN, RN>();
   sanity_check<CN, CN>();
   sanity_check<RP, RP>();
   sanity_check<ZR, ZR>();
-   */
   sanity_check<RTR, CTR>();
-  // sanity_check<CTR, CTR>();
+  sanity_check<CTR, CTR>();
+  sanity_check<RZBC, RZBC>();
 
-  test<RN,CN,RN>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  test<RTR,CTR,RTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
+  test<RTR,CTR,RTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 64ULL);
+  test<RZBC,RZBC,RZBC>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 64ULL);
+  test<RN,CN,RN>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 64ULL);
 
   // Test 1 (Row column)
   //test<RN,RN,RN>(cout, 1, 1024, 1024 * 1024 * 1024);

@@ -179,7 +179,7 @@ public:
     return *this;
   }
 
-  inline size_t interleave_bits(size_t row, size_t column) const {
+  static inline size_t interleave_bits(size_t row, size_t column) {
     static const size_t B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF};
     static const size_t S[] = {1, 2, 4, 8};
 
