@@ -6,16 +6,18 @@
 #include <functional>
 #include <string>
 #include <iostream>
+#include <array>
 #include <thread>
 #include <mutex>
-#include <array>
 #include <vector>
+#include <chrono>
 #include "matrix.h"
 
 // AVX intrinsics
-#include "immintrin.h"
+#include <immintrin.h>
 
 using namespace std;
+using namespace std::chrono;
 
 class Naive {
 public:
@@ -206,10 +208,8 @@ public:
     assert(n % 4 == 0);
     
     // Allocate memory to sum result
-    double *tmp;
-    int res = posix_memalign((void**)&tmp, 64, 64);
-    if (res != 0)
-      throw runtime_error("Could not allocate memory!");
+    // TODO: Ensure that this is 32 byte aligned!!!
+    double tmp[4] = { 0, 0, 0, 0 };
     
     // Base case: Do standard multiplication
     for (uint32_t i = 0; i < m; i++) {
@@ -218,9 +218,9 @@ public:
       const size_t res_start_row = res_start_index + i * Mres::Layout::WIDTH;
       
       for (uint32_t j = 0; j < p; j++) {
-        memset(tmp, 0, 4 * sizeof(double));
+	typename Mres::Element& e = result.at(res_start_row + j);
+
         __m256d sum = _mm256_load_pd(tmp);
-        
         for (uint32_t k = 0; k < n; k += 4) {
           __m256d a_data = _mm256_load_pd(a.addr(a_start_row + k));
           __m256d b_data = _mm256_load_pd(b.addr(b_start_index + j * M1::Layout::HEIGHT + k));
@@ -230,14 +230,12 @@ public:
         }
 
         _mm256_store_pd(tmp, sum);
-        
-        typename Mres::Element& e = result.at(res_start_row + j);
-        for (int i = 0; i < 4; i++)
-          e += tmp[i];
+        for (int h = 0; h < 4; h++) {
+          e += tmp[h];
+	  tmp[h] = 0;
+	}
       }
     }
-    
-    free(tmp);
   }
 };
 
@@ -570,10 +568,10 @@ private:
                     b_row_start, b_row_stop, b_col_start, b_col_stop,
                     res_row_start, res_col_start, res_col_stop,
                     thread_depth, mid, this] () {
-          visit(a_row_start, a_row_start + mid, a_col_start, a_col_stop,
-                b_row_start, b_row_stop, b_col_start, b_col_stop,
-                res_row_start, res_row_start + mid, res_col_start, res_col_stop,
-                thread_depth + 1);
+          this->visit(a_row_start, a_row_start + mid, a_col_start, a_col_stop,
+		      b_row_start, b_row_stop, b_col_start, b_col_stop,
+		      res_row_start, res_row_start + mid, res_col_start, res_col_stop,
+		      thread_depth + 1);
         };
         if (thread_depth < CreateThreadDepth) {
           threads_mutex.lock();
@@ -607,10 +605,10 @@ private:
                     b_row_start, b_row_stop, b_col_start,
                     res_row_start, res_row_stop, res_col_start,
                     thread_depth, mid, this] () {
-          visit(a_row_start, a_row_stop, a_col_start, a_col_stop,
-                b_row_start, b_row_stop, b_col_start, b_col_start + mid,
-                res_row_start, res_row_stop, res_col_start, res_col_start + mid,
-                thread_depth + 1);
+          this->visit(a_row_start, a_row_stop, a_col_start, a_col_stop,
+		      b_row_start, b_row_stop, b_col_start, b_col_start + mid,
+		      res_row_start, res_row_stop, res_col_start, res_col_start + mid,
+		      thread_depth + 1);
         };
         if (thread_depth < CreateThreadDepth) {
           threads_mutex.lock();
