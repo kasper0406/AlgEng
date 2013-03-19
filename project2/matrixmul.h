@@ -8,7 +8,6 @@
 #include <iostream>
 #include <array>
 #include <thread>
-#include <mutex>
 #include <vector>
 #include <chrono>
 #include <future>
@@ -190,6 +189,11 @@ public:
                               uint32_t res_row_start, uint32_t res_row_stop,
                               uint32_t res_col_start, uint32_t res_col_stop)
   {
+    static_assert(is_same<double, typename Mres::Element>::value &&
+                  is_same<double, typename M0::Element>::value &&
+                  is_same<double, typename M1::Element>::value,
+                  "double type required for SIMD!");
+    
     const size_t C_a = a_col_start / M0::Layout::WIDTH;
     const size_t R_a = a_row_start / M0::Layout::HEIGHT;
     const size_t a_start_index = C_a * M0::Layout::WIDTH * M0::Layout::HEIGHT + R_a * M0::Layout::HEIGHT * a.columns();
@@ -219,7 +223,7 @@ public:
       const size_t res_start_row = res_start_index + i * Mres::Layout::WIDTH;
       
       for (uint32_t j = 0; j < p; j++) {
-        __m256d sum = _mm256_load_pd(tmp);
+        __m256d sum = _mm256_setzero_pd();
         for (uint32_t k = 0; k < n; k += 4) {
           __m256d a_data = _mm256_load_pd(a.addr(a_start_row + k));
           __m256d b_data = _mm256_load_pd(b.addr(b_start_index + j * M1::Layout::HEIGHT + k));
@@ -231,10 +235,8 @@ public:
         _mm256_store_pd(tmp, sum);
         
         typename Mres::Element& e = result.at(res_start_row + j);
-        for (int h = 0; h < 4; h++) {
+        for (int h = 0; h < 4; h++)
           e += tmp[h];
-	  tmp[h] = 0;
-	}
       }
     }
   }
@@ -260,6 +262,54 @@ public:
           e += a.data.data[i * B + k] * b.data.data[j * B + k];
         }
 
+        c.data.data[i * B + j] = e;
+      }
+    }
+    
+    // Move semantics
+    return c;
+  }
+};
+
+template<int B>
+class SIMDFixedTiledBCMultiplier
+{
+public:
+  template<typename Mres, typename M0, typename M1>
+  inline static Mres multiply(const M0& a, const M1& b)
+  {
+    static_assert(is_same<double, typename Mres::Element>::value &&
+                  is_same<double, typename M0::Element>::value &&
+                  is_same<double, typename M1::Element>::value,
+                  "double type required for SIMD!");
+    static_assert(B % 4 == 0, "Base case size should be a multiple of 4!");
+    assert(a.columns() == b.rows());
+    assert(a.columns() == B);
+    
+    Mres c(a.rows(), b.columns());
+    
+    // Allocate memory to sum result
+    // TODO: Ensure that this is 32 byte aligned!!!
+    double tmp[4] = { 0, 0, 0, 0 };
+    
+    for (uint32_t i = 0; i < B; i++) {
+      for (uint32_t j = 0; j < B; j++) {
+        __m256d sum = _mm256_setzero_pd();
+        
+        typename Mres::Element e(0);
+        
+        for (uint32_t k = 0; k < B; k += 4) {
+          __m256d a_data = _mm256_load_pd(a.addr(i * B + k));
+          __m256d b_data = _mm256_load_pd(b.addr(j * B + k));
+          
+          __m256d multiplied = _mm256_mul_pd(a_data, b_data);
+          sum = _mm256_add_pd(sum, multiplied);
+        }
+        
+        _mm256_store_pd(tmp, sum);
+        for (int h = 0; h < 4; h++)
+          e += tmp[h];
+        
         c.data.data[i * B + j] = e;
       }
     }
@@ -620,9 +670,6 @@ private:
     const M0& a;
     const M1& b;
     
-    vector<thread> threads;
-    mutex threads_mutex;
-    
     void visit(uint32_t a_row_start, uint32_t a_row_stop,
                uint32_t a_col_start, uint32_t a_col_stop,
                uint32_t b_row_start, uint32_t b_row_stop,
@@ -664,10 +711,10 @@ private:
                       res_row_start, res_row_start + mid, res_col_start, res_col_stop,
                       thread_depth + 1);
         };
+        
+        thread th;
         if (thread_depth < CreateThreadDepth) {
-          threads_mutex.lock();
-          threads.push_back(thread(run));
-          threads_mutex.unlock();
+          th = thread(run);
         } else {
           run();
         }
@@ -676,6 +723,9 @@ private:
               b_row_start, b_row_stop, b_col_start, b_col_stop,
               res_row_start + mid, res_row_stop, res_col_start, res_col_stop,
               thread_depth + 1);
+        
+        if (th.joinable())
+          th.join();
       } else if (n > max(m, p)) {
         // Split both
         const uint32_t mid = n / 2;
@@ -701,10 +751,9 @@ private:
                       res_row_start, res_row_stop, res_col_start, res_col_start + mid,
                       thread_depth + 1);
         };
+        thread th;
         if (thread_depth < CreateThreadDepth) {
-          threads_mutex.lock();
-          threads.push_back(thread(run));
-          threads_mutex.unlock();
+          th = thread(run);
         } else {
           run();
         }
@@ -713,31 +762,16 @@ private:
               b_row_start, b_row_stop, b_col_start + mid, b_col_stop,
               res_row_start, res_row_stop, res_col_start + mid, res_col_stop,
               thread_depth + 1);
-      }
-    }
-    
-    void join() {
-      while (!threads.empty()) {
-        threads_mutex.lock();
-        if (threads.empty())
-          continue;
         
-        thread th;
-        swap(th, threads.back());
-        
-        threads.pop_back();
-        threads_mutex.unlock();
-        
-        th.join();
+        if (th.joinable())
+          th.join();
       }
     }
     
   public:
     Multiplier(Mres& result, const M0& a, const M1& b)
       : result(result), a(a), b(b)
-    {
-      threads.reserve(1 << CreateThreadDepth);
-    }
+    { }
     
     // Assumption c is 0 initialized
     void operator() ()
@@ -746,7 +780,6 @@ private:
             0, b.rows(), 0, b.columns(),
             0, result.rows(), 0, result.columns(),
             0);
-      join();
     }
   };
 };
