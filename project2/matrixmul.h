@@ -173,6 +173,35 @@ public:
 };
 
 template<int B>
+class FixedTiledBCMultiplier
+{
+public:
+  template<typename Mres, typename M0, typename M1>
+  inline static Mres multiply(const M0& a, const M1& b)
+  {
+    assert(a.columns() == b.rows());
+    assert(a.columns() == B);
+
+    Mres c(a.rows(), b.columns());
+
+    for (uint32_t i = 0; i < B; i++) {
+      for (uint32_t j = 0; j < B; j++) {
+        typename Mres::Element e(0);
+
+        for (uint32_t k = 0; k < B; k++) {
+          e += a.data.data[i * B + k] * b.data.data[j * B + k];
+        }
+
+        c.data.data[i * B + j] = e;
+      }
+    }
+    
+    // Move semantics
+    return c;
+  }
+};
+
+template<int B>
 class ZLayoutBCMultiplier
 {
 public:
@@ -218,62 +247,6 @@ private:
   const static array<int, B * B> offsets;
 };
 template<int B> const array<int, B * B> ZLayoutBCMultiplier<B>::offsets = ZLayoutBCMultiplier<B>::makeIndexes();
-
-// TODO: Assumes equal columns and rows! and base of two!
-template<int B, typename BaseCaseMultiplier>
-class FakeStrassen {
-public:
-  template <typename M0, typename M1, typename Mres>
-  static Mres multiply(const M0& a, const M1& b) {
-    assert(a.columns() == b.rows());
-
-    size_t n = a.rows();
-    size_t p = a.columns();
-    size_t m = b.columns();
-
-    if (m <= B && n <= B && p <= B) {
-      Mres c(a.rows(), b.columns(), 0); // TODO: Init necessary?
-#ifndef _WINDOWS
-      BaseCaseMultiplier::template multiply<M0, M1, Mres>(c, a, b,
-                                                          0, a.rows(), 0, a.columns(),
-                                                          0, b.rows(), 0, b.columns(),
-                                                          0, a.rows(), 0, b.columns());
-#else
-      BaseCaseMultiplier::multiply<M0, M1, Mres>(c, a, b,
-                                                 0, a.rows(), 0, a.columns(),
-                                                 0, b.rows(), 0, b.columns(),
-                                                 0, a.rows(), 0, b.columns());
-#endif
-
-      return c;
-    } else {
-      size_t new_n = n / 2;
-      size_t new_p = p / 2;
-      size_t new_m = m / 2;
-
-      M0 a11(a, 0, new_n, 0, new_p);
-      M0 a12(a, 0, new_n, new_p, p);
-      M0 a21(a, new_n, n, 0, new_p);
-      M0 a22(a, new_n, n, new_p, p);
-
-      M1 b11(b, 0, new_p, 0, new_m);
-      M1 b12(b, 0, new_p, new_m, m);
-      M1 b21(b, new_p, p, 0, new_m);
-      M1 b22(b, new_p, p, new_m, m);
-
-      Mres c11 = a11.operator*<M1, Mres>(b11).operator+<Mres, Mres>(a12.operator*<M1, Mres>(b21));
-      Mres c12 = a11.operator*<M1, Mres>(b12).operator+<Mres, Mres>(a12.operator*<M1, Mres>(b22));
-      Mres c21 = a21.operator*<M1, Mres>(b11).operator+<Mres, Mres>(a22.operator*<M1, Mres>(b21));
-      Mres c22 = a21.operator*<M1, Mres>(b12).operator+<Mres, Mres>(a22.operator*<M1, Mres>(b22));
-
-      return Mres(c11, c12, c21, c22);
-    }
-  };
-
-  static string config() {
-    return "fakestrassen-" + to_string(B);
-  };
-};
 
 // TODO: Assumes equal columns and rows! and base of two!
 template<int B, typename BaseCaseMultiplier>
@@ -336,6 +309,87 @@ public:
 
   static string config() {
     return "strassen-" + to_string(B);
+  };
+};
+
+// TODO: Assumes equal columns and rows! and base of two! Assumes Z-curve tiling
+template<int B, typename BaseMul>
+class HackyStrassen {
+public:
+  template <typename M0, typename M1, typename Mres>
+  static Mres multiply(const M0& a, const M1& b) {
+    assert(a.columns() == b.rows());
+
+    size_t n = a.rows();
+    size_t p = a.columns();
+    size_t m = b.columns();
+
+    if (m <= B && n <= B && p <= B) {
+      return BaseMul::multiply<Mres, M0, M1>(a, b);
+    } else {
+      size_t new_n = n / 2;
+      size_t new_p = p / 2;
+      size_t new_m = m / 2;
+
+      auto a_split = a.split();
+      M0 a11 = move(get<0>(a_split));
+      M0 a12 = move(get<1>(a_split));
+      M0 a21 = move(get<2>(a_split));
+      M0 a22 = move(get<3>(a_split));
+
+      auto b_split = b.split();
+      M1 b11 = move(get<0>(b_split));
+      M1 b12 = move(get<1>(b_split));
+      M1 b21 = move(get<2>(b_split));
+      M1 b22 = move(get<3>(b_split));
+
+      Mres m1 = a11.unsafe_add(a22).operator*<M1, Mres>(b11.unsafe_add(b22));
+      Mres m2 = a21.unsafe_add(a22).operator*<M1, Mres>(b11);
+      Mres m3 = a11.operator*<M1, Mres>(b12.unsafe_sub(b22));
+      Mres m4 = a22.operator*<M1, Mres>(b21.unsafe_sub(b11));
+      Mres m5 = a11.unsafe_add(a12).operator*<M1, Mres>(b22);
+      Mres m6 = a21.unsafe_sub(a11).operator*<M1, Mres>(b11.unsafe_add(b12));
+      Mres m7 = a12.unsafe_sub(a22).operator*<M1, Mres>(b21.unsafe_add(b22));
+      
+      Mres c11 = m1.unsafe_add(m4).unsafe_sub(m5).unsafe_add(m7);
+      Mres c12 = m3.unsafe_add(m5);
+      Mres c21 = m2.unsafe_add(m4);
+      Mres c22 = m1.unsafe_sub(m2).unsafe_add(m3).unsafe_add(m6);
+
+      return unsafe_combine<Mres>(c11, c12, c21, c22);
+    }
+  };
+
+  template <typename Mres>
+  static Mres unsafe_combine(const Mres& a11, const Mres& a12, const Mres& a21, const Mres& a22) {
+    Mres m(a11.rows() + a21.rows(), a11.columns() + a21.columns());
+
+    uint32_t current = 0;
+    uint32_t elements = a11.rows() * a11.columns();
+    for (uint32_t i = 0; i < elements; i++) {
+      m.data.data[current++] = a11.data.data[i];
+    }
+
+    elements = a21.rows() * a21.columns();
+    for (uint32_t i = 0; i < elements; i++) {
+      m.data.data[current++] = a21.data.data[i];
+    }
+
+    elements = a12.rows() * a12.columns();
+    for (uint32_t i = 0; i < elements; i++) {
+      m.data.data[current++] = a12.data.data[i];
+    }
+
+    elements = a22.rows() * a22.columns();
+    for (uint32_t i = 0; i < elements; i++) {
+      m.data.data[current++] = a22.data.data[i];
+    }
+
+    return m;
+  };
+
+  static string config() {
+    return "hacky-strassen-" + to_string(B);
   };
 };
 

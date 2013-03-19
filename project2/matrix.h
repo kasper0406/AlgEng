@@ -20,6 +20,8 @@ public:
 
   explicit Matrix(size_t n, size_t m) : data(Layout(n, m)) { };
 
+  explicit Matrix(Layout data1) : data(data1) { };
+
   explicit Matrix(size_t n, size_t m, typename Layout::Element init) : data(Layout(n, m))
   {
     data.overwrite_entries(init);
@@ -114,6 +116,10 @@ public:
     return other;
   };
 
+  tuple<SelfType, SelfType, SelfType, SelfType> split() const {
+    return data.split<SelfType>();
+  };
+
   template <typename M>
   bool operator==(const M& other) const {
     if (this->rows() != other.rows() || this->rows() != other.columns()) {
@@ -191,6 +197,38 @@ public:
     return c;
   };
 
+  SelfType unsafe_add(const SelfType& other) const {
+    assert(this->columns() == other.columns());
+    assert(this->rows() == other.rows());
+
+    SelfType c(this->rows(), this->columns());
+
+    for (uint32_t i = 0; i < this->rows(); i++) {
+      for (uint32_t j = 0; j < this->columns(); j++) {
+        c.data.data[i * this->rows() + j] = this->data.data[i * this->rows() + j] + other.data.data[i * this->rows() + j];
+      }
+    }
+    
+    // Move semantics
+    return c;
+  };
+
+  SelfType unsafe_sub(const SelfType& other) const {
+    assert(this->columns() == other.columns());
+    assert(this->rows() == other.rows());
+
+    SelfType c(this->rows(), this->columns());
+
+    for (uint32_t i = 0; i < this->rows(); i++) {
+      for (uint32_t j = 0; j < this->columns(); j++) {
+        c.data.data[i * this->rows() + j] = this->data.data[i * this->rows() + j] - other.data.data[i * this->rows() + j];
+      }
+    }
+    
+    // Move semantics
+    return c;
+  };
+
   template <>
   SelfType operator-(const SelfType& other) const {
     assert(this->columns() == other.columns());
@@ -220,7 +258,7 @@ public:
     return Layout::config() + " " + MatrixMul::config();
   };
 
-  string to_string() {
+  string to_string() const {
     stringstream ss;
     ss.precision(3);
 
@@ -234,7 +272,7 @@ public:
     return ss.str();
   };
     
+  Layout data;
 private:
   typedef Matrix<Layout, MatrixMul> type;    
-  Layout data;
 };
