@@ -99,6 +99,10 @@ public:
     assert(index < this->n * this->m);
     return this->data[index];
   };
+  
+  inline Element* addr(size_t index) const {
+    return this->data + index;
+  }
 
   ~DataLayout() {
     if (data != nullptr) {
@@ -219,7 +223,7 @@ public:
 };
 
 template <>
-struct tr1::hash<pair<uint32_t, uint32_t> > {
+struct hash<pair<uint32_t, uint32_t> > {
 public:
   size_t operator()(pair<uint32_t, uint32_t> x) const throw() {
     return x.first * 3 + x.second * 7;

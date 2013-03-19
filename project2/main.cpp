@@ -18,6 +18,7 @@ typedef Matrix<ZCurve<double>, Recursive<4, GenericBCMultiplier>> RRZ;
 typedef Matrix<ZCurve<double>, Recursive<B, ZLayoutBCMultiplier<B>>> RZBC;
 
 typedef Matrix<RowTiled<B, B, double>, Recursive<B, TiledBCMultiplier>> RTR;
+typedef Matrix<RowTiled<B, B, double>, Recursive<B, SIMDTiledBCMultiplier>> SMIDRTR;
 typedef Matrix<RowTiled<B, B, double>, ParallelRecursive<B, TiledBCMultiplier, 2>> RTRP;
 typedef Matrix<ColumnTiled<B, B, double>, Recursive<B, GenericBCMultiplier>> CTR;
 
@@ -41,6 +42,7 @@ using namespace std;
 int main(int argc, char *argv[]) {
   cout.precision(8);
   
+  /*
   sanity_check<RN, RN>();
   sanity_check<CN, CN>();
   sanity_check<RP, RP>();
@@ -52,6 +54,8 @@ int main(int argc, char *argv[]) {
   sanity_check<RS, RS>();
   sanity_check<RTS, CTS>();
   sanity_check<CZS, CZS>();
+   */
+  sanity_check<SMIDRTR, SMIDRTR>();
 
   // test<RZBC,RZBC,RZBC>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 64ULL);
   //test<RTR,CTR,RTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 64ULL);
@@ -83,6 +87,7 @@ int main(int argc, char *argv[]) {
 
   // Test strassen
   //test<RN,RN,RN>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
+  /*
   test<RN,CN,RN>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
   test<RS,RS,RS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
   test<RTS,CTS,RTS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
@@ -91,6 +96,7 @@ int main(int argc, char *argv[]) {
   test<CZS,CZS,CZS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
   test<RZBC,RZBC,RZBC>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
   test<RTR,CTR,RTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
+   */
 
   // Rapport tests
   // test<RN,RN,RN>(cout, 3, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);

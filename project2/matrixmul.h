@@ -12,6 +12,9 @@
 #include <vector>
 #include "matrix.h"
 
+// AVX intrinsics
+#include "immintrin.h"
+
 using namespace std;
 
 class Naive {
@@ -172,6 +175,72 @@ public:
   }
 };
 
+class SIMDTiledBCMultiplier
+{
+public:
+  template<typename M0, typename M1, typename Mres>
+  inline static void multiply(Mres& result, const M0& a, const M1& b,
+                              uint32_t a_row_start, uint32_t a_row_stop,
+                              uint32_t a_col_start, uint32_t a_col_stop,
+                              uint32_t b_row_start, uint32_t b_row_stop,
+                              uint32_t b_col_start, uint32_t b_col_stop,
+                              uint32_t res_row_start, uint32_t res_row_stop,
+                              uint32_t res_col_start, uint32_t res_col_stop)
+  {
+    const size_t C_a = a_col_start / M0::Layout::WIDTH;
+    const size_t R_a = a_row_start / M0::Layout::HEIGHT;
+    const size_t a_start_index = C_a * M0::Layout::WIDTH * M0::Layout::HEIGHT + R_a * M0::Layout::HEIGHT * a.columns();
+    
+    const size_t C_b = b_col_start / M1::Layout::WIDTH;
+    const size_t R_b = b_row_start / M1::Layout::HEIGHT;
+    const size_t b_start_index = C_b * M1::Layout::WIDTH * M1::Layout::HEIGHT + R_b * M1::Layout::HEIGHT * b.columns();
+    
+    const size_t C_res = res_col_start / Mres::Layout::WIDTH;
+    const size_t R_res = res_row_start / Mres::Layout::HEIGHT;
+    const size_t res_start_index = C_res * Mres::Layout::WIDTH * Mres::Layout::HEIGHT + R_res * Mres::Layout::HEIGHT * result.columns();
+    
+    const uint32_t m = a_row_stop - a_row_start;
+    const uint32_t n = a_col_stop - a_col_start;
+    const uint32_t p = b_col_stop - b_col_start;
+    
+    assert(n % 4 == 0);
+    
+    // Allocate memory to sum result
+    double *tmp;
+    int res = posix_memalign((void**)&tmp, 64, 64);
+    if (res != 0)
+      throw runtime_error("Could not allocate memory!");
+    
+    // Base case: Do standard multiplication
+    for (uint32_t i = 0; i < m; i++) {
+      // TODO: Consider how to make this work with arbitrary tiling!!!
+      const size_t a_start_row = a_start_index + i * M0::Layout::WIDTH;
+      const size_t res_start_row = res_start_index + i * Mres::Layout::WIDTH;
+      
+      for (uint32_t j = 0; j < p; j++) {
+        memset(tmp, 0, 4 * sizeof(double));
+        __m256d sum = _mm256_load_pd(tmp);
+        
+        for (uint32_t k = 0; k < n; k += 4) {
+          __m256d a_data = _mm256_load_pd(a.addr(a_start_row + k));
+          __m256d b_data = _mm256_load_pd(b.addr(b_start_index + j * M1::Layout::HEIGHT + k));
+          
+          __m256d multiplied = _mm256_mul_pd(a_data, b_data);
+          sum = _mm256_add_pd(sum, multiplied);
+        }
+
+        _mm256_store_pd(tmp, sum);
+        
+        typename Mres::Element& e = result.at(res_start_row + j);
+        for (int i = 0; i < 4; i++)
+          e += tmp[i];
+      }
+    }
+    
+    free(tmp);
+  }
+};
+
 template<int B>
 class ZLayoutBCMultiplier
 {
@@ -261,10 +330,10 @@ public:
       M1 b21(b, new_p, p, 0, new_m);
       M1 b22(b, new_p, p, new_m, m);
 
-      Mres c11 = a11.operator*<M1, Mres>(b11).operator+<Mres, Mres>(a12.operator*<M1, Mres>(b21));
-      Mres c12 = a11.operator*<M1, Mres>(b12).operator+<Mres, Mres>(a12.operator*<M1, Mres>(b22));
-      Mres c21 = a21.operator*<M1, Mres>(b11).operator+<Mres, Mres>(a22.operator*<M1, Mres>(b21));
-      Mres c22 = a21.operator*<M1, Mres>(b12).operator+<Mres, Mres>(a22.operator*<M1, Mres>(b22));
+      Mres c11 = a11.template operator*<M1, Mres>(b11).template operator+<Mres, Mres>(a12.template operator*<M1, Mres>(b21));
+      Mres c12 = a11.template operator*<M1, Mres>(b12).template operator+<Mres, Mres>(a12.template operator*<M1, Mres>(b22));
+      Mres c21 = a21.template operator*<M1, Mres>(b11).template operator+<Mres, Mres>(a22.template operator*<M1, Mres>(b21));
+      Mres c22 = a21.template operator*<M1, Mres>(b12).template operator+<Mres, Mres>(a22.template operator*<M1, Mres>(b22));
 
       return Mres(c11, c12, c21, c22);
     }
@@ -317,18 +386,18 @@ public:
       M1 b21(b, new_p, p, 0, new_m);
       M1 b22(b, new_p, p, new_m, m);
 
-      Mres m1 = a11.operator+<M0, M0>(a22).operator*<M1, Mres>(b11.operator+<M1, M1>(b22));
-      Mres m2 = a21.operator+<M0, M0>(a22).operator*<M1, Mres>(b11);
-      Mres m3 = a11.operator*<M1, Mres>(b12.operator-<M1, M1>(b22));
-      Mres m4 = a22.operator*<M1, Mres>(b21.operator-<M1, M1>(b11));
-      Mres m5 = a11.operator+<M0, M0>(a12).operator*<M1, Mres>(b22);
-      Mres m6 = a21.operator-<M0, M0>(a11).operator*<M1, Mres>(b11.operator+<M1, M1>(b12));
-      Mres m7 = a12.operator-<M0, M0>(a22).operator*<M1, Mres>(b21.operator+<M1, M1>(b22));
+      Mres m1 = a11.template operator+<M0, M0>(a22).template operator*<M1, Mres>(b11.template operator+<M1, M1>(b22));
+      Mres m2 = a21.template operator+<M0, M0>(a22).template operator*<M1, Mres>(b11);
+      Mres m3 = a11.template operator*<M1, Mres>(b12.template operator-<M1, M1>(b22));
+      Mres m4 = a22.template operator*<M1, Mres>(b21.template operator-<M1, M1>(b11));
+      Mres m5 = a11.template operator+<M0, M0>(a12).template operator*<M1, Mres>(b22);
+      Mres m6 = a21.template operator-<M0, M0>(a11).template operator*<M1, Mres>(b11.template operator+<M1, M1>(b12));
+      Mres m7 = a12.template operator-<M0, M0>(a22).template operator*<M1, Mres>(b21.template operator+<M1, M1>(b22));
       
-      Mres c11 = m1.operator+<Mres, Mres>(m4).operator-<Mres, Mres>(m5).operator+<Mres, Mres>(m7);
-      Mres c12 = m3.operator+<Mres, Mres>(m5);
-      Mres c21 = m2.operator+<Mres, Mres>(m4);
-      Mres c22 = m1.operator-<Mres, Mres>(m2).operator+<Mres, Mres>(m3).operator+<Mres, Mres>(m6);
+      Mres c11 = m1.template operator+<Mres, Mres>(m4).template operator-<Mres, Mres>(m5).template operator+<Mres, Mres>(m7);
+      Mres c12 = m3.template operator+<Mres, Mres>(m5);
+      Mres c21 = m2.template operator+<Mres, Mres>(m4);
+      Mres c22 = m1.template operator-<Mres, Mres>(m2).template operator+<Mres, Mres>(m3).template operator+<Mres, Mres>(m6);
 
       return Mres(c11, c12, c21, c22);
     }

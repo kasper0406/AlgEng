@@ -16,7 +16,7 @@ class Matrix {
 public:
   typedef L Layout;
   typedef typename Layout::Element Element;
-  typedef typename Matrix<L, MatrixMul> SelfType;
+  typedef Matrix<L, MatrixMul> SelfType;
 
   explicit Matrix(size_t n, size_t m) : data(Layout(n, m)) { };
 
@@ -100,6 +100,10 @@ public:
   inline Element& at(size_t index) {
     return data.at(index);
   };
+  
+  inline Element* addr(size_t index) const {
+    return data.addr(index);
+  }
 
   template <typename M>
   M convert() {
@@ -156,24 +160,7 @@ public:
     // Move semantics
     return c;
   };
-
-  template <>
-  SelfType operator+(const SelfType& other) const {
-    assert(this->columns() == other.columns());
-    assert(this->rows() == other.rows());
-
-    SelfType c(this->rows(), this->columns());
-
-    for (uint32_t i = 0; i < this->rows(); i++) {
-      for (uint32_t j = 0; j < this->columns(); j++) {
-        c.data.data[i * this->rows() + j] = this->data.data[i * this->rows() + j] + other.data.data[i * this->rows() + j];
-      }
-    }
-    
-    // Move semantics
-    return c;
-  };
-
+  
   template <typename M1, typename Mres>
   Mres operator-(const M1& other) const {
     assert(this->columns() == other.columns());
@@ -190,24 +177,7 @@ public:
     // Move semantics
     return c;
   };
-
-  template <>
-  SelfType operator-(const SelfType& other) const {
-    assert(this->columns() == other.columns());
-    assert(this->rows() == other.rows());
-
-    SelfType c(this->rows(), this->columns());
-
-    for (uint32_t i = 0; i < this->rows(); i++) {
-      for (uint32_t j = 0; j < this->columns(); j++) {
-        c.data.data[i * this->rows() + j] = this->data.data[i * this->rows() + j] - other.data.data[i * this->rows() + j];
-      }
-    }
-    
-    // Move semantics
-    return c;
-  };
-
+  
   inline size_t rows() const {
     return data.rows();
   };
@@ -233,7 +203,7 @@ public:
 
     return ss.str();
   };
-    
+  
 private:
   typedef Matrix<Layout, MatrixMul> type;    
   Layout data;
