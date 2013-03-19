@@ -8,7 +8,6 @@
 #include <iostream>
 #include <array>
 #include <thread>
-#include <mutex>
 #include <vector>
 #include <chrono>
 #include "matrix.h"
@@ -232,8 +231,8 @@ public:
         typename Mres::Element& e = result.at(res_start_row + j);
         for (int h = 0; h < 4; h++) {
           e += tmp[h];
-	  tmp[h] = 0;
-	}
+          tmp[h] = 0;
+        }
       }
     }
   }
@@ -515,9 +514,6 @@ private:
     const M0& a;
     const M1& b;
     
-    vector<thread> threads;
-    mutex threads_mutex;
-    
     void visit(uint32_t a_row_start, uint32_t a_row_stop,
                uint32_t a_col_start, uint32_t a_col_stop,
                uint32_t b_row_start, uint32_t b_row_stop,
@@ -559,10 +555,10 @@ private:
                       res_row_start, res_row_start + mid, res_col_start, res_col_stop,
                       thread_depth + 1);
         };
+        
+        thread th;
         if (thread_depth < CreateThreadDepth) {
-          threads_mutex.lock();
-          threads.push_back(thread(run));
-          threads_mutex.unlock();
+          th = thread(run);
         } else {
           run();
         }
@@ -571,6 +567,9 @@ private:
               b_row_start, b_row_stop, b_col_start, b_col_stop,
               res_row_start + mid, res_row_stop, res_col_start, res_col_stop,
               thread_depth + 1);
+        
+        if (th.joinable())
+          th.join();
       } else if (n > max(m, p)) {
         // Split both
         const uint32_t mid = n / 2;
@@ -596,10 +595,9 @@ private:
                       res_row_start, res_row_stop, res_col_start, res_col_start + mid,
                       thread_depth + 1);
         };
+        thread th;
         if (thread_depth < CreateThreadDepth) {
-          threads_mutex.lock();
-          threads.push_back(thread(run));
-          threads_mutex.unlock();
+          th = thread(run);
         } else {
           run();
         }
@@ -608,31 +606,16 @@ private:
               b_row_start, b_row_stop, b_col_start + mid, b_col_stop,
               res_row_start, res_row_stop, res_col_start + mid, res_col_stop,
               thread_depth + 1);
-      }
-    }
-    
-    void join() {
-      while (!threads.empty()) {
-        threads_mutex.lock();
-        if (threads.empty())
-          continue;
         
-        thread th;
-        swap(th, threads.back());
-        
-        threads.pop_back();
-        threads_mutex.unlock();
-        
-        th.join();
+        if (th.joinable())
+          th.join();
       }
     }
     
   public:
     Multiplier(Mres& result, const M0& a, const M1& b)
       : result(result), a(a), b(b)
-    {
-      threads.reserve(1 << CreateThreadDepth);
-    }
+    { }
     
     // Assumption c is 0 initialized
     void operator() ()
@@ -641,7 +624,6 @@ private:
             0, b.rows(), 0, b.columns(),
             0, result.rows(), 0, result.columns(),
             0);
-      join();
     }
   };
 };
