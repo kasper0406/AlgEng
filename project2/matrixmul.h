@@ -217,7 +217,7 @@ public:
       const size_t res_start_row = res_start_index + i * Mres::Layout::WIDTH;
       
       for (uint32_t j = 0; j < p; j++) {
-        __m256d sum = _mm256_load_pd(tmp);
+        __m256d sum = _mm256_setzero_pd();
         for (uint32_t k = 0; k < n; k += 4) {
           __m256d a_data = _mm256_load_pd(a.addr(a_start_row + k));
           __m256d b_data = _mm256_load_pd(b.addr(b_start_index + j * M1::Layout::HEIGHT + k));
@@ -229,10 +229,8 @@ public:
         _mm256_store_pd(tmp, sum);
         
         typename Mres::Element& e = result.at(res_start_row + j);
-        for (int h = 0; h < 4; h++) {
+        for (int h = 0; h < 4; h++)
           e += tmp[h];
-          tmp[h] = 0;
-        }
       }
     }
   }
