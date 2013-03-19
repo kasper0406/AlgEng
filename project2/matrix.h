@@ -16,6 +16,7 @@ class Matrix {
 public:
   typedef L Layout;
   typedef typename Layout::Element Element;
+  typedef typename Matrix<L, MatrixMul> SelfType;
 
   explicit Matrix(size_t n, size_t m) : data(Layout(n, m)) { };
 
@@ -28,7 +29,6 @@ public:
   Matrix(const Matrix& other) : data(other.data) { throw logic_error("Do not copy matrices!"); }
   Matrix& operator=(Matrix&& other)
   {
-    cout << "Matrix Assignment" << endl;
     if (this != &other) {
       data = other.data;
     }
@@ -122,7 +122,7 @@ public:
 
     for (uint32_t i = 0; i < this->rows(); i++) {
       for (uint32_t j = 0; j < this->columns(); j++) {
-        if (abs(data(i, j) - other(i, j)) > 0.0000000000001)
+        if (data(i, j) != other(i, j))
           return false;
       }
     }
@@ -150,6 +150,57 @@ public:
     for (uint32_t i = 0; i < this->rows(); i++) {
       for (uint32_t j = 0; j < this->columns(); j++) {
         c(i, j) = this->operator()(i, j) + other(i, j);
+      }
+    }
+    
+    // Move semantics
+    return c;
+  };
+
+  template <>
+  SelfType operator+(const SelfType& other) const {
+    assert(this->columns() == other.columns());
+    assert(this->rows() == other.rows());
+
+    SelfType c(this->rows(), this->columns());
+
+    for (uint32_t i = 0; i < this->rows(); i++) {
+      for (uint32_t j = 0; j < this->columns(); j++) {
+        c.data.data[i * this->rows() + j] = this->data.data[i * this->rows() + j] + other.data.data[i * this->rows() + j];
+      }
+    }
+    
+    // Move semantics
+    return c;
+  };
+
+  template <typename M1, typename Mres>
+  Mres operator-(const M1& other) const {
+    assert(this->columns() == other.columns());
+    assert(this->rows() == other.rows());
+
+    Mres c(this->rows(), this->columns());
+
+    for (uint32_t i = 0; i < this->rows(); i++) {
+      for (uint32_t j = 0; j < this->columns(); j++) {
+        c(i, j) = this->operator()(i, j) - other(i, j);
+      }
+    }
+    
+    // Move semantics
+    return c;
+  };
+
+  template <>
+  SelfType operator-(const SelfType& other) const {
+    assert(this->columns() == other.columns());
+    assert(this->rows() == other.rows());
+
+    SelfType c(this->rows(), this->columns());
+
+    for (uint32_t i = 0; i < this->rows(); i++) {
+      for (uint32_t j = 0; j < this->columns(); j++) {
+        c.data.data[i * this->rows() + j] = this->data.data[i * this->rows() + j] - other.data.data[i * this->rows() + j];
       }
     }
     

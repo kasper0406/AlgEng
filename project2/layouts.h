@@ -5,6 +5,7 @@
 #include <cassert>
 #include <string>
 #include <iostream>
+#include <unordered_map>
 #include <stdlib.h>
 
 using namespace std;
@@ -216,6 +217,177 @@ public:
     return "z-curve";
   };
 };
+
+template <>
+struct tr1::hash<pair<uint32_t, uint32_t> > {
+public:
+  size_t operator()(pair<uint32_t, uint32_t> x) const throw() {
+    return x.first * 3 + x.second * 7;
+  }
+};
+
+//typedef unordered_map<pair<uint32_t, uint32_t>, vector<uint32_t>> OffsetMap;
+//
+//template <typename Element>
+//class CachingZCurve : public DataLayout<Element> {
+//public:
+//  // Constructors and move semantics
+//  explicit CachingZCurve(size_t n, size_t m) : DataLayout<Element>(n, m) {
+//    OffsetMap::const_iterator got = CachingZCurve<Element>::offset_vectors.find(make_pair(n, m));
+//    if (got == offset_vectors.end()) {
+//      vector<uint32_t> new_offsets = make_offsets(n, m);
+//      offset_vectors.insert(OffsetMap::value_type(make_pair(n, m), new_offsets));
+//      offsets = &new_offsets[0];
+//      cout << "no";
+//    } else {
+//      offsets = &(got->second[0]);
+//      cout << "yes";
+//    }
+//  };
+//  CachingZCurve(CachingZCurve&& other) : DataLayout<Element>(move(other)) {
+//    cout << "foo";
+//  };
+//  CachingZCurve& operator=(CachingZCurve&& other)
+//  {
+//    DataLayout<Element>::operator= (move(other));
+//    return *this;
+//  };
+//
+//  static inline size_t interleave_bits(size_t row, size_t column) {
+//    static const size_t B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF};
+//    static const size_t S[] = {1, 2, 4, 8};
+//
+//    size_t x = row;
+//    size_t y = column;
+//    size_t z;
+//
+//    x = (x | (x << S[3])) & B[3];
+//    x = (x | (x << S[2])) & B[2];
+//    x = (x | (x << S[1])) & B[1];
+//    x = (x | (x << S[0])) & B[0];
+//
+//    y = (y | (y << S[3])) & B[3];
+//    y = (y | (y << S[2])) & B[2];
+//    y = (y | (y << S[1])) & B[1];
+//    y = (y | (y << S[0])) & B[0];
+//
+//    z = x | (y << 1);
+//
+//    return z;
+//  };
+//
+//  inline Element operator()(size_t row, size_t column) const {
+//    assert(row < this->n && column < this->m);
+//    return this->data[offsets[row * this->n + column]];
+//  };
+//    
+//  inline Element& operator()(size_t row, size_t column) {
+//    assert(row < this->n && column < this->m);
+//    return this->data[offsets[row * this->n + column]];
+//  };
+//
+//  static string config() {
+//    return "caching-z-curve";
+//  };
+//private:
+//  static vector<uint32_t> make_offsets(size_t rows, size_t columns) {
+//    vector<uint32_t> offsets(rows * columns);
+//    
+//    for (int i = 0; i < rows; i++) {
+//      for (int j = 0; j < columns; j++)
+//        offsets[i * rows + j] = interleave_bits(i, j);
+//    }
+//
+//    return offsets;
+//  };
+//  
+//  const uint32_t* offsets;
+//  static OffsetMap offset_vectors;
+//};
+//template<typename Element> OffsetMap CachingZCurve<Element>::offset_vectors = OffsetMap();
+typedef unordered_map<pair<uint32_t, uint32_t>, uint32_t*> OffsetMap;
+
+template <typename Element>
+class CachingZCurve : public DataLayout<Element> {
+public:
+  // Constructors and move semantics
+  explicit CachingZCurve(size_t n, size_t m) : DataLayout<Element>(n, m) {
+    OffsetMap::const_iterator got = CachingZCurve<Element>::offset_vectors.find(make_pair(n, m));
+    if (got == offset_vectors.end()) {
+      uint32_t* new_offsets = make_offsets(n, m);
+      offset_vectors.insert(OffsetMap::value_type(make_pair(n, m), new_offsets));
+      offsets = new_offsets;
+    } else {
+      offsets = got->second;
+    }
+  };
+  CachingZCurve(CachingZCurve&& other) : DataLayout<Element>(move(other)) {
+    offsets = other.offsets;
+    other.offsets = nullptr;
+  };
+  CachingZCurve& operator=(CachingZCurve&& other)
+  {
+    if (this != &other) {
+      DataLayout<Element>::operator= (move(other));
+      offsets = other.offsets;
+      other.offsets = nullptr;
+    }
+    return *this;
+  };
+
+  static inline size_t interleave_bits(size_t row, size_t column) {
+    static const size_t B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF};
+    static const size_t S[] = {1, 2, 4, 8};
+
+    size_t x = row;
+    size_t y = column;
+    size_t z;
+
+    x = (x | (x << S[3])) & B[3];
+    x = (x | (x << S[2])) & B[2];
+    x = (x | (x << S[1])) & B[1];
+    x = (x | (x << S[0])) & B[0];
+
+    y = (y | (y << S[3])) & B[3];
+    y = (y | (y << S[2])) & B[2];
+    y = (y | (y << S[1])) & B[1];
+    y = (y | (y << S[0])) & B[0];
+
+    z = x | (y << 1);
+
+    return z;
+  };
+
+  inline Element operator()(size_t row, size_t column) const {
+    assert(row < this->n && column < this->m);
+    return this->data[offsets[row * this->n + column]];
+  };
+    
+  inline Element& operator()(size_t row, size_t column) {
+    assert(row < this->n && column < this->m);
+    return this->data[offsets[row * this->n + column]];
+  };
+
+  static string config() {
+    return "caching-z-curve";
+  };
+private:
+  static uint32_t* make_offsets(size_t rows, size_t columns) {
+    uint32_t* offsets = new uint32_t[rows * columns];
+    
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < columns; j++)
+        offsets[i * rows + j] = interleave_bits(i, j);
+    }
+
+    return offsets;
+  };
+  
+  const uint32_t* offsets;
+  static OffsetMap offset_vectors;
+};
+// TODO: Bliver ikke free'et
+template<typename Element> OffsetMap CachingZCurve<Element>::offset_vectors = OffsetMap();
 
 template <uint32_t W, uint32_t H, typename Element>
 class RowTiled : public DataLayout<Element> {

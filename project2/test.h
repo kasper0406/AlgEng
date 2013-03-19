@@ -117,7 +117,7 @@ void measure(ostream& out,
 };
 
 mt19937 generator(100);
-uniform_real_distribution<double> distribution(-1., 1.);
+uniform_real_distribution<double> distribution(0., 10000.);
 auto random_double = bind(distribution, generator);
 
 template <typename M>
@@ -127,7 +127,7 @@ M random_matrix(size_t n, size_t m) {
   for (uint32_t i = 0; i < n; i++) {
     for (uint32_t j = 0; j < m; j++) {
       typename M::Element e(random_double());
-      a(0, 0) = e;
+      a(i, j) = e;
     }
   }
 
@@ -263,8 +263,8 @@ typedef Matrix<RowBased<double>, Naive> RN;
 template <typename M0, typename M1>
 void sanity_check() {
   size_t factor_pow2 = 0;
-  size_t min_size_total = 512;
-  size_t max_size_total = 1024 * 1024;
+  size_t min_size_total = 32768;
+  size_t max_size_total = 1024 * 1024 * 8;
   
   int i = factor_pow2 - 1;
   while (true) {
