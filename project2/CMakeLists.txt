@@ -4,7 +4,7 @@ project (AlgEngProject2)
 string(COMPARE EQUAL ${CMAKE_SYSTEM_NAME} "Linux" LINUX)
 
 IF(${LINUX})
-  set(CMAKE_CXX_COMPUILER "clang++")
+  set(CMAKE_CXX_COMPILER "clang++")
   set(CMAKE_BUILD_TYPE Release)
   set(CMAKE_CXX_FLAGS_RELEASE "-O3")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")

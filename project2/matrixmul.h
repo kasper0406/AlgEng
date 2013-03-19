@@ -3,9 +3,11 @@
 #include <cstddef>
 #include <cassert>
 #include <memory>
+#include <functional>
 #include <string>
 #include <iostream>
 #include <thread>
+#include <mutex>
 #include <array>
 #include <vector>
 #include "matrix.h"
@@ -428,4 +430,165 @@ private:
 
     }
   }
+};
+
+/*
+ * CreateThreadDepth: Depth in recursion where recursive calls are spawned
+ *   in new threads. Hence 2^{CreateThreadLevel} threads will be created!
+ */
+template<int B, typename BaseCaseMultiplier, int CreateThreadDepth>
+class ParallelRecursive {
+public:
+  template <typename M0, typename M1, typename Mres>
+  static Mres multiply(const M0& a, const M1& b) {
+    assert(a.columns() == b.rows());
+    
+    Mres c(a.rows(), b.columns(), 0);
+    Multiplier<M0, M1, Mres>(c, a, b)();
+    
+    return c;
+  }
+  
+  static string config() {
+    return "parallel-recursive-" + to_string(B);
+  };
+  
+  
+private:
+  template <typename M0, typename M1, typename Mres>
+  class Multiplier {
+  private:
+    Mres& result;
+    const M0& a;
+    const M1& b;
+    
+    vector<thread> threads;
+    mutex threads_mutex;
+    
+    void visit(uint32_t a_row_start, uint32_t a_row_stop,
+               uint32_t a_col_start, uint32_t a_col_stop,
+               uint32_t b_row_start, uint32_t b_row_stop,
+               uint32_t b_col_start, uint32_t b_col_stop,
+               uint32_t res_row_start, uint32_t res_row_stop,
+               uint32_t res_col_start, uint32_t res_col_stop,
+               unsigned short thread_depth)
+    {
+      // Notation from article
+      const uint32_t m = a_row_stop - a_row_start;
+      const uint32_t n = a_col_stop - a_col_start;
+      assert(n == b_row_stop - b_row_start);
+      const uint32_t p = b_col_stop - b_col_start;
+      
+      assert(m == res_row_stop - res_row_start);
+      assert(p == res_col_stop - res_col_start);
+      
+      if (m <= B && n <= B && p <= B) {
+#ifndef _WINDOWS
+        BaseCaseMultiplier::template multiply<M0, M1, Mres>(result, a, b,
+                                                            a_row_start, a_row_stop, a_col_start, a_col_stop,
+                                                            b_row_start, b_row_stop, b_col_start, b_col_stop,
+                                                            res_row_start, res_row_stop, res_col_start, res_col_stop);
+#else
+        BaseCaseMultiplier::multiply<M0, M1, Mres>(result, a, b,
+                                                   a_row_start, a_row_stop, a_col_start, a_col_stop,
+                                                   b_row_start, b_row_stop, b_col_start, b_col_stop,
+                                                   res_row_start, res_row_stop, res_col_start, res_col_stop);
+#endif
+      } else if (m > p && m >= n) {
+        // Split a
+        const uint32_t mid = m / 2;
+        auto run = [a_row_start, a_col_start, a_col_stop,
+                    b_row_start, b_row_stop, b_col_start, b_col_stop,
+                    res_row_start, res_col_start, res_col_stop,
+                    thread_depth, mid, this] () {
+          visit(a_row_start, a_row_start + mid, a_col_start, a_col_stop,
+                b_row_start, b_row_stop, b_col_start, b_col_stop,
+                res_row_start, res_row_start + mid, res_col_start, res_col_stop,
+                thread_depth + 1);
+        };
+        if (thread_depth < CreateThreadDepth) {
+          threads_mutex.lock();
+          threads.push_back(thread(run));
+          threads_mutex.unlock();
+        } else {
+          run();
+        }
+        
+        visit(a_row_start + mid, a_row_stop, a_col_start, a_col_stop,
+              b_row_start, b_row_stop, b_col_start, b_col_stop,
+              res_row_start + mid, res_row_stop, res_col_start, res_col_stop,
+              thread_depth + 1);
+      } else if (n > max(m, p)) {
+        // Split both
+        const uint32_t mid = n / 2;
+        visit(a_row_start, a_row_stop, a_col_start, a_col_start + mid,
+              b_row_start, b_row_start + mid, b_col_start, b_col_stop,
+              res_row_start, res_row_stop, res_col_start, res_col_stop,
+              thread_depth);
+        visit(a_row_start, a_row_stop, a_col_start + mid, a_col_stop,
+              b_row_start + mid, b_row_stop, b_col_start, b_col_stop,
+              res_row_start, res_row_stop, res_col_start, res_col_stop,
+              thread_depth);
+      } else {
+        assert(p >= max(m, n));
+        
+        // Split b
+        const uint32_t mid = p / 2;
+        auto run = [a_row_start, a_row_stop, a_col_start, a_col_stop,
+                    b_row_start, b_row_stop, b_col_start,
+                    res_row_start, res_row_stop, res_col_start,
+                    thread_depth, mid, this] () {
+          visit(a_row_start, a_row_stop, a_col_start, a_col_stop,
+                b_row_start, b_row_stop, b_col_start, b_col_start + mid,
+                res_row_start, res_row_stop, res_col_start, res_col_start + mid,
+                thread_depth + 1);
+        };
+        if (thread_depth < CreateThreadDepth) {
+          threads_mutex.lock();
+          threads.push_back(thread(run));
+          threads_mutex.unlock();
+        } else {
+          run();
+        }
+        
+        visit(a_row_start, a_row_stop, a_col_start, a_col_stop,
+              b_row_start, b_row_stop, b_col_start + mid, b_col_stop,
+              res_row_start, res_row_stop, res_col_start + mid, res_col_stop,
+              thread_depth + 1);
+      }
+    }
+    
+    void join() {
+      while (!threads.empty()) {
+        threads_mutex.lock();
+        if (threads.empty())
+          continue;
+        
+        thread th;
+        swap(th, threads.back());
+        
+        threads.pop_back();
+        threads_mutex.unlock();
+        
+        th.join();
+      }
+    }
+    
+  public:
+    Multiplier(Mres& result, const M0& a, const M1& b)
+      : result(result), a(a), b(b)
+    {
+      threads.reserve(1 << CreateThreadDepth);
+    }
+    
+    // Assumption c is 0 initialized
+    void operator() ()
+    {
+      visit(0, a.rows(), 0, a.columns(),
+            0, b.rows(), 0, b.columns(),
+            0, result.rows(), 0, result.columns(),
+            0);
+      join();
+    }
+  };
 };
