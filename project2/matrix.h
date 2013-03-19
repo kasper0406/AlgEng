@@ -122,7 +122,7 @@ public:
 
     for (uint32_t i = 0; i < this->rows(); i++) {
       for (uint32_t j = 0; j < this->columns(); j++) {
-        if (data(i, j) != other(i, j))
+        if (abs(data(i, j) - other(i, j)) > 0.000000000001)
           return false;
       }
     }

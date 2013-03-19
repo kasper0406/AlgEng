@@ -41,7 +41,7 @@ using namespace std;
 int main(int argc, char *argv[]) {
   cout.precision(8);
   
-  /*sanity_check<RN, RN>();
+  sanity_check<RN, RN>();
   sanity_check<CN, CN>();
   sanity_check<RP, RP>();
   sanity_check<ZR, ZR>();
@@ -50,9 +50,7 @@ int main(int argc, char *argv[]) {
   sanity_check<CTR, CTR>();
   sanity_check<RZBC, RZBC>();
   sanity_check<RS, RS>();
-  test<RP,CP,RP>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
-  test<RTRP,CTR,RTRP>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
-  sanity_check<RTS, CTS>();*/
+  sanity_check<RTS, CTS>();
   sanity_check<CZS, CZS>();
 
   // test<RZBC,RZBC,RZBC>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 64ULL);

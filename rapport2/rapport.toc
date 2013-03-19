@@ -1,0 +1,18 @@
+\contentsline {section}{\numberline {1}Introduction}{3}
+\contentsline {section}{\numberline {2}Algorithms and data structures}{3}
+\contentsline {subsection}{\numberline {2.1}Simple multiplication}{3}
+\contentsline {subsubsection}{\numberline {2.1.1}Row-based layout}{3}
+\contentsline {subsubsection}{\numberline {2.1.2}Combined row-based and column-based layout}{3}
+\contentsline {subsection}{\numberline {2.2}Recursive multiplication}{3}
+\contentsline {subsubsection}{\numberline {2.2.1}Z-curve layout}{3}
+\contentsline {subsubsection}{\numberline {2.2.2}Tiled layout}{3}
+\contentsline {subsection}{\numberline {2.3}Special instructions}{4}
+\contentsline {subsection}{\numberline {2.4}Parallelization}{4}
+\contentsline {subsubsection}{\numberline {2.4.1}Combined row-based and column-based layout}{4}
+\contentsline {section}{\numberline {3}Benchmarks}{4}
+\contentsline {subsection}{\numberline {3.1}Test setup}{4}
+\contentsline {subsection}{\numberline {3.2}Simple multiplication}{4}
+\contentsline {subsubsection}{\numberline {3.2.1}Row-based layout}{4}
+\contentsline {subsubsection}{\numberline {3.2.2}Combined row-based and column-based layout}{5}
+\contentsline {subsection}{\numberline {3.3}Recursive multiplication}{6}
+\contentsline {subsubsection}{\numberline {3.3.1}Z-curve layout}{6}
