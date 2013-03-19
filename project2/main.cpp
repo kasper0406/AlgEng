@@ -37,6 +37,7 @@ typedef Matrix<ColumnBased<double>, ParallelNaive<4>> CP;
 
 typedef Matrix<ZCurveTiled<double, 32, true>, HackyStrassen<32, FixedTiledBCMultiplier<32>>> ZRTHS;
 typedef Matrix<ZCurveTiled<double, 32, false>, HackyStrassen<32, FixedTiledBCMultiplier<32>>> ZCTHS;
+typedef Matrix<ZCurveTiled<double, 32, true>, HackyStrassen<32, SIMDFixedTiledBCMultiplier<32>>> SIMDZRTHS;
 
 using namespace std;
 
@@ -86,7 +87,8 @@ int main(int argc, char *argv[]) {
   // Test strassen
   //test<RN,RN,RN>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
   // test<RN,CN,RN>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  // test<ZRTHS,ZCTHS,ZRTHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
+  test<ZRTHS,ZCTHS,ZRTHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
+  test<SIMDZRTHS,ZCTHS,SIMDZRTHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
   /*test<RZBC,RZBC,RZBC>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
   test<RTR,CTR,RTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);*/
 
