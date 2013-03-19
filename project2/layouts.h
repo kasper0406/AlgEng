@@ -53,10 +53,12 @@ template <typename Element>
 class DataLayout : public BaseLayout<Element> {
 public:
   Element* data;
+  bool dont_free;
 
   DataLayout(DataLayout&& other) : BaseLayout<Element>(move(other))
   {
     data = other.data;
+    dont_free = other.dont_free;
     other.data = nullptr;
   }
 
@@ -67,6 +69,7 @@ public:
       delete[] data;
 
       data = other.data;
+      dont_free = other.dont_free;
       BaseLayout<Element>::operator= (move(other));
 
       other.data = nullptr;
@@ -74,7 +77,9 @@ public:
     return *this;
   }
 
-  explicit DataLayout(size_t n, size_t m) : BaseLayout<Element>(n, m), data(nullptr) {
+  explicit DataLayout(size_t n, size_t m, Element* data0) : BaseLayout<Element>(n, m), data(data0), dont_free(true) { };
+
+  explicit DataLayout(size_t n, size_t m) : BaseLayout<Element>(n, m), data(nullptr), dont_free(false) {
 #ifndef _WINDOWS
     int res = posix_memalign((void**)&data, CACHE_LINE_SIZE, n * m * sizeof(Element));
     if (res != 0)
@@ -82,6 +87,11 @@ public:
 #else
     data = new Element[n * m];
 #endif
+  };
+
+  template <typename M>
+  tuple<M, M, M, M> split() {
+    throw logic_error("Not valid for this layout!");
   };
 
   inline void overwrite_entries(Element e) {
@@ -105,7 +115,7 @@ public:
   }
 
   ~DataLayout() {
-    if (data != nullptr) {
+    if (data != nullptr && !dont_free) {
 #ifndef WINDOWS
       free(data);
 #else
@@ -222,6 +232,90 @@ public:
   };
 };
 
+template <typename Element, int B, bool row_tiled>
+class ZCurveTiled : public DataLayout<Element> {
+public:
+  // Constructors and move semantics
+  explicit ZCurveTiled(size_t n, size_t m) : DataLayout<Element>(n, m) { };
+  ZCurveTiled(ZCurveTiled&& other) : DataLayout<Element>(move(other)) { };
+  ZCurveTiled& operator=(ZCurveTiled&& other)
+  {
+    DataLayout<Element>::operator= (move(other));
+    return *this;
+  }
+
+  static const uint32_t WIDTH = B;
+  static const uint32_t HEIGHT = B;
+
+  static inline size_t interleave_bits(size_t row, size_t column) {
+    static const size_t B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF};
+    static const size_t S[] = {1, 2, 4, 8};
+
+    size_t x = row;
+    size_t y = column;
+    size_t z;
+
+    x = (x | (x << S[3])) & B[3];
+    x = (x | (x << S[2])) & B[2];
+    x = (x | (x << S[1])) & B[1];
+    x = (x | (x << S[0])) & B[0];
+
+    y = (y | (y << S[3])) & B[3];
+    y = (y | (y << S[2])) & B[2];
+    y = (y | (y << S[1])) & B[1];
+    y = (y | (y << S[0])) & B[0];
+
+    z = x | (y << 1);
+
+    return z;
+  };
+
+  inline uint32_t calculate_index(size_t row, size_t column) const {
+    uint32_t tile_x = row / B;
+    uint32_t tile_y = column / B;
+    uint32_t tile = interleave_bits(tile_x, tile_y);
+    uint32_t tile_column = column % B;
+    uint32_t tile_row = row % B;
+    if (row_tiled) {
+      return tile * B * B + tile_row * B + tile_column;
+    } else {
+      return tile * B * B + tile_row + B * tile_column;
+    }
+  };
+
+  inline Element operator()(size_t row, size_t column) const {
+    assert(row < this->n && column < this->m);
+    return data[calculate_index(row, column)];
+  };
+    
+  inline Element& operator()(size_t row, size_t column) {
+    assert(row < this->n && column < this->m);
+    return data[calculate_index(row, column)];
+  };
+
+  ZCurveTiled(size_t n, size_t m, Element* data0) : DataLayout<Element>(n, m, data0) { };
+
+  template <typename M>
+  tuple<M, M, M, M> split() const {
+    size_t n = this->rows();
+    size_t m = this->columns();
+
+    size_t new_n = n / 2;
+    size_t new_m = m / 2;
+
+    M a11(ZCurveTiled(new_n, new_m, this->data + calculate_index(0, 0)));
+    M a12(ZCurveTiled(new_n, new_m, this->data + calculate_index(0, new_m)));
+    M a21(ZCurveTiled(new_n, new_m, this->data + calculate_index(new_n, 0)));
+    M a22(ZCurveTiled(new_n, new_m, this->data + calculate_index(new_n, new_m)));
+
+    return make_tuple(move(a11), move(a12), move(a21), move(a22));
+  };
+
+  static string config() {
+    return "z-curve-tiled";
+  };
+};
+
 template <>
 struct hash<pair<uint32_t, uint32_t> > {
 public:
@@ -230,85 +324,6 @@ public:
   }
 };
 
-//typedef unordered_map<pair<uint32_t, uint32_t>, vector<uint32_t>> OffsetMap;
-//
-//template <typename Element>
-//class CachingZCurve : public DataLayout<Element> {
-//public:
-//  // Constructors and move semantics
-//  explicit CachingZCurve(size_t n, size_t m) : DataLayout<Element>(n, m) {
-//    OffsetMap::const_iterator got = CachingZCurve<Element>::offset_vectors.find(make_pair(n, m));
-//    if (got == offset_vectors.end()) {
-//      vector<uint32_t> new_offsets = make_offsets(n, m);
-//      offset_vectors.insert(OffsetMap::value_type(make_pair(n, m), new_offsets));
-//      offsets = &new_offsets[0];
-//      cout << "no";
-//    } else {
-//      offsets = &(got->second[0]);
-//      cout << "yes";
-//    }
-//  };
-//  CachingZCurve(CachingZCurve&& other) : DataLayout<Element>(move(other)) {
-//    cout << "foo";
-//  };
-//  CachingZCurve& operator=(CachingZCurve&& other)
-//  {
-//    DataLayout<Element>::operator= (move(other));
-//    return *this;
-//  };
-//
-//  static inline size_t interleave_bits(size_t row, size_t column) {
-//    static const size_t B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF};
-//    static const size_t S[] = {1, 2, 4, 8};
-//
-//    size_t x = row;
-//    size_t y = column;
-//    size_t z;
-//
-//    x = (x | (x << S[3])) & B[3];
-//    x = (x | (x << S[2])) & B[2];
-//    x = (x | (x << S[1])) & B[1];
-//    x = (x | (x << S[0])) & B[0];
-//
-//    y = (y | (y << S[3])) & B[3];
-//    y = (y | (y << S[2])) & B[2];
-//    y = (y | (y << S[1])) & B[1];
-//    y = (y | (y << S[0])) & B[0];
-//
-//    z = x | (y << 1);
-//
-//    return z;
-//  };
-//
-//  inline Element operator()(size_t row, size_t column) const {
-//    assert(row < this->n && column < this->m);
-//    return this->data[offsets[row * this->n + column]];
-//  };
-//    
-//  inline Element& operator()(size_t row, size_t column) {
-//    assert(row < this->n && column < this->m);
-//    return this->data[offsets[row * this->n + column]];
-//  };
-//
-//  static string config() {
-//    return "caching-z-curve";
-//  };
-//private:
-//  static vector<uint32_t> make_offsets(size_t rows, size_t columns) {
-//    vector<uint32_t> offsets(rows * columns);
-//    
-//    for (int i = 0; i < rows; i++) {
-//      for (int j = 0; j < columns; j++)
-//        offsets[i * rows + j] = interleave_bits(i, j);
-//    }
-//
-//    return offsets;
-//  };
-//  
-//  const uint32_t* offsets;
-//  static OffsetMap offset_vectors;
-//};
-//template<typename Element> OffsetMap CachingZCurve<Element>::offset_vectors = OffsetMap();
 typedef unordered_map<pair<uint32_t, uint32_t>, uint32_t*> OffsetMap;
 
 template <typename Element>
