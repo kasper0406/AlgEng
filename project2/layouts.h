@@ -66,11 +66,17 @@ public:
   {
     if (this != &other)
     {
-      delete[] data;
+      if (data != nullptr) {
+#ifndef _WINDOWS
+        free(data);
+#else
+        delete[] data;
+#endif
+      }
 
+      BaseLayout<Element>::operator= (move(other));
       data = other.data;
       dont_free = other.dont_free;
-      BaseLayout<Element>::operator= (move(other));
 
       other.data = nullptr;
     }
@@ -116,7 +122,7 @@ public:
 
   ~DataLayout() {
     if (data != nullptr && !dont_free) {
-#ifndef WINDOWS
+#ifndef _WINDOWS
       free(data);
 #else
       delete[] data;
@@ -237,7 +243,8 @@ class ZCurveTiled : public DataLayout<Element> {
 public:
   // Constructors and move semantics
   explicit ZCurveTiled(size_t n, size_t m) : DataLayout<Element>(n, m) { };
-  ZCurveTiled(ZCurveTiled&& other) : DataLayout<Element>(move(other)) { };
+  ZCurveTiled(ZCurveTiled&& other) : DataLayout<Element>(move(other)) {
+  };
   ZCurveTiled& operator=(ZCurveTiled&& other)
   {
     DataLayout<Element>::operator= (move(other));

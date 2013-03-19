@@ -22,17 +22,23 @@ public:
 
   explicit Matrix(Layout data1) : data(move(data1)) { };
 
+  explicit Matrix() : data(Layout(0,0,nullptr)) { };
+
   explicit Matrix(size_t n, size_t m, typename Layout::Element init) : data(Layout(n, m))
   {
     data.overwrite_entries(init);
   }
 
-  Matrix(Matrix&& other) : data(move(other.data)) { }
+  Matrix(Matrix&& other) : data(move(other.data)) {
+  }
+
   Matrix(const Matrix& other) : data(other.data) { throw logic_error("Do not copy matrices!"); }
+  Matrix& operator=(Matrix& other) { throw logic_error("Do not copy matrices!"); };
   Matrix& operator=(Matrix&& other)
   {
     if (this != &other) {
       data = other.data;
+      other.data.data = nullptr; // HACK!
     }
     return *this;
   }

@@ -11,6 +11,7 @@
 #include <mutex>
 #include <vector>
 #include <chrono>
+#include <future>
 #include "matrix.h"
 
 // AVX intrinsics
@@ -96,7 +97,7 @@ public:
   };
 
   static string config() {
-    return to_string(T) + "parallel naive";
+    return to_string(T) + "parallel-naive";
   };
 };
 
@@ -389,6 +390,110 @@ public:
 
   static string config() {
     return "hacky-strassen-" + to_string(B);
+  };
+};
+
+// TODO: Assumes equal columns and rows! and base of two! Assumes Z-curve tiling
+template<int B, typename BaseMul>
+class ParallelHackyStrassen {
+public:
+  template <typename M0, typename M1, typename Mres>
+  static Mres multiply(const M0& a, const M1& b) {
+    function<Mres(const M0&, const M1&, int)> visit;
+    visit = [&](const M0& a, const M1& b, int depth) {
+      assert(a.columns() == b.rows());
+
+      size_t n = a.rows();
+      size_t p = a.columns();
+      size_t m = b.columns();
+
+      if (m <= B && n <= B && p <= B) {
+        return BaseMul::Template multiply<Mres, M0, M1>(a, b);
+      } else {
+        auto a_split = a.split();
+        M0 a11 = move(get<0>(a_split));
+        M0 a12 = move(get<1>(a_split));
+        M0 a21 = move(get<2>(a_split));
+        M0 a22 = move(get<3>(a_split));
+
+        auto b_split = b.split();
+        M1 b11 = move(get<0>(b_split));
+        M1 b12 = move(get<1>(b_split));
+        M1 b21 = move(get<2>(b_split));
+        M1 b22 = move(get<3>(b_split));
+      
+        //vector<Mres> ms(7);
+
+        Mres m1,m2,m3,m4,m5,m6,m7;
+
+        if (depth == 0) {
+          thread f1 = thread([&]() { m1 = visit(a11.unsafe_add(a22), b11.unsafe_add(b22), depth + 1); });
+          thread f2 = thread([&]() { m2 = visit(a21.unsafe_add(a22), b11, depth + 1); });
+          thread f3 = thread([&]() { m3 = visit(a11, b12.unsafe_sub(b22), depth + 1); });
+          thread f4 = thread([&]() { m4 = visit(a22, b21.unsafe_sub(b11), depth + 1); });
+          thread f5 = thread([&]() { m5 = visit(a11.unsafe_add(a12), b22, depth + 1); });
+          thread f6 = thread([&]() { m6 = visit(a21.unsafe_sub(a11), b11.unsafe_add(b12), depth + 1); });
+          thread f7 = thread([&]() { m7 = visit(a12.unsafe_sub(a22), b21.unsafe_add(b22), depth + 1); });
+
+          f1.join();
+          f2.join();
+          f3.join();
+          f4.join();
+          f5.join();
+          f6.join();
+          f7.join();
+        } else {
+          m1 = visit(a11.unsafe_add(a22), b11.unsafe_add(b22), depth + 1);
+          m2 = visit(a21.unsafe_add(a22), b11, depth + 1);
+          m3 = visit(a11, b12.unsafe_sub(b22), depth + 1);
+          m4 = visit(a22, b21.unsafe_sub(b11), depth + 1);
+          m5 = visit(a11.unsafe_add(a12), b22, depth + 1);
+          m6 = visit(a21.unsafe_sub(a11), b11.unsafe_add(b12), depth + 1);
+          m7 = visit(a12.unsafe_sub(a22), b21.unsafe_add(b22), depth + 1);
+        }
+        
+        Mres c11 = m1.unsafe_add(m4).unsafe_sub(m5).unsafe_add(m7);
+        Mres c12 = m3.unsafe_add(m5);
+        Mres c21 = m2.unsafe_add(m4);
+        Mres c22 = m1.unsafe_sub(m2).unsafe_add(m3).unsafe_add(m6);
+
+        return unsafe_combine<Mres>(c11, c12, c21, c22);
+      };
+    };
+
+    return visit(a, b, 0);
+  };
+
+  template <typename Mres>
+  static Mres unsafe_combine(const Mres& a11, const Mres& a12, const Mres& a21, const Mres& a22) {
+    Mres m(a11.rows() + a21.rows(), a11.columns() + a21.columns());
+
+    uint32_t current = 0;
+    uint32_t elements = a11.rows() * a11.columns();
+    for (uint32_t i = 0; i < elements; i++) {
+      m.data.data[current++] = a11.data.data[i];
+    }
+
+    elements = a21.rows() * a21.columns();
+    for (uint32_t i = 0; i < elements; i++) {
+      m.data.data[current++] = a21.data.data[i];
+    }
+
+    elements = a12.rows() * a12.columns();
+    for (uint32_t i = 0; i < elements; i++) {
+      m.data.data[current++] = a12.data.data[i];
+    }
+
+    elements = a22.rows() * a22.columns();
+    for (uint32_t i = 0; i < elements; i++) {
+      m.data.data[current++] = a22.data.data[i];
+    }
+
+    return m;
+  };
+
+  static string config() {
+    return "parallel-hacky-strassen-" + to_string(B);
   };
 };
 
