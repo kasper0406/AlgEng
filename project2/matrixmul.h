@@ -569,9 +569,9 @@ private:
                     res_row_start, res_col_start, res_col_stop,
                     thread_depth, mid, this] () {
           this->visit(a_row_start, a_row_start + mid, a_col_start, a_col_stop,
-		      b_row_start, b_row_stop, b_col_start, b_col_stop,
-		      res_row_start, res_row_start + mid, res_col_start, res_col_stop,
-		      thread_depth + 1);
+                      b_row_start, b_row_stop, b_col_start, b_col_stop,
+                      res_row_start, res_row_start + mid, res_col_start, res_col_stop,
+                      thread_depth + 1);
         };
         if (thread_depth < CreateThreadDepth) {
           threads_mutex.lock();
@@ -606,9 +606,9 @@ private:
                     res_row_start, res_row_stop, res_col_start,
                     thread_depth, mid, this] () {
           this->visit(a_row_start, a_row_stop, a_col_start, a_col_stop,
-		      b_row_start, b_row_stop, b_col_start, b_col_start + mid,
-		      res_row_start, res_row_stop, res_col_start, res_col_start + mid,
-		      thread_depth + 1);
+                      b_row_start, b_row_stop, b_col_start, b_col_start + mid,
+                      res_row_start, res_row_stop, res_col_start, res_col_start + mid,
+                      thread_depth + 1);
         };
         if (thread_depth < CreateThreadDepth) {
           threads_mutex.lock();
