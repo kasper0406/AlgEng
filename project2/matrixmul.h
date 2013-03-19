@@ -218,8 +218,6 @@ public:
       const size_t res_start_row = res_start_index + i * Mres::Layout::WIDTH;
       
       for (uint32_t j = 0; j < p; j++) {
-	typename Mres::Element& e = result.at(res_start_row + j);
-
         __m256d sum = _mm256_load_pd(tmp);
         for (uint32_t k = 0; k < n; k += 4) {
           __m256d a_data = _mm256_load_pd(a.addr(a_start_row + k));
@@ -230,6 +228,8 @@ public:
         }
 
         _mm256_store_pd(tmp, sum);
+        
+        typename Mres::Element& e = result.at(res_start_row + j);
         for (int h = 0; h < 4; h++) {
           e += tmp[h];
 	  tmp[h] = 0;
@@ -328,12 +328,8 @@ public:
     size_t m = b.columns();
 
     if (m <= B && n <= B && p <= B) {
-      return BaseMul::multiply<Mres, M0, M1>(a, b);
+      return BaseMul::Template multiply<Mres, M0, M1>(a, b);
     } else {
-      size_t new_n = n / 2;
-      size_t new_p = p / 2;
-      size_t new_m = m / 2;
-
       auto a_split = a.split();
       M0 a11 = move(get<0>(a_split));
       M0 a12 = move(get<1>(a_split));
@@ -346,13 +342,13 @@ public:
       M1 b21 = move(get<2>(b_split));
       M1 b22 = move(get<3>(b_split));
 
-      Mres m1 = a11.unsafe_add(a22).operator*<M1, Mres>(b11.unsafe_add(b22));
-      Mres m2 = a21.unsafe_add(a22).operator*<M1, Mres>(b11);
-      Mres m3 = a11.operator*<M1, Mres>(b12.unsafe_sub(b22));
-      Mres m4 = a22.operator*<M1, Mres>(b21.unsafe_sub(b11));
-      Mres m5 = a11.unsafe_add(a12).operator*<M1, Mres>(b22);
-      Mres m6 = a21.unsafe_sub(a11).operator*<M1, Mres>(b11.unsafe_add(b12));
-      Mres m7 = a12.unsafe_sub(a22).operator*<M1, Mres>(b21.unsafe_add(b22));
+      Mres m1 = a11.unsafe_add(a22).Template operator*<M1, Mres>(b11.unsafe_add(b22));
+      Mres m2 = a21.unsafe_add(a22).Template operator*<M1, Mres>(b11);
+      Mres m3 = a11.Template operator*<M1, Mres>(b12.unsafe_sub(b22));
+      Mres m4 = a22.Template operator*<M1, Mres>(b21.unsafe_sub(b11));
+      Mres m5 = a11.unsafe_add(a12).Template operator*<M1, Mres>(b22);
+      Mres m6 = a21.unsafe_sub(a11).Template operator*<M1, Mres>(b11.unsafe_add(b12));
+      Mres m7 = a12.unsafe_sub(a22).Template operator*<M1, Mres>(b21.unsafe_add(b22));
       
       Mres c11 = m1.unsafe_add(m4).unsafe_sub(m5).unsafe_add(m7);
       Mres c12 = m3.unsafe_add(m5);

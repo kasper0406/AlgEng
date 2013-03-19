@@ -1,5 +1,11 @@
 #include <iostream>
 
+#ifndef _WINDOWS
+  #define Template template
+#else
+  #define Template
+#endif
+
 #include "matrix.h"
 #include "layouts.h"
 #include "matrixmul.h"

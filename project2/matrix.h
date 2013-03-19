@@ -20,7 +20,7 @@ public:
 
   explicit Matrix(size_t n, size_t m) : data(Layout(n, m)) { };
 
-  explicit Matrix(Layout data1) : data(data1) { };
+  explicit Matrix(Layout data1) : data(move(data1)) { };
 
   explicit Matrix(size_t n, size_t m, typename Layout::Element init) : data(Layout(n, m))
   {
@@ -91,7 +91,7 @@ public:
   };
 
   tuple<SelfType, SelfType, SelfType, SelfType> split() const {
-    return data.split<SelfType>();
+    return data.Template split<SelfType>();
   };
 
   template <typename M>
