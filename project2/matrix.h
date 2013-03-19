@@ -16,7 +16,7 @@ class Matrix {
 public:
   typedef L Layout;
   typedef typename Layout::Element Element;
-  typedef typename Matrix<L, MatrixMul> SelfType;
+  typedef Matrix<L, MatrixMul> SelfType;
 
   explicit Matrix(size_t n, size_t m) : data(Layout(n, m)) { };
 
@@ -102,6 +102,10 @@ public:
   inline Element& at(size_t index) {
     return data.at(index);
   };
+  
+  inline Element* addr(size_t index) const {
+    return data.addr(index);
+  }
 
   template <typename M>
   M convert() {
@@ -271,7 +275,7 @@ public:
 
     return ss.str();
   };
-    
+  
   Layout data;
 private:
   typedef Matrix<Layout, MatrixMul> type;    

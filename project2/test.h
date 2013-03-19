@@ -20,7 +20,6 @@
 #include "layouts.h"
 
 #ifdef __linux__
-#include <papi.h>
 #include </ipcm/cpucounters.h>
 #endif
 
@@ -227,7 +226,7 @@ void test_factor(ostream& out,
     results << measurement.str();
   }
 
-#ifndef _WINDOWS
+#ifdef __linux__
   string name = M0::config() + "_" + M1::config() + "_" + Mres::config() + "_" + to_string(factor_pow2);
   generate_plot(name, results.str());
 #endif

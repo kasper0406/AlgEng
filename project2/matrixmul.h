@@ -6,13 +6,18 @@
 #include <functional>
 #include <string>
 #include <iostream>
+#include <array>
 #include <thread>
 #include <mutex>
-#include <array>
 #include <vector>
+#include <chrono>
 #include "matrix.h"
 
+// AVX intrinsics
+#include <immintrin.h>
+
 using namespace std;
+using namespace std::chrono;
 
 class Naive {
 public:
@@ -167,6 +172,68 @@ public:
         }
         
         // result.at(res_start_row + j) = e;
+      }
+    }
+  }
+};
+
+class SIMDTiledBCMultiplier
+{
+public:
+  template<typename M0, typename M1, typename Mres>
+  inline static void multiply(Mres& result, const M0& a, const M1& b,
+                              uint32_t a_row_start, uint32_t a_row_stop,
+                              uint32_t a_col_start, uint32_t a_col_stop,
+                              uint32_t b_row_start, uint32_t b_row_stop,
+                              uint32_t b_col_start, uint32_t b_col_stop,
+                              uint32_t res_row_start, uint32_t res_row_stop,
+                              uint32_t res_col_start, uint32_t res_col_stop)
+  {
+    const size_t C_a = a_col_start / M0::Layout::WIDTH;
+    const size_t R_a = a_row_start / M0::Layout::HEIGHT;
+    const size_t a_start_index = C_a * M0::Layout::WIDTH * M0::Layout::HEIGHT + R_a * M0::Layout::HEIGHT * a.columns();
+    
+    const size_t C_b = b_col_start / M1::Layout::WIDTH;
+    const size_t R_b = b_row_start / M1::Layout::HEIGHT;
+    const size_t b_start_index = C_b * M1::Layout::WIDTH * M1::Layout::HEIGHT + R_b * M1::Layout::HEIGHT * b.columns();
+    
+    const size_t C_res = res_col_start / Mres::Layout::WIDTH;
+    const size_t R_res = res_row_start / Mres::Layout::HEIGHT;
+    const size_t res_start_index = C_res * Mres::Layout::WIDTH * Mres::Layout::HEIGHT + R_res * Mres::Layout::HEIGHT * result.columns();
+    
+    const uint32_t m = a_row_stop - a_row_start;
+    const uint32_t n = a_col_stop - a_col_start;
+    const uint32_t p = b_col_stop - b_col_start;
+    
+    assert(n % 4 == 0);
+    
+    // Allocate memory to sum result
+    // TODO: Ensure that this is 32 byte aligned!!!
+    double tmp[4] = { 0, 0, 0, 0 };
+    
+    // Base case: Do standard multiplication
+    for (uint32_t i = 0; i < m; i++) {
+      // TODO: Consider how to make this work with arbitrary tiling!!!
+      const size_t a_start_row = a_start_index + i * M0::Layout::WIDTH;
+      const size_t res_start_row = res_start_index + i * Mres::Layout::WIDTH;
+      
+      for (uint32_t j = 0; j < p; j++) {
+	typename Mres::Element& e = result.at(res_start_row + j);
+
+        __m256d sum = _mm256_load_pd(tmp);
+        for (uint32_t k = 0; k < n; k += 4) {
+          __m256d a_data = _mm256_load_pd(a.addr(a_start_row + k));
+          __m256d b_data = _mm256_load_pd(b.addr(b_start_index + j * M1::Layout::HEIGHT + k));
+          
+          __m256d multiplied = _mm256_mul_pd(a_data, b_data);
+          sum = _mm256_add_pd(sum, multiplied);
+        }
+
+        _mm256_store_pd(tmp, sum);
+        for (int h = 0; h < 4; h++) {
+          e += tmp[h];
+	  tmp[h] = 0;
+	}
       }
     }
   }
@@ -555,10 +622,10 @@ private:
                     b_row_start, b_row_stop, b_col_start, b_col_stop,
                     res_row_start, res_col_start, res_col_stop,
                     thread_depth, mid, this] () {
-          visit(a_row_start, a_row_start + mid, a_col_start, a_col_stop,
-                b_row_start, b_row_stop, b_col_start, b_col_stop,
-                res_row_start, res_row_start + mid, res_col_start, res_col_stop,
-                thread_depth + 1);
+          this->visit(a_row_start, a_row_start + mid, a_col_start, a_col_stop,
+		      b_row_start, b_row_stop, b_col_start, b_col_stop,
+		      res_row_start, res_row_start + mid, res_col_start, res_col_stop,
+		      thread_depth + 1);
         };
         if (thread_depth < CreateThreadDepth) {
           threads_mutex.lock();
@@ -592,10 +659,10 @@ private:
                     b_row_start, b_row_stop, b_col_start,
                     res_row_start, res_row_stop, res_col_start,
                     thread_depth, mid, this] () {
-          visit(a_row_start, a_row_stop, a_col_start, a_col_stop,
-                b_row_start, b_row_stop, b_col_start, b_col_start + mid,
-                res_row_start, res_row_stop, res_col_start, res_col_start + mid,
-                thread_depth + 1);
+          this->visit(a_row_start, a_row_stop, a_col_start, a_col_stop,
+		      b_row_start, b_row_stop, b_col_start, b_col_start + mid,
+		      res_row_start, res_row_stop, res_col_start, res_col_start + mid,
+		      thread_depth + 1);
         };
         if (thread_depth < CreateThreadDepth) {
           threads_mutex.lock();

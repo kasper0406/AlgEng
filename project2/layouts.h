@@ -109,6 +109,10 @@ public:
     assert(index < this->n * this->m);
     return this->data[index];
   };
+  
+  inline Element* addr(size_t index) const {
+    return this->data + index;
+  }
 
   ~DataLayout() {
     if (data != nullptr && !dont_free) {
