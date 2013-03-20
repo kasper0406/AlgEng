@@ -143,8 +143,8 @@ void generate_plot(string outputfile, string data) {
      << "set terminal pdf enhanced font \"Helvetica, 10\" size 6,4" << endl
      << "set output \"./plots/" << outputfile << ".pdf\"" << endl
 
-     << "set xlabel \"Input size\"" << endl
-     << "set xtics 0, 1" << endl
+     << "set xlabel \"log2 input size\"" << endl
+     << "set xtics 0, 1 rotate" << endl
      << "set offset 1, 1" << endl
 
      << "set ylabel \"Normalized running time [s]\"" << endl
@@ -160,9 +160,9 @@ void generate_plot(string outputfile, string data) {
      << "set key vert left top reverse" << endl
      << "set pointsize 2" << endl
 
-     << "plot '-' using (log2($1*$2*$3)):($7) title \"Time\" axes x1y1 with linespoints, \
-              '-' using (log2($1*$2*$3)):($11) title \"L2 cache misses\" axes x1y2 with linespoints, \
-              '-' using (log2($1*$2*$3)):($13) title \"L3 cache misses\" axes x1y2 with linespoints" << endl
+     << "plot '-' using (log2($1)):($7) title \"Time\" axes x1y1 with linespoints, \
+              '-' using (log2($1)):($11) title \"L2 cache misses\" axes x1y2 with linespoints, \
+              '-' using (log2($1)):($13) title \"L3 cache misses\" axes x1y2 with linespoints" << endl
 
     << data << endl << "e" << endl << data << endl << "e" << endl << data << endl << "e" << endl;
 
