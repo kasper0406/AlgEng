@@ -37,8 +37,7 @@ public:
   Matrix& operator=(Matrix&& other)
   {
     if (this != &other) {
-      data = other.data;
-      other.data.data = nullptr; // HACK!
+      data = move(other.data);
     }
     return *this;
   }

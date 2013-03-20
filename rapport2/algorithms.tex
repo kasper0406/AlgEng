@@ -30,11 +30,17 @@ The first idea was to use a Z-curved layout. One major advantage of this layout 
 
 In the recursive algorithm we used 8*8 as a base case for switching to the naive algorithm.
 
-\todo{Lav dem inkrementielt?}
+\todo{Hvordan vi preberegnede base-case}
 
 \subsubsection{Tiled layout}
 
 A tiled layout is a compromise between locality and performance of index calculations. When the recursive algorithm reaches blocks of the same size as the tiles, it switches to the naive algorithm. And the naive algorithm functions without any modifications.
+
+\subsection{Strassen}
+
+\todo{Skriv om Z-curve med base-case osv. Hvorfor det er smart og at vi kan dele matricer uden reelt at goere det.}
+
+\todo{Manglende praecision}
 
 \subsection{Special instructions}
 
@@ -49,3 +55,7 @@ The naive algorithm which is used for this combined is easily parallelizable bec
 ...
 
 \todo{todo, mere l2 cache}
+
+\todo{formelen for parallelization}
+
+\subsubsection{Strassen}
