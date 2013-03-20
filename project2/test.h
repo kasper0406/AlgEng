@@ -256,11 +256,12 @@ void test(ostream& out,
   delete m;
 #endif
 }
-
-typedef Matrix<RowBased<double>, Naive> RN;
     
 template <typename M0, typename M1>
 void sanity_check() {
+  static_assert(M0::SIMD == M1::SIMD,
+                "Types should be equal.");
+  
   size_t factor_pow2 = 0;
   size_t min_size_total = 32768;
   size_t max_size_total = 1024 * 1024 * 8;
@@ -278,6 +279,7 @@ void sanity_check() {
     if (total_size < min_size_total) continue;
     if (total_size > max_size_total) break;
 
+    typedef Matrix<RowBased<double>, Naive, M0::SIMD> RN;
     RN a = random_matrix<RN>(n, p);
     RN b = random_matrix<RN>(p, m);
     RN c = a.Template operator*<RN, RN>(b);

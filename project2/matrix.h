@@ -14,13 +14,15 @@
 
 using namespace std;
 
-template <class L, typename MatrixMul, bool SIMD = false>
+template <class L, typename MatrixMul, bool SIMD_ = false>
 class Matrix {
 public:
   typedef L Layout;
   typedef typename Layout::Element Element;
-  typedef Matrix<L, MatrixMul> SelfType;
+  typedef Matrix<L, MatrixMul, SIMD_> SelfType;
 
+  const static bool SIMD = SIMD_;
+  
   explicit Matrix(size_t n, size_t m) : data(Layout(n, m)) { };
 
   explicit Matrix(Layout data1) : data(move(data1)) { };
@@ -236,5 +238,5 @@ public:
   
   Layout data;
 private:
-  typedef Matrix<Layout, MatrixMul> type;    
+  typedef Matrix<Layout, MatrixMul, SIMD_> type;
 };
