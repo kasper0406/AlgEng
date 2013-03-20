@@ -49,8 +49,8 @@ struct Measurement {
   uint64_t l3_cache_hits;
   uint64_t l3_cache_misses;
   uint64_t instructions_retired;
-  uint64_t cpu_energy_used;
-  uint64_t dram_energy_used;
+  double cpu_energy_used;
+  double dram_energy_used;
 };
 
 template <typename Func>
@@ -114,6 +114,8 @@ void measure(ostream& out,
   out << fixed << measurements[iMedian].l3_cache_hits << "\t";
   out << fixed << measurements[iMedian].l3_cache_misses << "\t";
   out << fixed << measurements[iMedian].instructions_retired << "\t";
+  out << fixed << measurements[iMedian].cpu_energy_used << "\t";
+  out << fixed << measurements[iMedian].dram_energy_used << "\t";
 #endif
   
   out << endl;
