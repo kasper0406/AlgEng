@@ -476,7 +476,8 @@ public:
 
         Mres m1,m2,m3,m4,m5,m6,m7;
 
-        if (depth == 0) {
+        if ((depth == 0 && thread::hardware_concurrency() >= 2)
+             || (depth == 1 && thread::hardware_concurrency() >= 4)) {
           thread f1 = thread([&]() { m1 = visit(a11.unsafe_add(a22), b11.unsafe_add(b22), depth + 1); });
           thread f2 = thread([&]() { m2 = visit(a21.unsafe_add(a22), b11, depth + 1); });
           thread f3 = thread([&]() { m3 = visit(a11, b12.unsafe_sub(b22), depth + 1); });
@@ -484,7 +485,7 @@ public:
           thread f5 = thread([&]() { m5 = visit(a11.unsafe_add(a12), b22, depth + 1); });
           thread f6 = thread([&]() { m6 = visit(a21.unsafe_sub(a11), b11.unsafe_add(b12), depth + 1); });
           thread f7 = thread([&]() { m7 = visit(a12.unsafe_sub(a22), b21.unsafe_add(b22), depth + 1); });
-
+          
           f1.join();
           f2.join();
           f3.join();
