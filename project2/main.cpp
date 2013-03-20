@@ -25,9 +25,14 @@ typedef Matrix<ZCurve<double>, Recursive<B, ZLayoutBCMultiplier<B>>> RZBC;
 
 typedef Matrix<RowTiled<B, B, double>, Recursive<B, TiledBCMultiplier>> RTR;
 typedef Matrix<RowTiled<B, B, double>, Recursive<B, SIMDTiledBCMultiplier>> SIMDRTR;
-typedef Matrix<RowTiled<B, B, double>, ParallelRecursive<B, TiledBCMultiplier, 3>> RTRP;
+typedef Matrix<RowTiled<B, B, double>, ParallelRecursive<B, TiledBCMultiplier, 2>> RTRP;
 typedef Matrix<RowTiled<B, B, double>, ParallelRecursive<B, SIMDTiledBCMultiplier, 3>> SIMDRTRP;
 typedef Matrix<ColumnTiled<B, B, double>, Recursive<B, GenericBCMultiplier>> CTR;
+
+typedef Matrix<RowTiled<B, B, double>, TiledIterative<B>> RTI;
+typedef Matrix<ColumnTiled<B, B, double>, TiledIterative<B>> CTI;
+typedef Matrix<RowTiled<B, B, double>, ParallelTiledIterative<B,4>> RPTI;
+typedef Matrix<ColumnTiled<B, B, double>, ParallelTiledIterative<B,4>> CPTI;
 
 typedef Matrix<ColumnBased<double>, Recursive<4, GenericBCMultiplier>> CR;
 typedef Matrix<ZCurve<double>, Recursive<4, GenericBCMultiplier>> ZR;
@@ -55,16 +60,25 @@ int main(int argc, char *argv[]) {
   //sanity_check<CTR, CTR>();
   //sanity_check<RZBC, RZBC>();
   //sanity_check<ZRTHS, ZCTHS>();*/
-  sanity_check<ZRTPHS, ZCTPHS>();
+  //sanity_check<ZRTPHS, ZCTPHS>();
   /////*sanity_check<SIMDRTR, CTR>();*/
+  sanity_check<RTR, CTR>();
+  sanity_check<RTI, CTI>();
+  sanity_check<RPTI, CPTI>();
+  sanity_check<RTRP, CTR>();
+  test<RTR,CTR,RTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
+  test<RTI,CTI,RTI>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
+  test<RP,CP,RP>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
+  test<RPTI,CPTI,RPTI>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
+  test<RTRP,CTR,RTRP>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
 
   /////*test<RTR,CTR,RTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
   ////test<SIMDRTR,CTR,SIMDRTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);*/
 
-  test<ZRTPHS,ZCTPHS,ZRTPHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
+  /*test<ZRTPHS,ZCTPHS,ZRTPHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
   test<RN,CN,RN>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
   test<ZRTHS,ZCTHS,ZRTHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  test<RP,CP,RP>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
+  test<RP,CP,RP>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);*/
 
   ////// Rapport tests
   ////// test<RN,RN,RN>(cout, 3, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);

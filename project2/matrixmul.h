@@ -48,6 +48,139 @@ public:
   };
 };
 
+template <int B>
+class TiledIterative {
+public:
+  template <typename M0, typename M1, typename Mres>
+  static Mres multiply(const M0& a, const M1& b) {
+    assert(a.columns() == b.rows());
+    assert(a.rows() % B == 0);
+    assert(a.columns() % B == 0);
+    assert(b.columns() % B == 0);
+
+    const uint32_t tile_n = a.rows() / B;
+    const uint32_t tile_m = b.columns() / B;
+    const uint32_t tile_p = a.columns() / B;
+
+    Mres c(a.rows(), b.columns(), 0);
+
+    for (uint32_t i = 0; i < tile_n; i++) {
+      for (uint32_t j = 0; j < tile_m; j++) {
+        const uint32_t c_row_start = i * B;
+        const uint32_t c_col_start = j * B;
+        const uint32_t c_row_stop = c_row_start + B;
+        const uint32_t c_col_stop = c_col_start + B;
+
+        for (uint32_t k = 0; k < tile_p; k++) {
+
+          const uint32_t a_row_start = i * B;
+          const uint32_t a_col_start = k * B;
+          const uint32_t a_row_stop = a_row_start + B;
+          const uint32_t a_col_stop = a_col_start + B;
+
+          const uint32_t b_row_start = k * B;
+          const uint32_t b_col_start = j * B;
+          const uint32_t b_row_stop = b_row_start + B;
+          const uint32_t b_col_stop = b_col_start + B;
+
+          TiledBCMultiplier::multiply<M0, M1, Mres>(c, a, b,
+                                                    a_row_start, a_row_stop,
+                                                    a_col_start, a_col_stop,
+                                                    b_row_start, b_row_stop,
+                                                    b_col_start, b_col_stop,
+                                                    c_row_start, c_row_stop,
+                                                    c_col_start, c_col_stop);
+        }
+      }
+    }
+    
+    // Move semantics
+    return c;
+  };
+
+  static string config() {
+    return "tiled-iterative";
+  };
+};
+
+template <int B, int T>
+class ParallelTiledIterative {
+public:
+  template <typename M0, typename M1, typename Mres>
+  static Mres multiply(const M0& a, const M1& b) {
+    assert(a.columns() == b.rows());
+    assert(a.rows() % B == 0);
+    assert(a.columns() % B == 0);
+    assert(b.columns() % B == 0);
+
+    const uint32_t tile_n = a.rows() / B;
+    const uint32_t tile_m = b.columns() / B;
+    const uint32_t tile_p = a.columns() / B;
+
+    Mres c(a.rows(), b.columns(), 0);
+
+    vector<thread> threads;
+
+    assert(tile_n % T == 0);
+
+    size_t slice = tile_n / T;
+
+    for (int t = 0; t < T; t++) {
+      uint32_t from = t * slice;
+      uint32_t to = t == T - 1 ? tile_n : (t + 1) * slice;
+
+      auto run = [&a, &b, &c, from, to, tile_n, tile_p, tile_m]() {
+        for (uint32_t i = from; i < to; i++) {
+          for (uint32_t j = 0; j < tile_m; j++) {
+            const uint32_t c_row_start = i * B;
+            const uint32_t c_col_start = j * B;
+            const uint32_t c_row_stop = c_row_start + B;
+            const uint32_t c_col_stop = c_col_start + B;
+
+            for (uint32_t k = 0; k < tile_p; k++) {
+
+              const uint32_t a_row_start = i * B;
+              const uint32_t a_col_start = k * B;
+              const uint32_t a_row_stop = a_row_start + B;
+              const uint32_t a_col_stop = a_col_start + B;
+
+              const uint32_t b_row_start = k * B;
+              const uint32_t b_col_start = j * B;
+              const uint32_t b_row_stop = b_row_start + B;
+              const uint32_t b_col_stop = b_col_start + B;
+
+              TiledBCMultiplier::multiply<M0, M1, Mres>(c, a, b,
+                                                        a_row_start, a_row_stop,
+                                                        a_col_start, a_col_stop,
+                                                        b_row_start, b_row_stop,
+                                                        b_col_start, b_col_stop,
+                                                        c_row_start, c_row_stop,
+                                                        c_col_start, c_col_stop);
+            }
+          }
+        }
+      };
+
+      if (t == T - 1) {
+        run();
+      } else {
+        threads.push_back(thread(run));
+      }
+    }
+
+    for(auto& thread : threads){
+      thread.join();
+    }
+    
+    // Move semantics
+    return c;
+  };
+
+  static string config() {
+    return "parallel-tiled-iterative";
+  };
+};
+
 template <size_t T>
 class ParallelNaive {
 public:
@@ -590,17 +723,10 @@ private:
     assert(p == res_col_stop - res_col_start);
 
     if (m <= B && n <= B && p <= B) {
-#ifndef _WINDOWS
-      BaseCaseMultiplier::template multiply<M0, M1, Mres>(result, a, b,
+      BaseCaseMultiplier::Template multiply<M0, M1, Mres>(result, a, b,
                                                           a_row_start, a_row_stop, a_col_start, a_col_stop,
                                                           b_row_start, b_row_stop, b_col_start, b_col_stop,
                                                           res_row_start, res_row_stop, res_col_start, res_col_stop);
-#else
-      BaseCaseMultiplier::multiply<M0, M1, Mres>(result, a, b,
-                                                 a_row_start, a_row_stop, a_col_start, a_col_stop,
-                                                 b_row_start, b_row_stop, b_col_start, b_col_stop,
-                                                 res_row_start, res_row_stop, res_col_start, res_col_stop);
-#endif
     } else if (m > p && m >= n) {
       // Split a
       const uint32_t mid = m / 2;
