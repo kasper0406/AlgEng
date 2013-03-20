@@ -53,6 +53,7 @@ typedef Matrix<ZCurveTiled<double, 32, true>, ParallelHackyStrassen<32, FixedTil
 
 typedef Matrix<ZCurveTiled<double, 32, true>, ParallelHackyStrassen<32, SIMDFixedTiledBCMultiplier<32>>, false> SIMDZRTPHS;
 typedef Matrix<ZCurveTiled<double, 32, true>, ParallelHackyStrassen<32, SIMDFixedTiledBCMultiplier<32>>, true> SIMDZRTPHSS;
+typedef Matrix<ZCurveTiled<double, 32, false>, ParallelHackyStrassen<32, SIMDFixedTiledBCMultiplier<32>>, true> SIMDZCTPHSS;
 
 using namespace std;
 
@@ -77,7 +78,7 @@ int main(int argc, char *argv[]) {
   sanity_check<RTRP, CTR>();
   sanity_check<SIMDZRTPHS, ZCTPHS>();
   // sanity_check<SIMDZRTPHSS, ZCTPHS>();
-  sanity_check<SIMDZRTPHSS, SIMDZRTPHSS>();
+  sanity_check<SIMDZRTPHSS, SIMDZCTPHSS>();
 
   test<SIMDZRTPHS,ZCTPHS,SIMDZRTPHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
   // test<SIMDZRTPHSS,ZCTPHS,SIMDZRTPHSS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);

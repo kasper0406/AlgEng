@@ -20,7 +20,7 @@
 #include "layouts.h"
 
 #ifdef __linux__
-#include </ipcm/cpucounters.h>
+#include </home/espeholt/ipcm/cpucounters.h>
 #endif
 
 using namespace std;
