@@ -18,7 +18,7 @@ In order to improve the number of cache faults, we have tried to use a
 column base layout in the right operand in the multiplication. We
 expect this to give us a bit better cache performance. This approach
 has the drawback of limiting a matrix only to be used on one side of a
-multiplication.
+multiplication. However, this problem can be mitigated by conversions which is an $O(n^2)$ operation.
 
 \subsection{Recursive multiplication}
 
@@ -26,15 +26,25 @@ For exploiting more kinds of layouts we implemented the recursive algorithm.
 
 \subsubsection{Z-curve layout}
 
-The first idea was to use a Z-curved layout. One major advantage of this layout is that improves locality on all levels of the recursive multiplication. The drawback is that the index calculations are time consuming. On x86 we get approximately 50 bitwise operations each time. However, this can be improved by incrementally constructing the Z-curve numbers or by precomputing offsets at base cases. The upcoming Intel Haswell architecture has support for bit permutations which will improve the situation.
+The first idea was to use a Z-curved layout. One major advantage of this layout is that improves locality on all levels of the recursive multiplication. The drawback is that the index calculations are time consuming. On x86 we get approximately 50 bitwise operations each time we want to convert a coordinate to the position in the array. However, this can be improved by incrementally constructing the Z-curve numbers or by precomputing offsets at base cases. The upcoming Intel Haswell architecture has support for bit permutations which will improve the situation.
 
-In the recursive algorithm we used 8*8 as a base case for switching to the naive algorithm.
-
-\todo{Lav dem inkrementielt?}
+We ended up with precomputing the Z-curve offsets at the base case. That means the only penalty when we want to store or lookup a value is a level of indirection. In the recursive algorithm we used 8*8 as a base case for switching to the naive algorithm.
 
 \subsubsection{Tiled layout}
 
-A tiled layout is a compromise between locality and performance of index calculations. When the recursive algorithm reaches blocks of the same size as the tiles, it switches to the naive algorithm. And the naive algorithm functions without any modifications.
+A tiled layout is a compromise between locality and performance of index calculations. When the recursive algorithm reaches blocks of the same size as the tiles, it switches to the naive algorithm. And the naive algorithm functions without any modifications. To improve cache locality a bit we used a row-based layout in the tiles for the left operand and a column-based layout in the tiles for the right operand.
+
+\subsection{Strassen}
+
+Strassen exploits some tricks with matrix multiplication such that it only uses 7 multiplications instead of 8 multiplications. It is a recursive algorithm by nature. The first step of the algorithm is the split the operands into 2*2 blocked matrix.
+
+Instead of actually splitting the matrix into smaller matrices we have used a Z-curve layout. That means that the smaller matrices are able to just point to the data in the parent matrix while still preserving a proper layout themselves.
+
+Strassen needs to have a large base case such that we do not spend too much time on the recursion and to improve cache locality at the base levels. To avoid the overhead of handling matrix multiplication with a level of indirection or by calculating Z-curve indices, we used a row-based and column-based layout at the base case for the left and right operand respectively.
+
+The additions and subtractions in the algorithm only works on left operand block matrices or right operand block matrices. Therefore, we can use a single loop and no index calculations to add and subtract matrices. I.e. Z-curve indices are the same and we only add/subtract row-based base cases with row-based base cases etc.
+
+\todo{Manglende praecision}
 
 \subsection{Special instructions}
 
@@ -49,3 +59,9 @@ The naive algorithm which is used for this combined is easily parallelizable bec
 ...
 
 \todo{todo, mere l2 cache}
+
+\todo{formelen for parallelization}
+
+\subsubsection{Strassen}
+
+Strassen was parallelized by starting new threads at each of the 7 multiplications. This was done at 1 or 2 levels depending on the level of parallization we wanted. The last additions/subtractions and combine operations were not parallelized. However, the multiplications uses most of the time.
