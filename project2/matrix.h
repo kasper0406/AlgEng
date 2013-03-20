@@ -9,9 +9,12 @@
 #include <sstream>
 #include <cmath>
 
+// AVX intrinsics
+#include <immintrin.h>
+
 using namespace std;
 
-template <class L, typename MatrixMul>
+template <class L, typename MatrixMul, bool SIMD = false>
 class Matrix {
 public:
   typedef L Layout;
@@ -126,35 +129,83 @@ public:
   };
 
   SelfType unsafe_add(const SelfType& other) const {
-    assert(this->columns() == other.columns());
-    assert(this->rows() == other.rows());
-
-    SelfType c(this->rows(), this->columns());
-
-    for (uint32_t i = 0; i < this->rows(); i++) {
-      for (uint32_t j = 0; j < this->columns(); j++) {
-        c.data.data[i * this->rows() + j] = this->data.data[i * this->rows() + j] + other.data.data[i * this->rows() + j];
+    if (!SIMD) {
+      assert(this->columns() == other.columns());
+      assert(this->rows() == other.rows());
+      
+      SelfType c(this->rows(), this->columns());
+      
+      for (uint32_t i = 0; i < this->rows(); i++) {
+        for (uint32_t j = 0; j < this->columns(); j++) {
+          c.data.data[i * this->rows() + j] = this->data.data[i * this->rows() + j] + other.data.data[i * this->rows() + j];
+        }
       }
+      
+      // Move semantics
+      return c;
+    } else {
+      static_assert(is_same<typename SelfType::Element, double>::value,
+                    "Element type must be double.");
+      assert(this->columns() == other.columns());
+      assert(this->rows() == other.rows());
+      
+      SelfType c(this->rows(), this->columns());
+      
+      const size_t N = this->rows() * this->columns();
+      assert(N % 4 == 0);
+      
+      for (size_t i = 0; i < N; i += 4) {
+        __m256d a = _mm256_load_pd(this->addr(i));
+        __m256d b = _mm256_load_pd(other.addr(i));
+        
+        __m256d res = _mm256_add_pd(a, b);
+        
+        _mm256_store_pd(c.addr(i), res);
+      }
+      
+      // Move semantics
+      return c;
     }
-    
-    // Move semantics
-    return c;
   };
-
+  
   SelfType unsafe_sub(const SelfType& other) const {
-    assert(this->columns() == other.columns());
-    assert(this->rows() == other.rows());
-
-    SelfType c(this->rows(), this->columns());
-
-    for (uint32_t i = 0; i < this->rows(); i++) {
-      for (uint32_t j = 0; j < this->columns(); j++) {
-        c.data.data[i * this->rows() + j] = this->data.data[i * this->rows() + j] - other.data.data[i * this->rows() + j];
+    if (!SIMD) {
+      assert(this->columns() == other.columns());
+      assert(this->rows() == other.rows());
+      
+      SelfType c(this->rows(), this->columns());
+      
+      for (uint32_t i = 0; i < this->rows(); i++) {
+        for (uint32_t j = 0; j < this->columns(); j++) {
+          c.data.data[i * this->rows() + j] = this->data.data[i * this->rows() + j] - other.data.data[i * this->rows() + j];
+        }
       }
+      
+      // Move semantics
+      return c;
+    } else {
+      static_assert(is_same<typename SelfType::Element, double>::value,
+                    "Element type must be double.");
+      assert(this->columns() == other.columns());
+      assert(this->rows() == other.rows());
+      
+      SelfType c(this->rows(), this->columns());
+      
+      const size_t N = this->rows() * this->columns();
+      assert(N % 4 == 0);
+      
+      for (size_t i = 0; i < N; i += 4) {
+        __m256d a = _mm256_load_pd(this->addr(i));
+        __m256d b = _mm256_load_pd(other.addr(i));
+        
+        __m256d res = _mm256_sub_pd(a, b);
+        
+        _mm256_store_pd(c.addr(i), res);
+      }
+      
+      // Move semantics
+      return c;
     }
-    
-    // Move semantics
-    return c;
   };
 
   inline size_t rows() const {

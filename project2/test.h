@@ -258,7 +258,7 @@ void test(ostream& out,
 }
 
 typedef Matrix<RowBased<double>, Naive> RN;
-
+    
 template <typename M0, typename M1>
 void sanity_check() {
   size_t factor_pow2 = 0;
@@ -280,17 +280,17 @@ void sanity_check() {
 
     RN a = random_matrix<RN>(n, p);
     RN b = random_matrix<RN>(p, m);
-    RN c = a.operator*<RN, RN>(b);
+    RN c = a.Template operator*<RN, RN>(b);
 
-    M0 a0 = a.convert<M0>();
-    M1 b0 = b.convert<M1>();
+    M0 a0 = a.Template convert<M0>();
+    M1 b0 = b.Template convert<M1>();
 #ifndef _WINDOWS
     M0 c0 = a0.template operator*<M1, M0>(b0);
 #else
     M0 c0 = a0.operator*<M1, M0>(b0);
 #endif
 
-    if (c.operator!=<M0>(c0)) {
+    if (c.Template operator!=<M0>(c0)) {
       cout << "Sanity check failed!" << endl;
       cout << "A:" << endl << a.to_string();
       cout << "B:" << endl << b.to_string();
