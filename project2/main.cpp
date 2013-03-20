@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
   ////// Rapport tests
   const int trials = 1;
   const size_t min_size = 1024 * 1024;
-  const size_t max_size = 1024ULL * 1024ULL * 1024ULL * 8ULL;
+  const size_t max_size = 1024ULL * 1024ULL * 1024ULL * 64ULL;
   
   // Sequantial
   test<RN,RN,RN>(cout, trials, min_size, max_size);
