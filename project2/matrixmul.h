@@ -450,7 +450,7 @@ public:
   template <typename M0, typename M1, typename Mres>
   static Mres multiply(const M0& a, const M1& b) {
     function<Mres(const M0&, const M1&, int)> visit;
-    visit = [&](const M0& a, const M1& b, int depth) {
+    visit = [&](const M0& a, const M1& b, int depth) -> Mres {
       assert(a.columns() == b.rows());
 
       size_t n = a.rows();
@@ -507,7 +507,7 @@ public:
         Mres c21 = m2.unsafe_add(m4);
         Mres c22 = m1.unsafe_sub(m2).unsafe_add(m3).unsafe_add(m6);
 
-        return unsafe_combine<Mres>(c11, c12, c21, c22);
+        return ParallelHackyStrassen<B,BaseMul>::unsafe_combine<Mres>(c11, c12, c21, c22);
       };
     };
 
