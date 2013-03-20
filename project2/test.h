@@ -216,11 +216,7 @@ void test_factor(ostream& out,
 
     string test = to_string(n) + "\t" + to_string(p) + "\t" + to_string(m);
     stringstream measurement;
-#ifdef _WINDOWS
-    measure(measurement, test, trials, [&a, &b]() { return a.operator*<M1, Mres>(b); });
-#else
-    measure(measurement, test, trials, [&a, &b]() { return a.template operator*<M1, Mres>(b); });
-#endif
+    measure(measurement, test, trials, [&a, &b]() { return a.Template operator*<M1, Mres>(b); });
 
     out << measurement.str();
     results << measurement.str();
@@ -286,11 +282,7 @@ void sanity_check() {
 
     M0 a0 = a.Template convert<M0>();
     M1 b0 = b.Template convert<M1>();
-#ifndef _WINDOWS
-    M0 c0 = a0.template operator*<M1, M0>(b0);
-#else
-    M0 c0 = a0.operator*<M1, M0>(b0);
-#endif
+    M0 c0 = a0.Template operator*<M1, M0>(b0);
 
     if (c.Template operator!=<M0>(c0)) {
       cout << "Sanity check failed!" << endl;
