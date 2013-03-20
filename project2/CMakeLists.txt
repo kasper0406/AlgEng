@@ -4,18 +4,18 @@ project (AlgEngProject2)
 string(COMPARE EQUAL ${CMAKE_SYSTEM_NAME} "Linux" LINUX)
 
 IF(${LINUX})
-  set(CMAKE_CXX_COMPILER "clang++")
+#  set(CMAKE_CXX_COMPILER "clang++")
   set(CMAKE_BUILD_TYPE Release)
   set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -march=corei7-avx -mtune=corei7-avx -flto -funroll-loops -fpermissive")
 
   add_library(
     ipcm_lib
     STATIC
     EXCLUDE_FROM_ALL
-    /ipcm/msr.o
-    /ipcm/pci.o
-    /ipcm/cpucounters.o
+    /home/espeholt/ipcm/msr.o
+    /home/espeholt/ipcm/pci.o
+    /home/espeholt/ipcm/cpucounters.o
   )
 
   set_target_properties(
@@ -26,10 +26,10 @@ IF(${LINUX})
 ENDIF(${LINUX})
 
 IF(APPLE)
-  set(CMAKE_CXX_COMPUILER "clang++")
+  set(CMAKE_CXX_COMPILER "clang++")
   set(CMAKE_BUILD_TYPE Release)
   set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++ -arch x86_64 -flto -fasm-blocks -funroll-loops")
 ENDIF(APPLE)
 
 add_executable(Project2 main.cpp
