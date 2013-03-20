@@ -126,6 +126,10 @@ public:
       }
     }
   }
+  
+  static string config() {
+    return "generic-bc";
+  };
 };
 
 class TiledBCMultiplier
@@ -175,6 +179,10 @@ public:
       }
     }
   }
+  
+  static string config() {
+    return "tiled-bc";
+  };
 };
 
 class SIMDTiledBCMultiplier
@@ -240,6 +248,10 @@ public:
       }
     }
   }
+  
+  static string config() {
+    return "simd-tiled-bc";
+  };
 };
 
 template<int B>
@@ -269,6 +281,10 @@ public:
     // Move semantics
     return c;
   }
+  
+  static string config() {
+    return to_string(B) + "-fixed-tiled-bc";
+  };
 };
 
 template<int B>
@@ -317,6 +333,10 @@ public:
     // Move semantics
     return c;
   }
+  
+  static string config() {
+    return to_string(B) + "-simd-fixed-tiled-bc";
+  };
 };
 
 template<int B>
@@ -350,6 +370,10 @@ public:
       }
     }
   }
+  
+  static string config() {
+    return to_string(B) + "-zlayout-bc";
+  };
   
 private:
   static array<int, B * B> makeIndexes() {
@@ -439,7 +463,7 @@ public:
   };
 
   static string config() {
-    return "hacky-strassen-" + to_string(B);
+    return "hacky-strassen-" + to_string(B) + "(" + BaseMul::config() + ")";
   };
 };
 
@@ -544,7 +568,7 @@ public:
   };
 
   static string config() {
-    return "parallel-hacky-strassen-" + to_string(B);
+    return "parallel-hacky-strassen-" + to_string(B) + "(" + BaseMul::config() + ")";
   };
 };
 
@@ -565,7 +589,7 @@ public:
   }
 
   static string config() {
-    return "recursive-" + to_string(B);
+    return "recursive-" + to_string(B) + "(" + BaseCaseMultiplier::config() + ")";
   };
 
 
@@ -652,7 +676,7 @@ public:
   }
   
   static string config() {
-    return "parallel-recursive-" + to_string(B);
+    return "parallel-recursive-" + to_string(B) + + "(" + BaseCaseMultiplier::config() + ")";
   };
   
   
@@ -829,7 +853,7 @@ public:
   };
   
   static string config() {
-    return "tiled-iterative";
+    return "tiled-iterative(" + BaseMul::config() + ")";
   };
 };
 
@@ -907,6 +931,6 @@ public:
   };
   
   static string config() {
-    return "parallel-tiled-iterative";
+    return "parallel-tiled-iterative(" + BaseMul::config() + ")";
   };
 };

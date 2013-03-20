@@ -47,11 +47,10 @@ typedef Matrix<ColumnBased<double>, ParallelNaive<4>, false> CP;
 
 typedef Matrix<ZCurveTiled<double, 32, true>, HackyStrassen<32, FixedTiledBCMultiplier<32>>, false> ZRTHS;
 typedef Matrix<ZCurveTiled<double, 32, false>, HackyStrassen<32, FixedTiledBCMultiplier<32>>, false> ZCTHS;
+typedef Matrix<ZCurveTiled<double, 32, true>, HackyStrassen<32, SIMDFixedTiledBCMultiplier<32>>, true> SIMDZRTHS;
+typedef Matrix<ZCurveTiled<double, 32, false>, HackyStrassen<32, SIMDFixedTiledBCMultiplier<32>>, true> SIMDZCTHS;
 typedef Matrix<ZCurveTiled<double, 32, true>, ParallelHackyStrassen<32, FixedTiledBCMultiplier<32>>, false> ZRTPHS;
 typedef Matrix<ZCurveTiled<double, 32, false>, ParallelHackyStrassen<32, FixedTiledBCMultiplier<32>>, false> ZCTPHS;
-typedef Matrix<ZCurveTiled<double, 32, true>, ParallelHackyStrassen<32, FixedTiledBCMultiplier<32>>, false> ZRTPHS;
-
-typedef Matrix<ZCurveTiled<double, 32, true>, ParallelHackyStrassen<32, SIMDFixedTiledBCMultiplier<32>>, false> SIMDZRTPHS;
 typedef Matrix<ZCurveTiled<double, 32, true>, ParallelHackyStrassen<32, SIMDFixedTiledBCMultiplier<32>>, true> SIMDZRTPHSS;
 typedef Matrix<ZCurveTiled<double, 32, false>, ParallelHackyStrassen<32, SIMDFixedTiledBCMultiplier<32>>, true> SIMDZCTPHSS;
 
@@ -60,56 +59,48 @@ using namespace std;
 int main(int argc, char *argv[]) {
   cout.precision(8);
 
-  ///*sanity_check<RN, RN>();
-  //sanity_check<CN, CN>();
-  //sanity_check<RP, RP>();
-  //sanity_check<ZR, ZR>();
-  //sanity_check<RTR, CTR>();
-  //sanity_check<RTRP, CTR>();
-  //sanity_check<CTR, CTR>();
-  //sanity_check<RZBC, RZBC>();
-  //sanity_check<ZRTHS, ZCTHS>();*/
-  //sanity_check<ZRTPHS, ZCTPHS>();
-  /////*sanity_check<SIMDRTR, CTR>();*/
-  
+  sanity_check<RN, RN>();
+  sanity_check<CN, CN>();
+  sanity_check<RP, RP>();
+  sanity_check<ZR, ZR>();
   sanity_check<RTR, CTR>();
+  sanity_check<RTRP, CTR>();
+  sanity_check<CTR, CTR>();
+  sanity_check<RZBC, RZBC>();
+  sanity_check<ZRTHS, ZCTHS>();
+  sanity_check<ZRTPHS, ZCTPHS>();
+  sanity_check<SIMDRTR, CTR>();
   sanity_check<RTI, CTI>();
   sanity_check<RPTI, CPTI>();
   sanity_check<RTRP, CTR>();
-  sanity_check<SIMDZRTPHS, ZCTPHS>();
-  // sanity_check<SIMDZRTPHSS, ZCTPHS>();
   sanity_check<SIMDZRTPHSS, SIMDZCTPHSS>();
 
-  test<SIMDZRTPHS,ZCTPHS,SIMDZRTPHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  // test<SIMDZRTPHSS,ZCTPHS,SIMDZRTPHSS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  
-  test<RTR,CTR,RTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
-  test<RTI,CTI,RTI>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
-  test<RP,CP,RP>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
-  test<RPTI,CPTI,RPTI>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
-  test<RTRP,CTR,RTRP>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
-
-
-  /////*test<RTR,CTR,RTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  ////test<SIMDRTR,CTR,SIMDRTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);*/
-
-
-//  test<ZRTPHS,ZCTPHS,ZRTPHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-//  test<RN,CN,RN>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-//  test<ZRTHS,ZCTHS,ZRTHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-//  test<RP,CP,RP>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-
-  /*test<ZRTPHS,ZCTPHS,ZRTPHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  test<RN,CN,RN>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  test<ZRTHS,ZCTHS,ZRTHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  test<RP,CP,RP>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);*/
-  
   ////// Rapport tests
-  ////// test<RN,RN,RN>(cout, 3, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  ////// test<RN,CN,RN>(cout, 3, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  ////// test<RZBC,RZBC,RZBC>(cout, 3, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  ////// test<RTR,CTR,RTR>(cout, 3, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  ////// test<ZRTHS,ZCTHS,ZRTHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
+  const int trials = 1;
+  const size_t min_size = 1024 * 1024;
+  const size_t max_size = 1024ULL * 1024ULL * 1024ULL * 8ULL;
+  
+  // Sequantial
+  test<RN,RN,RN>(cout, trials, min_size, max_size);
+  test<RN,CN,RN>(cout, trials, min_size, max_size);
+  test<RR,RC,RR>(cout, trials, min_size, max_size);
+  test<RRZ,RRZ,RRZ>(cout, trials, min_size, max_size);
+  test<RZBC,RZBC,RZBC>(cout, trials, min_size, max_size);
+  test<RTR,CTR,RTR>(cout, trials, min_size, max_size);
+  test<SIMDRTR,CTR,SIMDRTR>(cout, trials, min_size, max_size);
+  test<RTI,CTI,RTI>(cout, trials, min_size, max_size);
+  test<SIMDRTI,SIMDCTI,SIMDRTI>(cout, trials, min_size, max_size);
+  test<ZRTHS,ZCTHS,ZRTHS>(cout, trials, min_size, max_size);
+  test<SIMDZRTHS,SIMDZCTHS,SIMDZRTHS>(cout, trials, min_size, max_size);
 
+  // Parallel
+  test<RP,CP,RP>(cout, trials, min_size, max_size);
+  test<RTRP,CTR,RTRP>(cout, trials, min_size, max_size);
+  test<SIMDRTRP,CTR,SIMDRTRP>(cout, trials, min_size, max_size);
+  test<RPTI,CPTI,RPTI>(cout, trials, min_size, max_size);
+  test<SIMDRPTI,SIMDCPTI,SIMDRPTI>(cout, trials, min_size, max_size);
+  test<ZRTPHS,ZCTPHS,ZRTPHS>(cout, trials, min_size, max_size);
+  test<SIMDZRTPHSS,SIMDZCTPHSS,SIMDZRTPHSS>(cout, trials, min_size, max_size);
+  
   return 0;
 }
