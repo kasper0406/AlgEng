@@ -29,10 +29,15 @@ typedef Matrix<RowTiled<B, B, double>, ParallelRecursive<B, TiledBCMultiplier, 2
 typedef Matrix<RowTiled<B, B, double>, ParallelRecursive<B, SIMDTiledBCMultiplier, 3>, false> SIMDRTRP;
 typedef Matrix<ColumnTiled<B, B, double>, Recursive<B, GenericBCMultiplier>, false> CTR;
 
-typedef Matrix<RowTiled<B, B, double>, TiledIterative<B>, false> RTI;
-typedef Matrix<ColumnTiled<B, B, double>, TiledIterative<B>, false> CTI;
-typedef Matrix<RowTiled<B, B, double>, ParallelTiledIterative<B,4>, false> RPTI;
-typedef Matrix<ColumnTiled<B, B, double>, ParallelTiledIterative<B,4>, false> CPTI;
+typedef Matrix<RowTiled<B, B, double>, TiledIterative<B, TiledBCMultiplier>, false> RTI;
+typedef Matrix<ColumnTiled<B, B, double>, TiledIterative<B, TiledBCMultiplier>, false> CTI;
+typedef Matrix<RowTiled<B, B, double>, ParallelTiledIterative<B,4,TiledBCMultiplier>, false> RPTI;
+typedef Matrix<ColumnTiled<B, B, double>, ParallelTiledIterative<B,4,TiledBCMultiplier>, false> CPTI;
+
+typedef Matrix<RowTiled<B, B, double>, TiledIterative<B, SIMDTiledBCMultiplier>, false> SIMDRTI;
+typedef Matrix<ColumnTiled<B, B, double>, TiledIterative<B, SIMDTiledBCMultiplier>, false> SIMDCTI;
+typedef Matrix<RowTiled<B, B, double>, ParallelTiledIterative<B,4,SIMDTiledBCMultiplier>, false> SIMDRPTI;
+typedef Matrix<ColumnTiled<B, B, double>, ParallelTiledIterative<B,4,SIMDTiledBCMultiplier>, false> SIMDCPTI;
 
 typedef Matrix<ColumnBased<double>, Recursive<4, GenericBCMultiplier>, false> CR;
 typedef Matrix<ZCurve<double>, Recursive<4, GenericBCMultiplier>, false> ZR;

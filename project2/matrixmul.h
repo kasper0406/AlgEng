@@ -778,7 +778,7 @@ private:
   };
 };
 
-template <int B>
+template <int B, typename BaseMul>
 class TiledIterative {
 public:
   template <typename M0, typename M1, typename Mres>
@@ -813,13 +813,13 @@ public:
           const uint32_t b_row_stop = b_row_start + B;
           const uint32_t b_col_stop = b_col_start + B;
           
-          TiledBCMultiplier::multiply<M0, M1, Mres>(c, a, b,
-                                                    a_row_start, a_row_stop,
-                                                    a_col_start, a_col_stop,
-                                                    b_row_start, b_row_stop,
-                                                    b_col_start, b_col_stop,
-                                                    c_row_start, c_row_stop,
-                                                    c_col_start, c_col_stop);
+          BaseMul::multiply<M0, M1, Mres>(c, a, b,
+                                          a_row_start, a_row_stop,
+                                          a_col_start, a_col_stop,
+                                          b_row_start, b_row_stop,
+                                          b_col_start, b_col_stop,
+                                          c_row_start, c_row_stop,
+                                          c_col_start, c_col_stop);
         }
       }
     }
@@ -833,7 +833,7 @@ public:
   };
 };
 
-template <int B, int T>
+template <int B, int T, typename BaseMul>
 class ParallelTiledIterative {
 public:
   template <typename M0, typename M1, typename Mres>
@@ -879,13 +879,13 @@ public:
               const uint32_t b_row_stop = b_row_start + B;
               const uint32_t b_col_stop = b_col_start + B;
               
-              TiledBCMultiplier::multiply<M0, M1, Mres>(c, a, b,
-                                                        a_row_start, a_row_stop,
-                                                        a_col_start, a_col_stop,
-                                                        b_row_start, b_row_stop,
-                                                        b_col_start, b_col_stop,
-                                                        c_row_start, c_row_stop,
-                                                        c_col_start, c_col_stop);
+              BaseMul::multiply<M0, M1, Mres>(c, a, b,
+                                              a_row_start, a_row_stop,
+                                              a_col_start, a_col_stop,
+                                              b_row_start, b_row_stop,
+                                              b_col_start, b_col_stop,
+                                              c_row_start, c_row_stop,
+                                              c_col_start, c_col_stop);
             }
           }
         }
