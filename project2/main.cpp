@@ -92,7 +92,8 @@ int main(int argc, char *argv[]) {
   cout.precision(8);
 
   try {
-    stack_allocation([] () {
+    // Sequential
+    avoid_stack_allocation([] () {
 	    sanity_check<RN, RN>();
 	    sanity_check<CN, CN>();
 	    sanity_check<ZR, ZR>();
@@ -101,9 +102,12 @@ int main(int argc, char *argv[]) {
 	    sanity_check<RZBC, RZBC>();
 	    sanity_check<SIMDRTR, CTR>();
 	    sanity_check<RTI, CTI>();
+    });
+    stack_allocation([] () {
       sanity_check<ZRTHS2, ZCTHS2>();
       sanity_check<SIMDZRTHS2, SIMDZCTHS2>();
     });
+    // Parallel
     avoid_stack_allocation([] () {
 	    sanity_check<RP, RP>();
 	    sanity_check<RTRP, CTR>();
@@ -123,8 +127,8 @@ int main(int argc, char *argv[]) {
     const size_t max_size = 1024ULL * 1024ULL * 1024ULL * 64ULL;
 	
 	  // Sequential
-    stack_allocation([&] () {
-	    test<RN,RN,RN>(cout, trials, min_size, max_size);
+    avoid_stack_allocation([&] () {
+      test<RN,RN,RN>(cout, trials, min_size, max_size);
 	    test<RN,CN,RN>(cout, trials, min_size, max_size);
 	    test<RR,RC,RR>(cout, trials, min_size, max_size);
 	    test<RRZ,RRZ,RRZ>(cout, trials, min_size, max_size);
@@ -133,13 +137,13 @@ int main(int argc, char *argv[]) {
 	    test<SIMDRTR,CTR,SIMDRTR>(cout, trials, min_size, max_size);
 	    test<RTI,CTI,RTI>(cout, trials, min_size, max_size);
 	    test<SIMDRTI,SIMDCTI,SIMDRTI>(cout, trials, min_size, max_size);
+	    test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
+      test<ZRTHS,ZCTHS,ZRTHS>(cout, trials, min_size, max_size);
+    });
+    stack_allocation([&] () {
 	    test<SIMDZRTHS,SIMDZCTHS,SIMDZRTHS>(cout, trials, min_size, max_size);
 	    test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
 	  });
-	  avoid_stack_allocation([&] () {
-      test<ZRTHS,ZCTHS,ZRTHS>(cout, trials, min_size, max_size);
-	    test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
-    });
 
     // Parallel
 	  avoid_stack_allocation([&] () {
