@@ -100,7 +100,7 @@ public:
       data = stackalloc.alloc<Element>(n * m);
     } else {
 #ifndef _WINDOWS
-      int res = posix_memalign((void**)&data, CACHE_LINE_SIZE, prealloc_size_in_bytes);
+      int res = posix_memalign((void**)&data, CACHE_LINE_SIZE, n * m * sizeof(Element));
       if (res != 0)
         throw runtime_error("Could not allocate memory!");
 #else
@@ -148,7 +148,6 @@ public:
     }
   };
   
-private:
   static const size_t CACHE_LINE_SIZE = 64;
 };
 

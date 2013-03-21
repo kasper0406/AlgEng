@@ -10,6 +10,8 @@
 #include <thread>
 #include <mutex>
 
+#include "layouts.h"
+
 using namespace std;
 
 class StackAllocator {
@@ -26,7 +28,7 @@ public:
     this->prealloc_size_in_bytes = prealloc_size_in_bytes;
 
 #ifndef _WINDOWS
-    int res = posix_memalign((void**)&data, CACHE_LINE_SIZE, prealloc_size_in_bytes);
+    int res = posix_memalign((void**)&data, 64, prealloc_size_in_bytes);
     if (res != 0)
       throw runtime_error("Could not allocate memory!");
 #else
