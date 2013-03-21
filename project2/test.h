@@ -164,7 +164,7 @@ void generate_plot(string outputfile, string data) {
      << "set grid my2tics" << endl
 
      << "set key vert left top reverse" << endl
-     << "set pointsize 2" << endl
+     << "set pointsize 1" << endl
 
      << "plot '-' using (log2($1)):($7) title \"Time\" axes x1y1 with linespoints, \
               '-' using (log2($1)):($11) title \"L2 cache misses\" axes x1y2 with linespoints, \
