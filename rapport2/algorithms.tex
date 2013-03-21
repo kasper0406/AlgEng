@@ -44,13 +44,17 @@ Strassen needs to have a large base case such that we do not spend too much time
 
 The additions and subtractions in the algorithm only works on left operand block matrices or right operand block matrices. Therefore, we can use a single loop and no index calculations to add and subtract matrices. I.e. Z-curve indices are the same and we only add/subtract row-based base cases with row-based base cases etc.
 
+\todo{hukomelsesforbrug}
 \todo{Manglende praecision}
+\todo{L1 cachen er en write back (synchronized) cache saa det bliver maaske hurtigere ved at allokere stackvis? http://software.intel.com/en-us/articles/performance-insights-to-intel-hyper-threading-technology}
 
-\subsection{Special instructions}
+\subsection{SIMD instructions}
 
 ...
 
 \subsection{Parallelization}
+
+\todo{SIMD giver ikke ligesaa meget naar parallelet. Maaske giver hyper-threading ligesaa meget}
 
 \subsubsection{Combined row-based and column-based layout}
 

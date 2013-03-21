@@ -1,10 +1,15 @@
 #include <iostream>
+#include <functional>
 
 #ifndef _WINDOWS
   #define Template template
 #else
   #define Template
 #endif
+
+#define MB (1024 * 1024)
+#define _STACKALLOC 1024 * MB
+bool stack_allocate = false;
 
 #include "matrix.h"
 #include "layouts.h"
@@ -47,69 +52,63 @@ typedef Matrix<ColumnBased<double>, ParallelNaive<4>, false> CP;
 
 typedef Matrix<ZCurveTiled<double, 32, true>, HackyStrassen<32, FixedTiledBCMultiplier<32>>, false> ZRTHS;
 typedef Matrix<ZCurveTiled<double, 32, false>, HackyStrassen<32, FixedTiledBCMultiplier<32>>, false> ZCTHS;
+typedef Matrix<ZCurveTiled<double, 32, true>, HackyStrassen2<32, FixedTiledBCMultiplier2<32>>, false> ZRTHS2;
+typedef Matrix<ZCurveTiled<double, 32, false>, HackyStrassen2<32, FixedTiledBCMultiplier2<32>>, false> ZCTHS2;
 typedef Matrix<ZCurveTiled<double, 32, true>, ParallelHackyStrassen<32, FixedTiledBCMultiplier<32>>, false> ZRTPHS;
 typedef Matrix<ZCurveTiled<double, 32, false>, ParallelHackyStrassen<32, FixedTiledBCMultiplier<32>>, false> ZCTPHS;
 typedef Matrix<ZCurveTiled<double, 32, true>, ParallelHackyStrassen<32, FixedTiledBCMultiplier<32>>, false> ZRTPHS;
+typedef Matrix<ZCurveTiled<double, 32, true>, ParallelHackyStrassen2<32, FixedTiledBCMultiplier2<32>>, false> ZRTPHS2;
+typedef Matrix<ZCurveTiled<double, 32, false>, ParallelHackyStrassen2<32, FixedTiledBCMultiplier2<32>>, false> ZCTPHS2;
 
-typedef Matrix<ZCurveTiled<double, 32, true>, ParallelHackyStrassen<32, SIMDFixedTiledBCMultiplier<32>>, false> SIMDZRTPHS;
 typedef Matrix<ZCurveTiled<double, 32, true>, ParallelHackyStrassen<32, SIMDFixedTiledBCMultiplier<32>>, true> SIMDZRTPHSS;
 typedef Matrix<ZCurveTiled<double, 32, false>, ParallelHackyStrassen<32, SIMDFixedTiledBCMultiplier<32>>, true> SIMDZCTPHSS;
+typedef Matrix<ZCurveTiled<double, 32, true>, ParallelHackyStrassen2<32, SIMDFixedTiledBCMultiplier2<32>>, true> SIMDZRTPHSS2;
+typedef Matrix<ZCurveTiled<double, 32, false>, ParallelHackyStrassen2<32, SIMDFixedTiledBCMultiplier2<32>>, true> SIMDZCTPHSS2;
 
 using namespace std;
+
+void avoid_stack_allocation(function<void()> a) {
+  cout << endl << "### Stack allocation disabled." << endl;
+  stack_allocate = false;
+  a();
+};
+
+void stack_allocation(function<void()> a) {
+#ifdef _STACKALLOC
+  cout << endl << "### Stack allocation enabled." << endl;
+  stack_allocate = true;
+
+  a();
+#else
+  avoid_stack_allocation(a);
+#endif
+};
 
 int main(int argc, char *argv[]) {
   cout.precision(8);
 
-  ///*sanity_check<RN, RN>();
-  //sanity_check<CN, CN>();
-  //sanity_check<RP, RP>();
-  //sanity_check<ZR, ZR>();
-  //sanity_check<RTR, CTR>();
-  //sanity_check<RTRP, CTR>();
-  //sanity_check<CTR, CTR>();
-  //sanity_check<RZBC, RZBC>();
-  //sanity_check<ZRTHS, ZCTHS>();*/
-  //sanity_check<ZRTPHS, ZCTPHS>();
-  /////*sanity_check<SIMDRTR, CTR>();*/
-  
-  sanity_check<RTR, CTR>();
-  sanity_check<RTI, CTI>();
-  sanity_check<RPTI, CPTI>();
-  sanity_check<RTRP, CTR>();
-  sanity_check<SIMDZRTPHS, ZCTPHS>();
-  // sanity_check<SIMDZRTPHSS, ZCTPHS>();
-  sanity_check<SIMDZRTPHSS, SIMDZCTPHSS>();
+  try {
+    stack_allocation([] () {
+      sanity_check<RN, CN>();
+      sanity_check<ZRTHS2, ZCTHS2>();
+    });
+    avoid_stack_allocation([] () {
+      sanity_check<ZRTHS, ZCTHS>();
+      sanity_check<ZRTPHS2, ZCTPHS2>();
+    });
 
-  test<SIMDZRTPHS,ZCTPHS,SIMDZRTPHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  // test<SIMDZRTPHSS,ZCTPHS,SIMDZRTPHSS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  
-  test<RTR,CTR,RTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
-  test<RTI,CTI,RTI>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
-  test<RP,CP,RP>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
-  test<RPTI,CPTI,RPTI>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
-  test<RTRP,CTR,RTRP>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
-
-
-  /////*test<RTR,CTR,RTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  ////test<SIMDRTR,CTR,SIMDRTR>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);*/
-
-
-//  test<ZRTPHS,ZCTPHS,ZRTPHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-//  test<RN,CN,RN>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-//  test<ZRTHS,ZCTHS,ZRTHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-//  test<RP,CP,RP>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-
-  /*test<ZRTPHS,ZCTPHS,ZRTPHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  test<RN,CN,RN>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  test<ZRTHS,ZCTHS,ZRTHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  test<RP,CP,RP>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);*/
-  
-  ////// Rapport tests
-  ////// test<RN,RN,RN>(cout, 3, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  ////// test<RN,CN,RN>(cout, 3, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  ////// test<RZBC,RZBC,RZBC>(cout, 3, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  ////// test<RTR,CTR,RTR>(cout, 3, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
-  ////// test<ZRTHS,ZCTHS,ZRTHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL * 8ULL);
+    stack_allocation([] () {
+      test<RN, CN, RN>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
+      test<ZRTHS2, ZCTHS2, ZRTHS2>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
+    });
+    avoid_stack_allocation([] () {
+      test<ZRTHS2, ZCTHS2, ZRTHS2>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
+      test<ZRTHS, ZCTHS, ZRTHS>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
+      test<ZRTPHS2, ZCTPHS2, ZRTPHS2>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
+    });
+  } catch (logic_error err) {
+    cout << err.what() << endl;
+  }
 
   return 0;
 }

@@ -36,6 +36,7 @@ add_executable(Project2 main.cpp
                         matrix.h
                         layouts.h
                         matrixmul.h
+                        stackallocator.h
                         test.h)
 
 IF(UNIX)

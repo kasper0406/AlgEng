@@ -272,6 +272,31 @@ public:
 };
 
 template<int B>
+class FixedTiledBCMultiplier2
+{
+public:
+  template<typename Mres, typename M0, typename M1>
+  inline static void multiply(Mres& c, const M0& a, const M1& b)
+  {
+    assert(a.columns() == b.rows());
+    assert(a.columns() == B);
+
+    // Er fikset
+    for (uint32_t j = 0; j < B; j++) {
+      for (uint32_t i = 0; i < B; i++) {
+        typename Mres::Element e(0);
+
+        for (uint32_t k = 0; k < B; k++) {
+          e += a.data.data[i * B + k] * b.data.data[j * B + k];
+        }
+
+        c.data.data[i * B + j] = e;
+      }
+    }
+  }
+};
+
+template<int B>
 class SIMDFixedTiledBCMultiplier
 {
 public:
@@ -316,6 +341,49 @@ public:
     
     // Move semantics
     return c;
+  }
+};
+
+template<int B>
+class SIMDFixedTiledBCMultiplier2
+{
+public:
+  template<typename Mres, typename M0, typename M1>
+  inline static void multiply(Mres& c, const M0& a, const M1& b)
+  {
+    static_assert(is_same<double, typename Mres::Element>::value &&
+                  is_same<double, typename M0::Element>::value &&
+                  is_same<double, typename M1::Element>::value,
+                  "double type required for SIMD!");
+    static_assert(B % 4 == 0, "Base case size should be a multiple of 4!");
+    assert(a.columns() == b.rows());
+    assert(a.columns() == B);
+    
+    // Allocate memory to sum result
+    // TODO: Ensure that this is 32 byte aligned!!!
+    double tmp[4] = { 0, 0, 0, 0 };
+    
+    for (uint32_t j = 0; j < B; j++) {
+        for (uint32_t i = 0; i < B; i++) {
+        __m256d sum = _mm256_setzero_pd();
+        
+        typename Mres::Element e(0);
+        
+        for (uint32_t k = 0; k < B; k += 4) {
+          __m256d a_data = _mm256_load_pd(a.addr(i * B + k));
+          __m256d b_data = _mm256_load_pd(b.addr(j * B + k));
+          
+          __m256d multiplied = _mm256_mul_pd(a_data, b_data);
+          sum = _mm256_add_pd(sum, multiplied);
+        }
+        
+        _mm256_store_pd(tmp, sum);
+        for (int h = 0; h < 4; h++)
+          e += tmp[h];
+        
+        c.data.data[i * B + j] = e;
+      }
+    }
   }
 };
 
@@ -445,6 +513,98 @@ public:
 
 // TODO: Assumes equal columns and rows! and base of two! Assumes Z-curve tiling
 template<int B, typename BaseMul>
+class HackyStrassen2 {
+public:
+  template <typename M0, typename M1, typename Mres>
+  static Mres multiply(const M0& a, const M1& b) {
+    Mres c(a.rows(), b.columns());
+    multiply<M0, M1, Mres>(c, a, b);
+    return c;
+  };
+
+  template <typename M0, typename M1, typename Mres>
+  static void multiply(Mres& c, const M0& a, const M1& b) {
+    assert(a.columns() == b.rows());
+
+    size_t n = a.rows();
+    size_t p = a.columns();
+    size_t m = b.columns();
+
+    if (m <= B && n <= B && p <= B) {
+      BaseMul::Template multiply<Mres, M0, M1>(c, a, b);
+    } else {
+      size_t new_n = n / 2;
+      size_t new_p = p / 2;
+      size_t new_m = m / 2;
+
+      auto a_split = a.split();
+      M0 a11 = move(get<0>(a_split));
+      M0 a12 = move(get<1>(a_split));
+      M0 a21 = move(get<2>(a_split));
+      M0 a22 = move(get<3>(a_split));
+
+      auto b_split = b.split();
+      M1 b11 = move(get<0>(b_split));
+      M1 b12 = move(get<1>(b_split));
+      M1 b21 = move(get<2>(b_split));
+      M1 b22 = move(get<3>(b_split));
+
+      Mres m1(new_n, new_m);
+      Mres m2(new_n, new_m);
+      Mres m3(new_n, new_m);
+      Mres m4(new_n, new_m);
+      Mres m5(new_n, new_m);
+      Mres m6(new_n, new_m);
+      Mres m7(new_n, new_m);
+
+      multiply<M0, M1, Mres>(m1, a11.unsafe_add(a22), b11.unsafe_add(b22));
+      multiply<M0, M1, Mres>(m2, a21.unsafe_add(a22), b11);
+      multiply<M0, M1, Mres>(m3, a11, b12.unsafe_sub(b22));
+      multiply<M0, M1, Mres>(m4, a22, b21.unsafe_sub(b11));
+      multiply<M0, M1, Mres>(m5, a11.unsafe_add(a12), b22);
+      multiply<M0, M1, Mres>(m6, a21.unsafe_sub(a11), b11.unsafe_add(b12));
+      multiply<M0, M1, Mres>(m7, a12.unsafe_sub(a22), b21.unsafe_add(b22));
+      
+      Mres c11 = m1.unsafe_add(m4).unsafe_sub(m5).unsafe_add(m7);
+      Mres c12 = m3.unsafe_add(m5);
+      Mres c21 = m2.unsafe_add(m4);
+      Mres c22 = m1.unsafe_sub(m2).unsafe_add(m3).unsafe_add(m6);
+
+      unsafe_combine<Mres>(c, c11, c12, c21, c22);
+    }
+  };
+
+  template <typename Mres>
+  static void unsafe_combine(Mres& c, const Mres& a11, const Mres& a12, const Mres& a21, const Mres& a22) {
+    uint32_t current = 0;
+    uint32_t elements = a11.rows() * a11.columns();
+    for (uint32_t i = 0; i < elements; i++) {
+      c.data.data[current++] = a11.data.data[i];
+    }
+
+    elements = a21.rows() * a21.columns();
+    for (uint32_t i = 0; i < elements; i++) {
+      c.data.data[current++] = a21.data.data[i];
+    }
+
+    elements = a12.rows() * a12.columns();
+    for (uint32_t i = 0; i < elements; i++) {
+      c.data.data[current++] = a12.data.data[i];
+    }
+
+    elements = a22.rows() * a22.columns();
+    for (uint32_t i = 0; i < elements; i++) {
+      c.data.data[current++] = a22.data.data[i];
+    }
+  };
+
+  static string config() {
+    return "hacky-strassen2-" + to_string(B);
+  };
+};
+
+// TODO: Assumes equal columns and rows! and base of two! Assumes Z-curve tiling
+template<int B, typename BaseMul>
 class ParallelHackyStrassen {
 public:
   template <typename M0, typename M1, typename Mres>
@@ -545,6 +705,117 @@ public:
 
   static string config() {
     return "parallel-hacky-strassen-" + to_string(B);
+  };
+};
+
+// TODO: Assumes equal columns and rows! and base of two! Assumes Z-curve tiling
+template<int B, typename BaseMul>
+class ParallelHackyStrassen2 {
+public:
+  template <typename M0, typename M1, typename Mres>
+  static Mres multiply(const M0& a, const M1& b) {
+    Mres c(a.rows(), b.columns());
+    multiply<M0, M1, Mres>(c, a, b, 0);
+    return c;
+  };
+
+  template <typename M0, typename M1, typename Mres>
+  static void multiply(Mres& c, const M0& a, const M1& b, int depth) {
+    assert(a.columns() == b.rows());
+
+    size_t n = a.rows();
+    size_t p = a.columns();
+    size_t m = b.columns();
+
+    if (m <= B && n <= B && p <= B) {
+      BaseMul::Template multiply<Mres, M0, M1>(c, a, b);
+    } else {
+      size_t new_n = n / 2;
+      size_t new_p = p / 2;
+      size_t new_m = m / 2;
+
+      auto a_split = a.split();
+      M0 a11 = move(get<0>(a_split));
+      M0 a12 = move(get<1>(a_split));
+      M0 a21 = move(get<2>(a_split));
+      M0 a22 = move(get<3>(a_split));
+
+      auto b_split = b.split();
+      M1 b11 = move(get<0>(b_split));
+      M1 b12 = move(get<1>(b_split));
+      M1 b21 = move(get<2>(b_split));
+      M1 b22 = move(get<3>(b_split));
+
+      Mres m1(new_n, new_m);
+      Mres m2(new_n, new_m);
+      Mres m3(new_n, new_m);
+      Mres m4(new_n, new_m);
+      Mres m5(new_n, new_m);
+      Mres m6(new_n, new_m);
+      Mres m7(new_n, new_m);
+
+      if ((depth == 0 && thread::hardware_concurrency() >= 2)
+           || (depth == 1 && thread::hardware_concurrency() >= 4)) {
+        thread f1 = thread([&]() { multiply(m1, a11.unsafe_add(a22), b11.unsafe_add(b22), depth + 1); });
+        thread f2 = thread([&]() { multiply(m2, a21.unsafe_add(a22), b11, depth + 1); });
+        thread f3 = thread([&]() { multiply(m3, a11, b12.unsafe_sub(b22), depth + 1); });
+        thread f4 = thread([&]() { multiply(m4, a22, b21.unsafe_sub(b11), depth + 1); });
+        thread f5 = thread([&]() { multiply(m5, a11.unsafe_add(a12), b22, depth + 1); });
+        thread f6 = thread([&]() { multiply(m6, a21.unsafe_sub(a11), b11.unsafe_add(b12), depth + 1); });
+        thread f7 = thread([&]() { multiply(m7, a12.unsafe_sub(a22), b21.unsafe_add(b22), depth + 1); });
+          
+        f1.join();
+        f2.join();
+        f3.join();
+        f4.join();
+        f5.join();
+        f6.join();
+        f7.join();
+      } else {
+        multiply<M0, M1, Mres>(m1, a11.unsafe_add(a22), b11.unsafe_add(b22), depth + 1);
+        multiply<M0, M1, Mres>(m2, a21.unsafe_add(a22), b11, depth + 1);
+        multiply<M0, M1, Mres>(m3, a11, b12.unsafe_sub(b22), depth + 1);
+        multiply<M0, M1, Mres>(m4, a22, b21.unsafe_sub(b11), depth + 1);
+        multiply<M0, M1, Mres>(m5, a11.unsafe_add(a12), b22, depth + 1);
+        multiply<M0, M1, Mres>(m6, a21.unsafe_sub(a11), b11.unsafe_add(b12), depth + 1);
+        multiply<M0, M1, Mres>(m7, a12.unsafe_sub(a22), b21.unsafe_add(b22), depth + 1);
+      }
+      
+      Mres c11 = m1.unsafe_add(m4).unsafe_sub(m5).unsafe_add(m7);
+      Mres c12 = m3.unsafe_add(m5);
+      Mres c21 = m2.unsafe_add(m4);
+      Mres c22 = m1.unsafe_sub(m2).unsafe_add(m3).unsafe_add(m6);
+
+      unsafe_combine<Mres>(c, c11, c12, c21, c22);
+    }
+  };
+
+  template <typename Mres>
+  static void unsafe_combine(Mres& c, const Mres& a11, const Mres& a12, const Mres& a21, const Mres& a22) {
+    uint32_t current = 0;
+    uint32_t elements = a11.rows() * a11.columns();
+    for (uint32_t i = 0; i < elements; i++) {
+      c.data.data[current++] = a11.data.data[i];
+    }
+
+    elements = a21.rows() * a21.columns();
+    for (uint32_t i = 0; i < elements; i++) {
+      c.data.data[current++] = a21.data.data[i];
+    }
+
+    elements = a12.rows() * a12.columns();
+    for (uint32_t i = 0; i < elements; i++) {
+      c.data.data[current++] = a12.data.data[i];
+    }
+
+    elements = a22.rows() * a22.columns();
+    for (uint32_t i = 0; i < elements; i++) {
+      c.data.data[current++] = a22.data.data[i];
+    }
+  };
+
+  static string config() {
+    return "parallel-hacky-strassen2-" + to_string(B);
   };
 };
 
