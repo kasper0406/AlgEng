@@ -312,6 +312,10 @@ public:
       }
     }
   }
+  
+  static string config() {
+    return to_string(B) + "-fixed-tiled-bc2";
+  };
 };
 
 template<int B>
@@ -407,6 +411,10 @@ public:
       }
     }
   }
+  
+  static string config() {
+    return to_string(B) + "-simd-fixed-tiled-bc2";
+  };
 };
 
 template<int B>
