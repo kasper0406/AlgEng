@@ -42,7 +42,7 @@ public:
       if (i >= a.rows())
         break;
       
-      for (int j = b.columns(); j >= 0; j--) {
+      for (int j = b.columns() - 1; j >= 0; j--) {
         typename Mres::Element e(0);
         
         for (uint32_t k = 0; k < a.columns(); k++) {
