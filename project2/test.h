@@ -146,7 +146,7 @@ void generate_plot(string outputfile, string data) {
   ss << "log2(x) = log(x)/log(2)" << endl
      << "max(a,b) = (a > b) ? a : b" << endl
 
-     << "set terminal pdf enhanced font \"Helvetica, 10\" size 6,4" << endl
+     << "set terminal pdf enhanced font \"Helvetica, 10\" size 10,8" << endl
      << "set output \"./plots/" << outputfile << ".pdf\"" << endl
 
      << "set xlabel \"log2 input size\"" << endl

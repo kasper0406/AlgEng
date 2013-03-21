@@ -2,19 +2,19 @@
 \contentsline {section}{\numberline {2}Algorithms and data structures}{3}
 \contentsline {subsection}{\numberline {2.1}Simple multiplication}{3}
 \contentsline {subsubsection}{\numberline {2.1.1}Row-based layout}{3}
-\contentsline {subsubsection}{\numberline {2.1.2}Combined row-based and column-based layout}{3}
-\contentsline {subsection}{\numberline {2.2}Recursive multiplication}{3}
-\contentsline {subsubsection}{\numberline {2.2.1}Z-curve layout}{3}
-\contentsline {subsubsection}{\numberline {2.2.2}Tiled layout}{4}
-\contentsline {subsection}{\numberline {2.3}Strassen}{4}
-\contentsline {subsection}{\numberline {2.4}Special instructions}{4}
-\contentsline {subsection}{\numberline {2.5}Parallelization}{4}
-\contentsline {subsubsection}{\numberline {2.5.1}Combined row-based and column-based layout}{4}
-\contentsline {subsubsection}{\numberline {2.5.2}Strassen}{4}
-\contentsline {section}{\numberline {3}Benchmarks}{5}
-\contentsline {subsection}{\numberline {3.1}Test setup}{5}
-\contentsline {subsection}{\numberline {3.2}Simple multiplication}{5}
-\contentsline {subsubsection}{\numberline {3.2.1}Row-based layout}{5}
-\contentsline {subsubsection}{\numberline {3.2.2}Combined row-based and column-based layout}{5}
-\contentsline {subsection}{\numberline {3.3}Recursive multiplication}{5}
-\contentsline {subsubsection}{\numberline {3.3.1}Z-curve layout}{5}
+\contentsline {subsubsection}{\numberline {2.1.2}Combined row-based and column-based layout}{4}
+\contentsline {subsection}{\numberline {2.2}Recursive multiplication}{4}
+\contentsline {subsubsection}{\numberline {2.2.1}Z-curve layout}{4}
+\contentsline {subsubsection}{\numberline {2.2.2}Tiled layout}{5}
+\contentsline {subsection}{\numberline {2.3}Strassen}{5}
+\contentsline {subsection}{\numberline {2.4}SIMD instructions}{5}
+\contentsline {subsection}{\numberline {2.5}Parallelization}{5}
+\contentsline {subsubsection}{\numberline {2.5.1}Combined row-based and column-based layout}{5}
+\contentsline {subsubsection}{\numberline {2.5.2}Strassen}{6}
+\contentsline {section}{\numberline {3}Benchmarks}{6}
+\contentsline {subsection}{\numberline {3.1}Test setup}{6}
+\contentsline {subsection}{\numberline {3.2}Simple multiplication}{6}
+\contentsline {subsubsection}{\numberline {3.2.1}Row-based layout}{6}
+\contentsline {subsubsection}{\numberline {3.2.2}Combined row-based and column-based layout}{6}
+\contentsline {subsection}{\numberline {3.3}Recursive multiplication}{8}
+\contentsline {subsubsection}{\numberline {3.3.1}Z-curve layout}{8}

@@ -27,14 +27,28 @@ public:
 
     Mres c(a.rows(), b.columns());
 
-    for (uint32_t j = 0; j < a.rows(); j++) {
-      for (uint32_t i = 0; i < b.columns(); i++) {
+    for (uint32_t i = 0; i < a.rows(); i++) {
+      for (uint32_t j = 0; j < b.columns(); j++) {
         typename Mres::Element e(0);
 
         for (uint32_t k = 0; k < a.columns(); k++) {
           e += a(i, k) * b(k, j);
         }
 
+        c(i, j) = e;
+      }
+      
+      i++;
+      if (i >= a.rows())
+        break;
+      
+      for (int j = b.columns() - 1; j >= 0; j--) {
+        typename Mres::Element e(0);
+        
+        for (uint32_t k = 0; k < a.columns(); k++) {
+          e += a(i, k) * b(k, j);
+        }
+        
         c(i, j) = e;
       }
     }
@@ -113,8 +127,8 @@ public:
                        uint32_t res_col_start, uint32_t res_col_stop)
   {
     const uint32_t n = a_col_stop - a_col_start;
-    for (uint32_t j = res_row_start; j < res_row_stop; j++) {
-      for (uint32_t i = res_col_start; i < res_col_stop; i++) {
+    for (uint32_t i = res_row_start; i < res_row_stop; i++) {
+      for (uint32_t j = res_col_start; j < res_col_stop; j++) {
         // Load result element
         typename Mres::Element e = result(i, j);
         
@@ -161,8 +175,8 @@ public:
     const uint32_t p = b_col_stop - b_col_start;
     
     // Base case: Do standard multiplication
-    for (uint32_t j = 0; j < m; j++) {
-      for (uint32_t i = 0; i < p; i++) {
+    for (uint32_t i = 0; i < m; i++) {
+      for (uint32_t j = 0; j < p; j++) {
         // TODO: Consider how to make this work with arbitrary tiling!!!
         const size_t a_start_row = a_start_index + i * M0::Layout::WIDTH;
         const size_t res_start_row = res_start_index + i * Mres::Layout::WIDTH;
@@ -226,8 +240,8 @@ public:
     double tmp[4] = { 0, 0, 0, 0 };
     
     // Base case: Do standard multiplication
-    for (uint32_t j = 0; j < m; j++) {
-      for (uint32_t i = 0; i < p; i++) {
+    for (uint32_t i = 0; i < m; i++) {
+      for (uint32_t j = 0; j < p; j++) {
         // TODO: Consider how to make this work with arbitrary tiling!!!
         const size_t a_start_row = a_start_index + i * M0::Layout::WIDTH;
         const size_t res_start_row = res_start_index + i * Mres::Layout::WIDTH;
@@ -268,8 +282,8 @@ public:
 
     Mres c(a.rows(), b.columns());
 
-    for (uint32_t j = 0; j < B; j++) {
-      for (uint32_t i = 0; i < B; i++) {
+    for (uint32_t i = 0; i < B; i++) {
+      for (uint32_t j = 0; j < B; j++) {
         typename Mres::Element e(0);
 
         for (uint32_t k = 0; k < B; k++) {
@@ -300,8 +314,8 @@ public:
     assert(a.columns() == B);
 
     // Er fikset
-    for (uint32_t j = 0; j < B; j++) {
-      for (uint32_t i = 0; i < B; i++) {
+    for (uint32_t i = 0; i < B; i++) {
+      for (uint32_t j = 0; j < B; j++) {
         typename Mres::Element e(0);
 
         for (uint32_t k = 0; k < B; k++) {
@@ -339,8 +353,8 @@ public:
     // TODO: Ensure that this is 32 byte aligned!!!
     double tmp[4] = { 0, 0, 0, 0 };
     
-    for (uint32_t j = 0; j < B; j++) {
-      for (uint32_t i = 0; i < B; i++) {
+    for (uint32_t i = 0; i < B; i++) {
+      for (uint32_t j = 0; j < B; j++) {
         __m256d sum = _mm256_setzero_pd();
         
         typename Mres::Element e(0);
@@ -389,8 +403,8 @@ public:
     // TODO: Ensure that this is 32 byte aligned!!!
     double tmp[4] = { 0, 0, 0, 0 };
     
-    for (uint32_t j = 0; j < B; j++) {
-        for (uint32_t i = 0; i < B; i++) {
+    for (uint32_t i = 0; i < B; i++) {
+        for (uint32_t j = 0; j < B; j++) {
         __m256d sum = _mm256_setzero_pd();
         
         typename Mres::Element e(0);
@@ -438,8 +452,8 @@ public:
     const size_t start_b = ZCurve<int>::interleave_bits(b_row_start, b_col_start);
     const size_t start_res = ZCurve<int>::interleave_bits(res_row_start, res_col_start);
     
-    for (uint32_t j = 0; j < B; j++) {
-      for (uint32_t i = 0; i < B; i++) {
+    for (uint32_t i = 0; i < B; i++) {
+      for (uint32_t j = 0; j < B; j++) {
         // Load result element
         typename Mres::Element& e = result.at(start_res + offsets[i * B + j]);
         
