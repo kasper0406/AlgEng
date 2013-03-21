@@ -228,7 +228,9 @@ void test_factor(ostream& out,
     results << measurement.str();
   }
 
-  string name = M0::config() + "_" + M1::config() + "_" + Mres::config() + "_" + to_string(factor_pow2);
+  string sa_str = stack_allocate ? "stack_" : "";
+
+  string name = sa_str + M0::config() + "_" + M1::config() + "_" + Mres::config() + "_" + to_string(factor_pow2);
   ofstream datafile("datafiles/" + name + ".dat", ofstream::out);
   datafile << results.str();
   datafile.close();
