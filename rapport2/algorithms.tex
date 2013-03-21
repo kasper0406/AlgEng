@@ -10,10 +10,54 @@ based layout.
 
 In order to estimate the number of cache faults, we will for each row
 in the output matrix try to bound the number of cache faults
-encountered in order to compute it. We assume that the cache is reset
+encountered in order to compute it. Figure~\ref{fig:rowrowmul}
+illustrates the layouts and the multiplication process.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=8cm]{images/rowrowmul}
+  \label{fig:rowrowmul}
+  \caption{Illustration of multiplication with row-row layout.}
+\end{figure}
+
+We want to compute the matrix product $C = AB$. We do this by filling
+out all entries in $C$ in a row-by-row and inside a row,
+column-by-column fashion. Hence, if the matrices are sufficiently
+small, then the current row of $A$ will never be excluded from
+cache. In order for this to happen, we should have enough cache to
+store all the cache lines used in matrix $B$ (to fill the current
+row). These are the cache lines marked with the darker blue color in
+Figure~\ref{fig:rowrowmul}. Because the CPU uses an adjacent cache
+line prefetcher, we also expect it to load the next cache line, hence
+we also expect the area marked with light blue to be in cache. If we
+let $\mathcal{M}$ denote the size of the cache in bytes, then we find
+that we can reuse the cache lines of $C$ only if
+\[
+( n + n \cdot \underbrace{8}_{\mathclap{8 \text{ doubles in a cache line}}} \cdot 2) \cdot 8 \leq \mathcal{M}.
+\iff
+n \leq \frac{\mathcal{M}}{136}.
+\]
+Since the cache works in a LRU like fashion[citation?], we will get no
+benefit from the loaded cache lines of the $B$ matrix if the cached
+elements does not fit. For example, the L2 cache, which is $256kb$,
+will begin to trash the values when
+\[
+n \leq \frac{256 \cdot 1024}{136} \approx 1927.
+\]
+We will analyze the expected number of cache faults in both situations.
+
+In order to estimate the number of cache faults, we will consider the
+number of cache faults incurred when computing one line in the $C$
+matrix. When we begin to calculate the next line, we will not be able
+to reuse any cache data, since we start computation from the first
+column.
+
+
+
+ We assume that the cache is reset
 after the computation of a row\todo{Argue why this makes sense}.
 
 \todo{Insert image illustrating this!}
+
 When computing a row in $C = AB$, we keep a row in $A$ fixed, and vary
 the columns in $B$. Hence the row i $A$ will always be in cache,
 initially causing $\frac{n}{B}$ cache faults. We compute all columns
