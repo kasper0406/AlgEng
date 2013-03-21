@@ -625,7 +625,7 @@ public:
   };
 
   static string config() {
-    return "hacky-strassen2-" + to_string(B);
+    return "hacky-strassen2-" + to_string(B) + "(" + BaseMul::config() + ")";
   };
 };
 
@@ -662,8 +662,7 @@ public:
 
         Mres m1,m2,m3,m4,m5,m6,m7;
 
-        if ((depth == 0 && thread::hardware_concurrency() >= 2)
-             || (depth == 1 && thread::hardware_concurrency() >= 4)) {
+        if (depth == 0 || depth == 1) {
           thread f1 = thread([&]() { m1 = visit(a11.unsafe_add(a22), b11.unsafe_add(b22), depth + 1); });
           thread f2 = thread([&]() { m2 = visit(a21.unsafe_add(a22), b11, depth + 1); });
           thread f3 = thread([&]() { m3 = visit(a11, b12.unsafe_sub(b22), depth + 1); });
@@ -780,8 +779,7 @@ public:
       Mres m6(new_n, new_m);
       Mres m7(new_n, new_m);
 
-      if ((depth == 0 && thread::hardware_concurrency() >= 2)
-           || (depth == 1 && thread::hardware_concurrency() >= 4)) {
+      if (depth == 0 || depth == 1) {
         thread f1 = thread([&]() { multiply(m1, a11.unsafe_add(a22), b11.unsafe_add(b22), depth + 1); });
         thread f2 = thread([&]() { multiply(m2, a21.unsafe_add(a22), b11, depth + 1); });
         thread f3 = thread([&]() { multiply(m3, a11, b12.unsafe_sub(b22), depth + 1); });
@@ -841,7 +839,7 @@ public:
   };
 
   static string config() {
-    return "parallel-hacky-strassen2-" + to_string(B);
+    return "parallel-hacky-strassen2-" + to_string(B) + "(" + BaseMul::config() + ")";
   };
 };
 
