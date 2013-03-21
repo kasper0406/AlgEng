@@ -138,6 +138,7 @@ int main(int argc, char *argv[]) {
 	    test<RTI,CTI,RTI>(cout, trials, min_size, max_size);
 	    test<SIMDRTI,SIMDCTI,SIMDRTI>(cout, trials, min_size, max_size);
 	    test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
+	    test<SIMDZRTHS2,SIMDZCTHS2,SIMDZRTHS2>(cout, trials, min_size, max_size);
       test<ZRTHS,ZCTHS,ZRTHS>(cout, trials, min_size, max_size);
 	    test<SIMDZRTHS,SIMDZCTHS,SIMDZRTHS>(cout, trials, min_size, max_size);
     });
