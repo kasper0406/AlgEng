@@ -96,7 +96,7 @@ public:
   };
 
   static string config() {
-    return to_string(T) + "parallel-naive";
+    return to_string(T) + "par-naive";
   };
 };
 
@@ -541,7 +541,7 @@ public:
   };
 
   static string config() {
-    return "hacky-strassen-" + to_string(B) + "(" + BaseMul::config() + ")";
+    return "strassen-" + to_string(B) + "(" + BaseMul::config() + ")";
   };
 };
 
@@ -633,7 +633,7 @@ public:
   };
 
   static string config() {
-    return "hacky-strassen2-" + to_string(B) + "(" + BaseMul::config() + ")";
+    return "strassen2-" + to_string(B) + "(" + BaseMul::config() + ")";
   };
 };
 
@@ -737,7 +737,7 @@ public:
   };
 
   static string config() {
-    return "parallel-hacky-strassen-" + to_string(B) + "(" + BaseMul::config() + ")";
+    return "par-strassen-" + to_string(B) + "(" + BaseMul::config() + ")";
   };
 };
 
@@ -847,7 +847,7 @@ public:
   };
 
   static string config() {
-    return "parallel-hacky-strassen2-" + to_string(B) + "(" + BaseMul::config() + ")";
+    return "par-strassen2-" + to_string(B) + "(" + BaseMul::config() + ")";
   };
 };
 
@@ -955,7 +955,7 @@ public:
   }
   
   static string config() {
-    return "parallel-recursive-" + to_string(B) + + "(" + BaseCaseMultiplier::config() + ")";
+    return "par-recursive-" + to_string(B) + + "(" + BaseCaseMultiplier::config() + ")";
   };
   
   
@@ -1210,6 +1210,6 @@ public:
   };
   
   static string config() {
-    return "parallel-tiled-iterative(" + BaseMul::config() + ")";
+    return "par-tiled-iterative(" + BaseMul::config() + ")";
   };
 };
