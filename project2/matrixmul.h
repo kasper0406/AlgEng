@@ -762,31 +762,31 @@ public:
     if (m <= B && n <= B && p <= B) {
       BaseMul::Template multiply<Mres, M0, M1>(c, a, b);
     } else {
-      size_t new_n = n / 2;
-      size_t new_p = p / 2;
-      size_t new_m = m / 2;
-
-      auto a_split = a.split();
-      M0 a11 = move(get<0>(a_split));
-      M0 a12 = move(get<1>(a_split));
-      M0 a21 = move(get<2>(a_split));
-      M0 a22 = move(get<3>(a_split));
-
-      auto b_split = b.split();
-      M1 b11 = move(get<0>(b_split));
-      M1 b12 = move(get<1>(b_split));
-      M1 b21 = move(get<2>(b_split));
-      M1 b22 = move(get<3>(b_split));
-
-      Mres m1(new_n, new_m);
-      Mres m2(new_n, new_m);
-      Mres m3(new_n, new_m);
-      Mres m4(new_n, new_m);
-      Mres m5(new_n, new_m);
-      Mres m6(new_n, new_m);
-      Mres m7(new_n, new_m);
-
       if (depth == 0 || depth == 1) {
+        size_t new_n = n / 2;
+        size_t new_p = p / 2;
+        size_t new_m = m / 2;
+
+        auto a_split = a.split();
+        M0 a11 = move(get<0>(a_split));
+        M0 a12 = move(get<1>(a_split));
+        M0 a21 = move(get<2>(a_split));
+        M0 a22 = move(get<3>(a_split));
+
+        auto b_split = b.split();
+        M1 b11 = move(get<0>(b_split));
+        M1 b12 = move(get<1>(b_split));
+        M1 b21 = move(get<2>(b_split));
+        M1 b22 = move(get<3>(b_split));
+
+        Mres m1(new_n, new_m);
+        Mres m2(new_n, new_m);
+        Mres m3(new_n, new_m);
+        Mres m4(new_n, new_m);
+        Mres m5(new_n, new_m);
+        Mres m6(new_n, new_m);
+        Mres m7(new_n, new_m);
+
         thread f1 = thread([&]() { ParallelHackyStrassen2<B, BaseMul>::multiply(m1, a11.unsafe_add(a22), b11.unsafe_add(b22), depth + 1); });
         thread f2 = thread([&]() { ParallelHackyStrassen2<B, BaseMul>::multiply(m2, a21.unsafe_add(a22), b11, depth + 1); });
         thread f3 = thread([&]() { ParallelHackyStrassen2<B, BaseMul>::multiply(m3, a11, b12.unsafe_sub(b22), depth + 1); });
@@ -802,22 +802,16 @@ public:
         f5.join();
         f6.join();
         f7.join();
-      } else {
-        multiply<M0, M1, Mres>(m1, a11.unsafe_add(a22), b11.unsafe_add(b22), depth + 1);
-        multiply<M0, M1, Mres>(m2, a21.unsafe_add(a22), b11, depth + 1);
-        multiply<M0, M1, Mres>(m3, a11, b12.unsafe_sub(b22), depth + 1);
-        multiply<M0, M1, Mres>(m4, a22, b21.unsafe_sub(b11), depth + 1);
-        multiply<M0, M1, Mres>(m5, a11.unsafe_add(a12), b22, depth + 1);
-        multiply<M0, M1, Mres>(m6, a21.unsafe_sub(a11), b11.unsafe_add(b12), depth + 1);
-        multiply<M0, M1, Mres>(m7, a12.unsafe_sub(a22), b21.unsafe_add(b22), depth + 1);
-      }
-      
-      Mres c11 = m1.unsafe_add(m4).unsafe_sub(m5).unsafe_add(m7);
-      Mres c12 = m3.unsafe_add(m5);
-      Mres c21 = m2.unsafe_add(m4);
-      Mres c22 = m1.unsafe_sub(m2).unsafe_add(m3).unsafe_add(m6);
 
-      unsafe_combine<Mres>(c, c11, c12, c21, c22);
+        Mres c11 = m1.unsafe_add(m4).unsafe_sub(m5).unsafe_add(m7);
+        Mres c12 = m3.unsafe_add(m5);
+        Mres c21 = m2.unsafe_add(m4);
+        Mres c22 = m1.unsafe_sub(m2).unsafe_add(m3).unsafe_add(m6);
+
+        unsafe_combine<Mres>(c, c11, c12, c21, c22);
+      } else {
+        HackyStrassen2<B, BaseMul>::multiply(c, a, b);
+      }
     }
   };
 
