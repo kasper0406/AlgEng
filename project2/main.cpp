@@ -139,10 +139,11 @@ int main(int argc, char *argv[]) {
 	    test<SIMDRTI,SIMDCTI,SIMDRTI>(cout, trials, min_size, max_size);
 	    test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
       test<ZRTHS,ZCTHS,ZRTHS>(cout, trials, min_size, max_size);
+	    test<SIMDZRTHS,SIMDZCTHS,SIMDZRTHS>(cout, trials, min_size, max_size);
     });
     stack_allocation([&] () {
-	    test<SIMDZRTHS,SIMDZCTHS,SIMDZRTHS>(cout, trials, min_size, max_size);
 	    test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
+	    test<SIMDZRTHS2,SIMDZCTHS2,SIMDZRTHS2>(cout, trials, min_size, max_size);
 	  });
 
     // Parallel
@@ -153,7 +154,7 @@ int main(int argc, char *argv[]) {
 	    test<RPTI,CPTI,RPTI>(cout, trials, min_size, max_size);
 	    test<SIMDRPTI,SIMDCPTI,SIMDRPTI>(cout, trials, min_size, max_size);
 	    test<ZRTPHS,ZCTPHS,ZRTPHS>(cout, trials, min_size, max_size);
-	    test<ZRTPHS2, ZCTPHS2, ZRTPHS2>(cout, 1, 1024 * 1024, 1024ULL * 1024ULL * 1024ULL);
+	    test<ZRTPHS2, ZCTPHS2, ZRTPHS2>(cout, 1, min_size, max_size);
 	    test<SIMDZRTPHSS,SIMDZCTPHSS,SIMDZRTPHSS>(cout, trials, min_size, max_size);
 	    test<SIMDZRTPHSS2,SIMDZCTPHSS2,SIMDZRTPHSS2>(cout, trials, min_size, max_size);
     });
