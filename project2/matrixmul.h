@@ -584,19 +584,18 @@ public:
       M1 b22 = move(get<3>(b_split));
 
       Mres m1(new_n, new_m);
-      Mres m2(new_n, new_m);
-      Mres m3(new_n, new_m);
-      Mres m4(new_n, new_m);
-      Mres m5(new_n, new_m);
-      Mres m6(new_n, new_m);
-      Mres m7(new_n, new_m);
-
       multiply<M0, M1, Mres>(m1, a11.unsafe_add(a22), b11.unsafe_add(b22));
+      Mres m2(new_n, new_m);
       multiply<M0, M1, Mres>(m2, a21.unsafe_add(a22), b11);
+      Mres m3(new_n, new_m);
       multiply<M0, M1, Mres>(m3, a11, b12.unsafe_sub(b22));
+      Mres m4(new_n, new_m);
       multiply<M0, M1, Mres>(m4, a22, b21.unsafe_sub(b11));
+      Mres m5(new_n, new_m);
       multiply<M0, M1, Mres>(m5, a11.unsafe_add(a12), b22);
+      Mres m6(new_n, new_m);
       multiply<M0, M1, Mres>(m6, a21.unsafe_sub(a11), b11.unsafe_add(b12));
+      Mres m7(new_n, new_m);
       multiply<M0, M1, Mres>(m7, a12.unsafe_sub(a22), b21.unsafe_add(b22));
       
       Mres c11 = m1.unsafe_add(m4).unsafe_sub(m5).unsafe_add(m7);
