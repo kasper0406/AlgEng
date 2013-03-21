@@ -780,13 +780,13 @@ public:
       Mres m7(new_n, new_m);
 
       if (depth == 0 || depth == 1) {
-        thread f1 = thread([&]() { multiply(m1, a11.unsafe_add(a22), b11.unsafe_add(b22), depth + 1); });
-        thread f2 = thread([&]() { multiply(m2, a21.unsafe_add(a22), b11, depth + 1); });
-        thread f3 = thread([&]() { multiply(m3, a11, b12.unsafe_sub(b22), depth + 1); });
-        thread f4 = thread([&]() { multiply(m4, a22, b21.unsafe_sub(b11), depth + 1); });
-        thread f5 = thread([&]() { multiply(m5, a11.unsafe_add(a12), b22, depth + 1); });
-        thread f6 = thread([&]() { multiply(m6, a21.unsafe_sub(a11), b11.unsafe_add(b12), depth + 1); });
-        thread f7 = thread([&]() { multiply(m7, a12.unsafe_sub(a22), b21.unsafe_add(b22), depth + 1); });
+        thread f1 = thread([&]() { ParallelHackyStrassen2<B, BaseMul>::multiply(m1, a11.unsafe_add(a22), b11.unsafe_add(b22), depth + 1); });
+        thread f2 = thread([&]() { ParallelHackyStrassen2<B, BaseMul>::multiply(m2, a21.unsafe_add(a22), b11, depth + 1); });
+        thread f3 = thread([&]() { ParallelHackyStrassen2<B, BaseMul>::multiply(m3, a11, b12.unsafe_sub(b22), depth + 1); });
+        thread f4 = thread([&]() { ParallelHackyStrassen2<B, BaseMul>::multiply(m4, a22, b21.unsafe_sub(b11), depth + 1); });
+        thread f5 = thread([&]() { ParallelHackyStrassen2<B, BaseMul>::multiply(m5, a11.unsafe_add(a12), b22, depth + 1); });
+        thread f6 = thread([&]() { ParallelHackyStrassen2<B, BaseMul>::multiply(m6, a21.unsafe_sub(a11), b11.unsafe_add(b12), depth + 1); });
+        thread f7 = thread([&]() { ParallelHackyStrassen2<B, BaseMul>::multiply(m7, a12.unsafe_sub(a22), b21.unsafe_add(b22), depth + 1); });
           
         f1.join();
         f2.join();
