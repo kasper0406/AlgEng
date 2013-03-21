@@ -51,17 +51,22 @@ A tiled layout is a compromise between locality and performance of index calcula
 
 \subsection{Strassen}
 
-Strassen exploits some tricks with matrix multiplication such that it only uses 7 multiplications instead of 8 multiplications. It is a recursive algorithm by nature. The first step of the algorithm is the split the operands into 2*2 blocked matrix.
+Strassen exploits some tricks with matrix multiplication such that it only uses 7 multiplications instead of 8 multiplications. It is a recursive algorithm by nature. The first step of the algorithm is to split the operands into 2*2 blocked matrix.
 
-Instead of actually splitting the matrix into smaller matrices we have used a Z-curve layout. That means that the smaller matrices are able to just point to the data in the parent matrix while still preserving a proper layout themselves.
+Instead of actually splitting the matrix into smaller matrices we have used a Z-curve layout. That means that the smaller matrices are able to just point (instead of actually copying) to the data in the parent matrix while still preserving a proper layout themselves.
 
 Strassen needs to have a large base case such that we do not spend too much time on the recursion and to improve cache locality at the base levels. To avoid the overhead of handling matrix multiplication with a level of indirection or by calculating Z-curve indices, we used a row-based and column-based layout at the base case for the left and right operand respectively.
 
 The additions and subtractions in the algorithm only works on left operand block matrices or right operand block matrices. Therefore, we can use a single loop and no index calculations to add and subtract matrices. I.e. Z-curve indices are the same and we only add/subtract row-based base cases with row-based base cases etc.
 
-\todo{hukomelsesforbrug}
-\todo{Manglende praecision}
-\todo{L1 cachen er en write back (synchronized) cache saa det bliver maaske hurtigere ved at allokere stackvis? http://software.intel.com/en-us/articles/performance-insights-to-intel-hyper-threading-technology}
+One major drawback of the algorithm is that we have to allocate 7 temporary matrices of one fourth of the size of the resulting matrix + at least one extra used by the calculation of the temporary matrices. Therefore, a two input matrices of size 1024 * 1024 containing double precision floating points needs ~5*8 MB instead of 3*8 MB.
+
+One improvement we have made to the algorithm is to allocate all the temporary matrices in a stack-like fashion such that we reduce the number of cache evictions when we start writing at new locations instead of reusing locations already in cache.
+
+Furthermore, one problem we experienced with algorithm was numerical instability.
+
+\todo{Manglende praecision, analyse}
+% http://software.intel.com/en-us/articles/performance-insights-to-intel-hyper-threading-technology
 
 \subsection{SIMD instructions}
 
@@ -84,3 +89,9 @@ The naive algorithm which is used for this combined is easily parallelizable bec
 \subsubsection{Strassen}
 
 Strassen was parallelized by starting new threads at each of the 7 multiplications. This was done at 1 or 2 levels depending on the level of parallization we wanted. The last additions/subtractions and combine operations were not parallelized. However, the multiplications uses most of the time.
+
+One problem Strassen has compared to other algorithms is that it allocates temporary matrices. This problem gets more severe with parallization because now each thread allocates temporary matrices and therefore the memory consumption is higher than the sequential version.
+
+Another problem we had was that our custom stack-like allocator was not thread-safe so it is disabled for parallization. A simple lock-based approach yielded too much congestion. One suggestion to improve this is to give each thread their own allocator.
+
+\todo{Loesning: Maaske start med at genere en pool af stack allocators. En ny traad kan saa nappe en af dem. Paa den maade betaler vi ikke saa meget for opstarten som vi ellers ville have gjort.}
