@@ -33,7 +33,9 @@ struct Measurement {
     l2_cache_misses(0),
     l3_cache_hits(0),
     l3_cache_misses(0),
-    instructions_retired(0)
+    instructions_retired(0),
+    cpu_energy_used(0),
+    dram_energy_used(0)
   { }
 
   bool operator<(const Measurement& o) const {
@@ -47,6 +49,8 @@ struct Measurement {
   uint64_t l3_cache_hits;
   uint64_t l3_cache_misses;
   uint64_t instructions_retired;
+  double cpu_energy_used;
+  double dram_energy_used;
 };
 
 template <typename Func>
@@ -84,11 +88,11 @@ void measure(ostream& out,
     measurement.l3_cache_hits        = getL3CacheHits(before_sstate, after_sstate);
     measurement.l3_cache_misses      = getL3CacheMisses(before_sstate, after_sstate);
     measurement.instructions_retired = getInstructionsRetired(before_sstate, after_sstate);
+    measurement.cpu_energy_used      = getConsumedJoules(before_sstate, after_sstate);
+    measurement.dram_energy_used     = getDRAMConsumedJoules(before_sstate, after_sstate);
 #endif
 
-    high_resolution_clock::duration duration =
-    high_resolution_clock::now() - beginning;
-    
+    high_resolution_clock::duration duration = high_resolution_clock::now() - beginning;
     double time_spent = duration_cast<milliseconds>(duration).count() / 1000.;
 
     measurement.time = time_spent;
@@ -110,6 +114,8 @@ void measure(ostream& out,
   out << fixed << measurements[iMedian].l3_cache_hits << "\t";
   out << fixed << measurements[iMedian].l3_cache_misses << "\t";
   out << fixed << measurements[iMedian].instructions_retired << "\t";
+  out << fixed << measurements[iMedian].cpu_energy_used << "\t";
+  out << fixed << measurements[iMedian].dram_energy_used << "\t";
 #endif
   
   out << endl;
@@ -181,7 +187,7 @@ template <typename M0, typename M1, typename Mres>
       << "C: " << Mres::config() << endl
       << "n\tp\tm\tTrials\tMin    [s]\tLower  [s]\tMedian [s]\tUpper  [s]\tMax [s]";
 #ifdef __linux__
-  out << "\tL2 hits\tL2 misses\tL3 hits\tL3 misses\tInst. ret.";
+  out << "\tL2 hits\tL2 misses\tL3 hits\tL3 misses\tInst. ret.\tCPU Energy [J]\tDRAM Energy [J]";
 #endif
 
   out << endl;
@@ -194,7 +200,7 @@ void test_factor(ostream& out,
                  uint64_t min_size_total,
                  uint64_t max_size_total) {
   stringstream results;
-
+  
   print_header<M0, M1, Mres>(results, factor_pow2);
   print_header<M0, M1, Mres>(out, factor_pow2);
 
@@ -222,8 +228,12 @@ void test_factor(ostream& out,
     results << measurement.str();
   }
 
-#ifdef __linux__
   string name = M0::config() + "_" + M1::config() + "_" + Mres::config() + "_" + to_string(factor_pow2);
+  ofstream datafile("datafiles/" + name + ".dat", ofstream::out);
+  datafile << results.str();
+  datafile.close();
+  
+#ifdef __linux__
   generate_plot(name, results.str());
 #endif
 }

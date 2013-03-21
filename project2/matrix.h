@@ -219,7 +219,7 @@ public:
   };
 
   static string config() {
-    return Layout::config() + " " + MatrixMul::config();
+    return Layout::config() + " " + MatrixMul::config() + (SIMD == true ? "_SIMD" : "");
   };
 
   string to_string() const {

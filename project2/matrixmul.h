@@ -27,8 +27,8 @@ public:
 
     Mres c(a.rows(), b.columns());
 
-    for (uint32_t i = 0; i < a.rows(); i++) {
-      for (uint32_t j = 0; j < b.columns(); j++) {
+    for (uint32_t j = 0; j < a.rows(); j++) {
+      for (uint32_t i = 0; i < b.columns(); i++) {
         typename Mres::Element e(0);
 
         for (uint32_t k = 0; k < a.columns(); k++) {
@@ -113,8 +113,8 @@ public:
                        uint32_t res_col_start, uint32_t res_col_stop)
   {
     const uint32_t n = a_col_stop - a_col_start;
-    for (uint32_t i = res_row_start; i < res_row_stop; i++) {
-      for (uint32_t j = res_col_start; j < res_col_stop; j++) {
+    for (uint32_t j = res_row_start; j < res_row_stop; j++) {
+      for (uint32_t i = res_col_start; i < res_col_stop; i++) {
         // Load result element
         typename Mres::Element e = result(i, j);
         
@@ -126,6 +126,10 @@ public:
       }
     }
   }
+  
+  static string config() {
+    return "generic-bc";
+  };
 };
 
 class TiledBCMultiplier
@@ -157,24 +161,29 @@ public:
     const uint32_t p = b_col_stop - b_col_start;
     
     // Base case: Do standard multiplication
-    for (uint32_t i = 0; i < m; i++) {
-      // TODO: Consider how to make this work with arbitrary tiling!!!
-      const size_t a_start_row = a_start_index + i * M0::Layout::WIDTH;
-      const size_t res_start_row = res_start_index + i * Mres::Layout::WIDTH;
-      
-      for (uint32_t j = 0; j < p; j++) {
+    for (uint32_t j = 0; j < m; j++) {
+      for (uint32_t i = 0; i < p; i++) {
+        // TODO: Consider how to make this work with arbitrary tiling!!!
+        const size_t a_start_row = a_start_index + i * M0::Layout::WIDTH;
+        const size_t res_start_row = res_start_index + i * Mres::Layout::WIDTH;
+        const size_t b_start_row = b_start_index + j * M1::Layout::HEIGHT;
+        
         // Load result element
         typename Mres::Element& e = result.at(res_start_row + j);
         
         for (uint32_t k = 0; k < n; k++) {
           // e += a(i, a_col_start + k) * b(b_row_start + k, j);
-          e += a.at(a_start_row + k) * b.at(b_start_index + j * M1::Layout::HEIGHT + k);
+          e += a.at(a_start_row + k) * b.at(b_start_row + k);
         }
         
         // result.at(res_start_row + j) = e;
       }
     }
   }
+  
+  static string config() {
+    return "tiled-bc";
+  };
 };
 
 class SIMDTiledBCMultiplier
@@ -217,16 +226,17 @@ public:
     double tmp[4] = { 0, 0, 0, 0 };
     
     // Base case: Do standard multiplication
-    for (uint32_t i = 0; i < m; i++) {
-      // TODO: Consider how to make this work with arbitrary tiling!!!
-      const size_t a_start_row = a_start_index + i * M0::Layout::WIDTH;
-      const size_t res_start_row = res_start_index + i * Mres::Layout::WIDTH;
-      
-      for (uint32_t j = 0; j < p; j++) {
+    for (uint32_t j = 0; j < m; j++) {
+      for (uint32_t i = 0; i < p; i++) {
+        // TODO: Consider how to make this work with arbitrary tiling!!!
+        const size_t a_start_row = a_start_index + i * M0::Layout::WIDTH;
+        const size_t res_start_row = res_start_index + i * Mres::Layout::WIDTH;
+        const size_t b_start_row = b_start_index + j * M1::Layout::HEIGHT;
+        
         __m256d sum = _mm256_setzero_pd();
         for (uint32_t k = 0; k < n; k += 4) {
           __m256d a_data = _mm256_load_pd(a.addr(a_start_row + k));
-          __m256d b_data = _mm256_load_pd(b.addr(b_start_index + j * M1::Layout::HEIGHT + k));
+          __m256d b_data = _mm256_load_pd(b.addr(b_start_row + k));
           
           __m256d multiplied = _mm256_mul_pd(a_data, b_data);
           sum = _mm256_add_pd(sum, multiplied);
@@ -240,6 +250,10 @@ public:
       }
     }
   }
+  
+  static string config() {
+    return "simd-tiled-bc";
+  };
 };
 
 template<int B>
@@ -254,8 +268,8 @@ public:
 
     Mres c(a.rows(), b.columns());
 
-    for (uint32_t i = 0; i < B; i++) {
-      for (uint32_t j = 0; j < B; j++) {
+    for (uint32_t j = 0; j < B; j++) {
+      for (uint32_t i = 0; i < B; i++) {
         typename Mres::Element e(0);
 
         for (uint32_t k = 0; k < B; k++) {
@@ -269,6 +283,10 @@ public:
     // Move semantics
     return c;
   }
+  
+  static string config() {
+    return to_string(B) + "-fixed-tiled-bc";
+  };
 };
 
 template<int B>
@@ -317,8 +335,8 @@ public:
     // TODO: Ensure that this is 32 byte aligned!!!
     double tmp[4] = { 0, 0, 0, 0 };
     
-    for (uint32_t i = 0; i < B; i++) {
-      for (uint32_t j = 0; j < B; j++) {
+    for (uint32_t j = 0; j < B; j++) {
+      for (uint32_t i = 0; i < B; i++) {
         __m256d sum = _mm256_setzero_pd();
         
         typename Mres::Element e(0);
@@ -342,6 +360,10 @@ public:
     // Move semantics
     return c;
   }
+  
+  static string config() {
+    return to_string(B) + "-simd-fixed-tiled-bc";
+  };
 };
 
 template<int B>
@@ -408,8 +430,8 @@ public:
     const size_t start_b = ZCurve<int>::interleave_bits(b_row_start, b_col_start);
     const size_t start_res = ZCurve<int>::interleave_bits(res_row_start, res_col_start);
     
-    for (uint32_t i = 0; i < B; i++) {
-      for (uint32_t j = 0; j < B; j++) {
+    for (uint32_t j = 0; j < B; j++) {
+      for (uint32_t i = 0; i < B; i++) {
         // Load result element
         typename Mres::Element& e = result.at(start_res + offsets[i * B + j]);
         
@@ -418,6 +440,10 @@ public:
       }
     }
   }
+  
+  static string config() {
+    return to_string(B) + "-zlayout-bc";
+  };
   
 private:
   static array<int, B * B> makeIndexes() {
@@ -507,7 +533,7 @@ public:
   };
 
   static string config() {
-    return "hacky-strassen-" + to_string(B);
+    return "hacky-strassen-" + to_string(B) + "(" + BaseMul::config() + ")";
   };
 };
 
@@ -704,7 +730,7 @@ public:
   };
 
   static string config() {
-    return "parallel-hacky-strassen-" + to_string(B);
+    return "parallel-hacky-strassen-" + to_string(B) + "(" + BaseMul::config() + ")";
   };
 };
 
@@ -836,7 +862,7 @@ public:
   }
 
   static string config() {
-    return "recursive-" + to_string(B);
+    return "recursive-" + to_string(B) + "(" + BaseCaseMultiplier::config() + ")";
   };
 
 
@@ -923,7 +949,7 @@ public:
   }
   
   static string config() {
-    return "parallel-recursive-" + to_string(B);
+    return "parallel-recursive-" + to_string(B) + + "(" + BaseCaseMultiplier::config() + ")";
   };
   
   
@@ -1100,7 +1126,7 @@ public:
   };
   
   static string config() {
-    return "tiled-iterative";
+    return "tiled-iterative(" + BaseMul::config() + ")";
   };
 };
 
@@ -1178,6 +1204,6 @@ public:
   };
   
   static string config() {
-    return "parallel-tiled-iterative";
+    return "parallel-tiled-iterative(" + BaseMul::config() + ")";
   };
 };

@@ -8,6 +8,19 @@ We started out implementing the simple conventional $O(n^3)$ matrix
 multiplication algorithm where we stored the matrices using a row
 based layout.
 
+In order to estimate the number of cache faults, we will for each row
+in the output matrix try to bound the number of cache faults
+encountered in order to compute it. We assume that the cache is reset
+after the computation of a row\todo{Argue why this makes sense}.
+
+\todo{Insert image illustrating this!}
+When computing a row in $C = AB$, we keep a row in $A$ fixed, and vary
+the columns in $B$. Hence the row i $A$ will always be in cache,
+initially causing $\frac{n}{B}$ cache faults. We compute all columns
+in the result row sequentially. Because our cache is big enough to
+hold $n+1$ cache lines\todo{Argue!?}, we can hold all cache lines
+
+
 \todo{Expectations of cache faults here....}
 
 We do not expect any significant amount of branch mispredictions.
@@ -19,6 +32,8 @@ column base layout in the right operand in the multiplication. We
 expect this to give us a bit better cache performance. This approach
 has the drawback of limiting a matrix only to be used on one side of a
 multiplication. However, this problem can be mitigated by conversions which is an $O(n^2)$ operation.
+
+We analyze the number as cache faults as before, but 
 
 \subsection{Recursive multiplication}
 
