@@ -128,12 +128,12 @@ int main(int argc, char *argv[]) {
     // Rapport tests
     const int trials = 1;
     const size_t min_size = 1024 * 1024;
-    const uint64_t max_size = 1024ULL * 1024ULL * 1024ULL * 8ULL;
+    const uint64_t max_size = 1024ULL * 1024ULL * 1024ULL * 64ULL;
 	
 	  // Sequential
     avoid_stack_allocation([&] () {
-	    test<RN,RN,RN>(cout, trials, min_size, max_size);
-      test<RN,CN,RN>(cout, trials, min_size, max_size);
+	    /*test<RN,RN,RN>(cout, trials, min_size, max_size);
+      test<RN,CN,RN>(cout, trials, min_size, max_size);*/
 	    test<RR,RC,RR>(cout, trials, min_size, max_size);
 	    test<RRZ,RRZ,RRZ>(cout, trials, min_size, max_size);
 	    test<RZBC,RZBC,RZBC>(cout, trials, min_size, max_size);
