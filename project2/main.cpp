@@ -153,15 +153,15 @@ int main(int argc, char *argv[]) {
 
     // Parallel
 	  avoid_stack_allocation([&] () {
-	    /*test<RP,CP,RP>(cout, trials, min_size, max_size);
+	    test<RP,CP,RP>(cout, trials, min_size, max_size);
 	    test<RTRP,CTR,RTRP>(cout, trials, min_size, max_size);
 	    test<SIMDRTRP,CTR,SIMDRTRP>(cout, trials, min_size, max_size);
 	    test<RPTI,CPTI,RPTI>(cout, trials, min_size, max_size);
 	    test<SIMDRPTI,SIMDCPTI,SIMDRPTI>(cout, trials, min_size, max_size);
 	    test<ZRTPHS,ZCTPHS,ZRTPHS>(cout, trials, min_size, max_size);
-	    test<ZRTPHS2, ZCTPHS2, ZRTPHS2>(cout, 1, min_size, max_size);*/
+	    test<ZRTPHS2, ZCTPHS2, ZRTPHS2>(cout, 1, min_size, max_size);
 	    test<SIMDZRTPHSS,SIMDZCTPHSS,SIMDZRTPHSS>(cout, trials, min_size, max_size);
-	    //test<SIMDZRTPHSS2,SIMDZCTPHSS2,SIMDZRTPHSS2>(cout, trials, min_size, max_size);
+	    test<SIMDZRTPHSS2,SIMDZCTPHSS2,SIMDZRTPHSS2>(cout, trials, min_size, max_size);
     });
   } catch (logic_error err) {
     cout << err.what() << endl;
