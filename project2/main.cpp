@@ -91,10 +91,6 @@ void stack_allocation(function<void()> a) {
 int main(int argc, char *argv[]) {
   cout.precision(8);
 
-  int i;
-  cout << "Wait for go signal ;-)" << endl;
-  cin >> i;
-
   try {
     // Sequential
     /*avoid_stack_allocation([] () {
