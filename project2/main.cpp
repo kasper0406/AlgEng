@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
 
   try {
     // Sequential
-    /*avoid_stack_allocation([] () {
+    avoid_stack_allocation([] () {
 	    sanity_check<RN, RN>();
 	    sanity_check<CN, CN>();
 	    sanity_check<ZR, ZR>();
@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
     stack_allocation([] () {
       sanity_check<ZRTHS2, ZCTHS2>();
       sanity_check<SIMDZRTHS2, SIMDZCTHS2>();
-    });*/
+    });
     // Parallel
     avoid_stack_allocation([] () {
 	    sanity_check<RP, RP>();
@@ -128,10 +128,10 @@ int main(int argc, char *argv[]) {
     // Rapport tests
     const int trials = 1;
     const size_t min_size = 1024 * 1024;
-    const uint64_t max_size = 1024ULL * 1024ULL * 1024ULL * 64ULL;
+    const uint64_t max_size = 1024ULL * 1024ULL * 1024ULL * 8ULL;
 	
 	  // Sequential
-   /* avoid_stack_allocation([&] () {
+    avoid_stack_allocation([&] () {
 	    test<RN,RN,RN>(cout, trials, min_size, max_size);
       test<RN,CN,RN>(cout, trials, min_size, max_size);
 	    test<RR,RC,RR>(cout, trials, min_size, max_size);
@@ -149,7 +149,7 @@ int main(int argc, char *argv[]) {
     stack_allocation([&] () {
 	    test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
 	    test<SIMDZRTHS2,SIMDZCTHS2,SIMDZRTHS2>(cout, trials, min_size, max_size);
-	  });*/
+	  });
 
     // Parallel
 	  avoid_stack_allocation([&] () {
