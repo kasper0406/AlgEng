@@ -2,16 +2,16 @@
 
 Our program was written in C/C++ and compiled with Clang. All memory allocations were cache line boundary aligned. For parallelization we used C++11 cross-platform library \texttt{<thread>}.
 
-All benchmarks were performed on a Linux desktop which has 4 GB ram and a Core i3 550 CPU with the following specification:
+All benchmarks were performed on a Linux desktop which has 16 GB ram and a Core i7 3770 CPU with the following specification:
 
 \begin{itemize}
-\item 2 * 3.2 GHz (no Turbo boost)
-\item 2 * 32 KB L1 instruction cache
-\item 2 * 32 KB L1 data cache (write back)
-\item 2 * 256 KB L2 cache (write back)
-\item Shared 4 MB L3 cache
+\item 4 * 3.4 GHz (Turbo Boost up to 3.9 GHz)
+\item 4 * 32 KB L1 instruction cache
+\item 4 * 32 KB L1 data cache (write back)
+\item 4 * 256 KB L2 cache (write back)
+\item Hyper-Threading
+\item Shared 8 MB L3 cache (inclusive, write back)
 \item 64 byte cache lines
-\item Inclusive caches
 \item The associativity for the cache levels are 8, 8 and 16 respectively
 % http://www.ni.com/white-paper/11266/en#toc5
 \end{itemize}
