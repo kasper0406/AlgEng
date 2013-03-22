@@ -131,25 +131,25 @@ int main(int argc, char *argv[]) {
     const uint64_t max_size = 1024ULL * 1024ULL * 1024ULL * 64ULL;
 	
 	  // Sequential
-    avoid_stack_allocation([&] () {
-	    //test<RN,RN,RN>(cout, trials, min_size, max_size);
-      test<RN,CN,RN>(cout, trials, min_size, max_size);
-	    test<RR,RC,RR>(cout, trials, min_size, max_size);
-	    test<RRZ,RRZ,RRZ>(cout, trials, min_size, max_size);
-	    test<RZBC,RZBC,RZBC>(cout, trials, min_size, max_size);
-	    test<RTR,CTR,RTR>(cout, trials, min_size, max_size);
-	    test<SIMDRTR,CTR,SIMDRTR>(cout, trials, min_size, max_size);
-	    test<RTI,CTI,RTI>(cout, trials, min_size, max_size);
-	    test<SIMDRTI,SIMDCTI,SIMDRTI>(cout, trials, min_size, max_size);
-	    test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
-	    test<SIMDZRTHS2,SIMDZCTHS2,SIMDZRTHS2>(cout, trials, min_size, max_size);
-      test<ZRTHS,ZCTHS,ZRTHS>(cout, trials, min_size, max_size);
-	    test<SIMDZRTHS,SIMDZCTHS,SIMDZRTHS>(cout, trials, min_size, max_size);
-    });
-    stack_allocation([&] () {
-	    test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
-	    test<SIMDZRTHS2,SIMDZCTHS2,SIMDZRTHS2>(cout, trials, min_size, max_size);
-	  });
+   // avoid_stack_allocation([&] () {
+	  //  //test<RN,RN,RN>(cout, trials, min_size, max_size);
+   //   test<RN,CN,RN>(cout, trials, min_size, max_size);
+	  //  test<RR,RC,RR>(cout, trials, min_size, max_size);
+	  //  test<RRZ,RRZ,RRZ>(cout, trials, min_size, max_size);
+	  //  test<RZBC,RZBC,RZBC>(cout, trials, min_size, max_size);
+	  //  test<RTR,CTR,RTR>(cout, trials, min_size, max_size);
+	  //  test<SIMDRTR,CTR,SIMDRTR>(cout, trials, min_size, max_size);
+	  //  test<RTI,CTI,RTI>(cout, trials, min_size, max_size);
+	  //  test<SIMDRTI,SIMDCTI,SIMDRTI>(cout, trials, min_size, max_size);
+	  //  test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
+	  //  test<SIMDZRTHS2,SIMDZCTHS2,SIMDZRTHS2>(cout, trials, min_size, max_size);
+   //   test<ZRTHS,ZCTHS,ZRTHS>(cout, trials, min_size, max_size);
+	  //  test<SIMDZRTHS,SIMDZCTHS,SIMDZRTHS>(cout, trials, min_size, max_size);
+   // });
+   // stack_allocation([&] () {
+	  //  test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
+	  //  test<SIMDZRTHS2,SIMDZCTHS2,SIMDZRTHS2>(cout, trials, min_size, max_size);
+	  //});
 
     // Parallel
 	  avoid_stack_allocation([&] () {
