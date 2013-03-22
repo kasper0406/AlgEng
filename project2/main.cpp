@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
 	
 	  // Sequential
     avoid_stack_allocation([&] () {
-	    /*test<RN,RN,RN>(cout, trials, min_size, max_size);*/
+	    test<RN,RN,RN>(cout, trials, min_size, max_size);
       test<RN,CN,RN>(cout, trials, min_size, max_size);
 	    test<RR,RC,RR>(cout, trials, min_size, max_size);
 	    test<RRZ,RRZ,RRZ>(cout, trials, min_size, max_size);
