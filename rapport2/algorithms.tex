@@ -113,7 +113,11 @@ Furthermore, the algorithm does lend itself to more numerical instability as des
 
 \subsection{SIMD instructions}
 
-...
+We extended some of the algorithms with SIMD instructions from Intel Advanced Vector Extensions (AVX). Specifically we changed the naive and naive used in base cases for the recursive and Strassen.
+
+For computing a cell in a matrix we exchanged the dot product loop such that it read, multiplied, and added four values each time.
+
+For Strassen we also added AVX instructions for matrix additions ans substractions.
 
 \subsection{Parallelization}
 
