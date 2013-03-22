@@ -49,34 +49,23 @@ In order to estimate the number of cache faults, we will consider the
 number of cache faults incurred when computing one line in the $C$
 matrix. When we begin to calculate the next line, we will not be able
 to reuse any cache data, since we start computation from the first
-column\footnote{We made some experiments where we tried to move
-  backwards through the columns every second row. We suspected this to
-  maybe improve cache performance, because we made more local
-  work. However it turned out that this approach yielded a running
-  time about $60\%$ slower!}. Hence, every tow in $C$ produces cache
-faults independently of each other.
+column.
 
-When calculating a row, and we assume that the cache is big enough to
-store the data needed, as illustrated in figure~\ref{fig:rowrowmul},
-we initially get $\frac{n}{B}$ cache faults from reading a row in $A$.
-Afterwards we make $n$ cache faults from loading a column in
-$B$. These entries can be used for the computation of the entire cache
-block of $C$, thus we will encounter $n \cdot \frac{n}{B}$ cache
-faults from the $B$ matrix. Therefore we find the total number of
-cache faults to be
-\[
-\left( \frac{n}{B} + n \frac{n}{B} \right) n = \frac{n^2}{B} \left( 1 + n \right).
-\]
-If the rows of $B$ does not fit the cache, we have a quiet different
-situation. Then all the values of both the $A$ and $B$ matrices will
-be trashed. Therefore we will for every calculation fetch a row in $A$
-and all columns in $B$. This gives us
-\[
-n\left( \frac{n}{B} + n \right) n = n^3 \left(1 + \frac{1}{B} \right)
-\]
-cache faults\footnote{Notice that we does not pay for cache faults
-  when writing. This is because L2 cache is not write
-  allocate. TODO: CHECK THIS!}.
+
+
+ We assume that the cache is reset
+after the computation of a row\todo{Argue why this makes sense}.
+
+\todo{Insert image illustrating this!}
+
+When computing a row in $C = AB$, we keep a row in $A$ fixed, and vary
+the columns in $B$. Hence the row i $A$ will always be in cache,
+initially causing $\frac{n}{B}$ cache faults. We compute all columns
+in the result row sequentially. Because our cache is big enough to
+hold $n+1$ cache lines\todo{Argue!?}, we can hold all cache lines
+
+
+\todo{Expectations of cache faults here....}
 
 We do not expect any significant amount of branch mispredictions.
 
@@ -86,21 +75,9 @@ In order to improve the number of cache faults, we have tried to use a
 column base layout in the right operand in the multiplication. We
 expect this to give us a bit better cache performance. This approach
 has the drawback of limiting a matrix only to be used on one side of a
-multiplication. However, this problem can be mitigated by conversions
-which is an $O(n^2)$ operation.
+multiplication. However, this problem can be mitigated by conversions which is an $O(n^2)$ operation.
 
-We will give some estimates of the number of cache faults occurring
-when multiplying two matrices. We will do this similarly to the
-previous section. The situation now looks as illustrated in
-figure~\ref{rowcolmul}.
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=8cm]{images/rowcolmul}
-  \label{fig:colowmul}
-  \caption{Illustration of multiplication with row-col layout.}
-\end{figure}
-
-We will estimate the number of cache faults when.
+We analyze the number as cache faults as before, but 
 
 \subsection{Recursive multiplication}
 
