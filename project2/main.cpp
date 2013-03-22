@@ -30,25 +30,25 @@ typedef Matrix<ZCurve<double>, Recursive<B, ZLayoutBCMultiplier<B>>, false> RZBC
 
 typedef Matrix<RowTiled<B, B, double>, Recursive<B, TiledBCMultiplier>, false> RTR;
 typedef Matrix<RowTiled<B, B, double>, Recursive<B, SIMDTiledBCMultiplier>, false> SIMDRTR;
-typedef Matrix<RowTiled<B, B, double>, ParallelRecursive<B, TiledBCMultiplier, 2>, false> RTRP;
+typedef Matrix<RowTiled<B, B, double>, ParallelRecursive<B, TiledBCMultiplier, 3>, false> RTRP;
 typedef Matrix<RowTiled<B, B, double>, ParallelRecursive<B, SIMDTiledBCMultiplier, 3>, false> SIMDRTRP;
 typedef Matrix<ColumnTiled<B, B, double>, Recursive<B, GenericBCMultiplier>, false> CTR;
 
 typedef Matrix<RowTiled<B, B, double>, TiledIterative<B, TiledBCMultiplier>, false> RTI;
 typedef Matrix<ColumnTiled<B, B, double>, TiledIterative<B, TiledBCMultiplier>, false> CTI;
-typedef Matrix<RowTiled<B, B, double>, ParallelTiledIterative<B,4,TiledBCMultiplier>, false> RPTI;
-typedef Matrix<ColumnTiled<B, B, double>, ParallelTiledIterative<B,4,TiledBCMultiplier>, false> CPTI;
+typedef Matrix<RowTiled<B, B, double>, ParallelTiledIterative<B,8,TiledBCMultiplier>, false> RPTI;
+typedef Matrix<ColumnTiled<B, B, double>, ParallelTiledIterative<B,8,TiledBCMultiplier>, false> CPTI;
 
 typedef Matrix<RowTiled<B, B, double>, TiledIterative<B, SIMDTiledBCMultiplier>, false> SIMDRTI;
 typedef Matrix<ColumnTiled<B, B, double>, TiledIterative<B, SIMDTiledBCMultiplier>, false> SIMDCTI;
-typedef Matrix<RowTiled<B, B, double>, ParallelTiledIterative<B,4,SIMDTiledBCMultiplier>, false> SIMDRPTI;
-typedef Matrix<ColumnTiled<B, B, double>, ParallelTiledIterative<B,4,SIMDTiledBCMultiplier>, false> SIMDCPTI;
+typedef Matrix<RowTiled<B, B, double>, ParallelTiledIterative<B,8,SIMDTiledBCMultiplier>, false> SIMDRPTI;
+typedef Matrix<ColumnTiled<B, B, double>, ParallelTiledIterative<B,8,SIMDTiledBCMultiplier>, false> SIMDCPTI;
 
 typedef Matrix<ColumnBased<double>, Recursive<4, GenericBCMultiplier>, false> CR;
 typedef Matrix<ZCurve<double>, Recursive<4, GenericBCMultiplier>, false> ZR;
 
-typedef Matrix<RowBased<double>, ParallelNaive<4>, false> RP;
-typedef Matrix<ColumnBased<double>, ParallelNaive<4>, false> CP;
+typedef Matrix<RowBased<double>, ParallelNaive<8>, false> RP;
+typedef Matrix<ColumnBased<double>, ParallelNaive<8>, false> CP;
 
 typedef Matrix<ZCurveTiled<double, 32, true>, HackyStrassen<32, FixedTiledBCMultiplier<32>>, false> ZRTHS;
 typedef Matrix<ZCurveTiled<double, 32, false>, HackyStrassen<32, FixedTiledBCMultiplier<32>>, false> ZCTHS;
