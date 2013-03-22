@@ -115,9 +115,7 @@ Furthermore, the algorithm does lend itself to more numerical instability as des
 
 We extended some of the algorithms with SIMD instructions from Intel Advanced Vector Extensions (AVX). Specifically we changed the naive and naive used in base cases for the recursive and Strassen.
 
-For computing a cell in a matrix we exchanged the dot product loop such that it read, multiplied, and added four values each time.
-
-For Strassen we also added AVX instructions for matrix additions ans substractions.
+For computing a cell in a matrix we exchanged the dot product loop such that it read, multiplied, and added four values each time. We also added AVX instructions for matrix additions and substractions for Strassen.
 
 \subsection{Parallelization}
 
@@ -139,6 +137,6 @@ Strassen was parallelized by starting new threads at each of the 7 multiplicatio
 
 One problem Strassen has compared to other algorithms is that it allocates temporary matrices. This problem gets more severe with parallization because now each thread allocates temporary matrices and therefore the memory consumption is higher than the sequential version.
 
-Another problem we had was that our custom stack-like allocator was not thread-safe so it is disabled for parallization. A simple lock-based approach yielded too much congestion. One suggestion to improve this is to give each thread their own allocator.
+Another problem we faced was that our custom stack-like allocator was not thread-safe so it is disabled for parallization. A simple lock-based approach yielded too much congestion. One suggestion to improve this is to give each thread their own allocator.
 
 \todo{Loesning: Maaske start med at genere en pool af stack allocators. En ny traad kan saa nappe en af dem. Paa den maade betaler vi ikke saa meget for opstarten som vi ellers ville have gjort.}
