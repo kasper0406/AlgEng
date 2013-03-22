@@ -93,24 +93,23 @@ We ended up with precomputing the Z-curve offsets at the base case. That means t
 
 A tiled layout is a compromise between locality and performance of index calculations. When the recursive algorithm reaches blocks of the same size as the tiles, it switches to the naive algorithm. And the naive algorithm functions without any modifications. To improve cache locality a bit we used a row-based layout in the tiles for the left operand and a column-based layout in the tiles for the right operand.
 
+We also tried an iterative algorithm with a tiled layout. But it did not perform well compared to the recursive due to cache locality so we decided to omit it.
+
 \subsection{Strassen}
 
 Strassen exploits some tricks with matrix multiplication such that it only uses 7 multiplications instead of 8 multiplications. It is a recursive algorithm by nature. The first step of the algorithm is to split the operands into 2*2 blocked matrix.
 
-Instead of actually splitting the matrix into smaller matrices we have used a Z-curve layout. That means that the smaller matrices are able to just point (instead of actually copying) to the data in the parent matrix while still preserving a proper layout themselves.
+Instead of actually splitting the matrix into smaller matrices we have used a Z-curve layout. That means that the smaller matrices are able to just point to the data in the parent matrix (instead of actually copying) while still preserving a proper layout themselves.
 
-Strassen needs to have a large base case such that we do not spend too much time on the recursion and to improve cache locality at the base levels. To avoid the overhead of handling matrix multiplication with a level of indirection or by calculating Z-curve indices, we used a row-based and column-based layout at the base case for the left and right operand respectively.
+Strassen needs to have a large base case such that we do not spend too much time on the recursion and to improve cache locality at the base levels. 32*32 seemed to be a good choice on our platform. To avoid the overhead of handling matrix multiplication with a level of indirection or by calculating Z-curve indices, we used a row-based and column-based layout at the base case for the left and right operand respectively.
 
 The additions and subtractions in the algorithm only works on left operand block matrices or right operand block matrices. Therefore, we can use a single loop and no index calculations to add and subtract matrices. I.e. Z-curve indices are the same and we only add/subtract row-based base cases with row-based base cases etc.
 
-One major drawback of the algorithm is that we have to allocate 7 temporary matrices of one fourth of the size of the resulting matrix + at least one extra used by the calculation of the temporary matrices. Therefore, a two input matrices of size 1024 * 1024 containing double precision floating points needs ~5*8 MB instead of 3*8 MB.
+One major drawback of the algorithm is that we have to allocate 7 temporary matrices of one fourth of the size of the resulting matrix + at least one extra used by the calculation of the temporary matrices. Therefore, a two input matrices of size 1024 * 1024 containing double precision floating points needs ~5*8 MB instead of 3*8 MB. Additionally, the algorithm assumes that the input matrix sizes are power of two which can lead to 4 times more memory usage if padding is employed. By using padding at each level less memory is used but it is slightly slower to pad/unpad multiple times.
 
 One improvement we have made to the algorithm is to allocate all the temporary matrices in a stack-like fashion such that we reduce the number of cache evictions when we start writing at new locations instead of reusing locations already in cache.
 
-Furthermore, one problem we experienced with algorithm was numerical instability.
-
-\todo{Manglende praecision, analyse}
-% http://software.intel.com/en-us/articles/performance-insights-to-intel-hyper-threading-technology
+Furthermore, the algorithm does lend itself to more numerical instability as described in [strassen_stability.pdf].\todo{citation}
 
 \subsection{SIMD instructions}
 
@@ -118,15 +117,15 @@ Furthermore, one problem we experienced with algorithm was numerical instability
 
 \subsection{Parallelization}
 
-\todo{SIMD giver ikke ligesaa meget naar parallelet. Maaske giver hyper-threading ligesaa meget}
+This subsection describes how we parallized some of the previously mentioned algorithms. One disadvantage when parallizing is that the L3 cache is effectively splitted into the number of cores if the threads work on independently data. An advantage, however, is that we get more L1 and L2 cache available in total.
+
+\todo{SIMD giver ikke ligesaa meget naar parallelet. Maaske giver hyper-threading ikke ligesaa meget}
 
 \subsubsection{Combined row-based and column-based layout}
 
-The naive algorithm which is used for this combined is easily parallelizable because we can assign intervals of rows for each thread. The result matrix is stored in a row-based layout so writing is separated so cache thrashing should not be a problem.
+The naive algorithm which is used for this combined is easily parallelizable because we can assign intervals of rows for each thread. The result matrix is stored in a row-based layout so writing is separated such that cache thrashing should not be a problem.
 
 ...
-
-\todo{todo, mere l2 cache}
 
 \todo{formelen for parallelization}
 
