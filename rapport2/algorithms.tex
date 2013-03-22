@@ -89,9 +89,9 @@ has the drawback of limiting a matrix only to be used on one side of a
 multiplication. However, this problem can be mitigated by conversions
 which is an $O(n^2)$ operation.
 
-We will give some estimates of the number of cache faults occurring
-when multiplying two matrices. We will do this similarly to the
-previous section. The situation now looks as illustrated in
+We will give estimates of the number of cache faults occurring when
+multiplying two matrices. This will be done similarly to the previous
+section. The situation now looks as illustrated in
 figure~\ref{rowcolmul}.
 \begin{figure}[h!]
   \centering
@@ -100,7 +100,36 @@ figure~\ref{rowcolmul}.
   \caption{Illustration of multiplication with row-col layout.}
 \end{figure}
 
-We will estimate the number of cache faults when.
+First we will estimate for what values of $n$ we can keep the current
+column of $B$ in cache. This is found by
+\[
+(n + n)8 \leq \mathcal{M} \iff n \leq \frac{\mathcal{M}}{16}
+\]
+For the L2 cache with $\mathcal{M} = 256kb$ we find that
+\[
+n \leq \frac{256 \cdot 1024}{16} = 16384.
+\]
+That is, a number that is much larger than any of our test instances
+(when using a row-column based layout). We will therefore focus on the
+analysis where a column of $B$ actually fits the cache. We will again
+do the analysis for one row in $C$, and then, since the next row does
+not share any cache data with the previous (except if the matrices are
+really small), we can multiply the number of cache faults for each
+row. We first get $\frac{n}{B}$ cache faults from matrix $A$. Then we
+get $\frac{n}{B}$ cache fault from a column in $B$, which we do for
+each of the $n$ columns, giving a total of
+\[
+\left( \frac{n}{B} + n \frac{n}{B} \right) = \frac{n^2}{B}\left(1 + n \right)
+\]
+cache faults. This is exactly the same number of expected cache faults
+as in the row-row layout, when that is also in the good case.
+
+When we can not hold the column of matrix $B$ in cache, we expect
+\[
+\left( \frac{n}{B} + \frac{n}{B} \right) n^2 = \frac{2n^3}{B}
+\]
+cache faults. This number is better than in the row-row case, and it
+should begin to show much later then the row-row layout.
 
 \subsection{Recursive multiplication}
 
