@@ -95,6 +95,9 @@ A tiled layout is a compromise between locality and performance of index calcula
 
 We also tried an iterative algorithm with a tiled layout. But it did not perform well compared to the recursive due to cache locality so we decided to omit it.
 
+$\Theta(n+n^2/B + n^3/B\sqrt{\mathcal{M}})$
+\todo{Her er formelen fra artikel omkring cache faults}
+
 \subsection{Strassen}
 
 Strassen exploits some tricks with matrix multiplication such that it only uses 7 multiplications instead of 8 multiplications. It is a recursive algorithm by nature. The first step of the algorithm is to split the operands into 2*2 blocked matrix.
@@ -110,6 +113,8 @@ One major drawback of the algorithm is that we have to allocate 7 temporary matr
 One improvement we have made to the algorithm is to allocate all the temporary matrices in a stack-like fashion such that we reduce the number of cache evictions when we start writing at new locations instead of reusing locations already in cache.
 
 Furthermore, the algorithm does lend itself to more numerical instability as described in \[strassen_stability.pdf\].\todo{citation}
+
+According to \[ ref til matrix paper \] we should expect $\Theta(n+n^2/B + n^{\log 7}/B\mathcal{M}^{(\log 7)/2-1})$ cache faults assuming that the cache is tall ($\mathcal{M} = \Omega(B^2)$) which is true for our test CPU. Therefore, the algorithm is expected to perform fewer instructions and have fewer cache faults than the regular recursive algorithm.
 
 \subsection{SIMD instructions}
 
