@@ -231,7 +231,7 @@ void test_factor(ostream& out,
   string sa_str = stack_allocate ? "stack_" : "";
 
   string name = sa_str + M0::config() + "_" + M1::config() + "_" + Mres::config() + "_" + to_string(factor_pow2);
-  ofstream datafile("datafiles/" + name + ".dat", ofstream::out);
+  ofstream datafile("data/" + name + ".dat", ofstream::out);
   datafile << results.str();
   datafile.close();
   
@@ -271,7 +271,7 @@ void sanity_check() {
                 "Types should be equal.");
   
   size_t factor_pow2 = 0;
-  size_t min_size_total = 32768;
+  size_t min_size_total = 32768 * 8;
   size_t max_size_total = 1024 * 1024 * 8;
   
   int i = factor_pow2 - 1;

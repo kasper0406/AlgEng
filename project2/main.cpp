@@ -30,25 +30,25 @@ typedef Matrix<ZCurve<double>, Recursive<B, ZLayoutBCMultiplier<B>>, false> RZBC
 
 typedef Matrix<RowTiled<B, B, double>, Recursive<B, TiledBCMultiplier>, false> RTR;
 typedef Matrix<RowTiled<B, B, double>, Recursive<B, SIMDTiledBCMultiplier>, false> SIMDRTR;
-typedef Matrix<RowTiled<B, B, double>, ParallelRecursive<B, TiledBCMultiplier, 2>, false> RTRP;
+typedef Matrix<RowTiled<B, B, double>, ParallelRecursive<B, TiledBCMultiplier, 3>, false> RTRP;
 typedef Matrix<RowTiled<B, B, double>, ParallelRecursive<B, SIMDTiledBCMultiplier, 3>, false> SIMDRTRP;
 typedef Matrix<ColumnTiled<B, B, double>, Recursive<B, GenericBCMultiplier>, false> CTR;
 
 typedef Matrix<RowTiled<B, B, double>, TiledIterative<B, TiledBCMultiplier>, false> RTI;
 typedef Matrix<ColumnTiled<B, B, double>, TiledIterative<B, TiledBCMultiplier>, false> CTI;
-typedef Matrix<RowTiled<B, B, double>, ParallelTiledIterative<B,4,TiledBCMultiplier>, false> RPTI;
-typedef Matrix<ColumnTiled<B, B, double>, ParallelTiledIterative<B,4,TiledBCMultiplier>, false> CPTI;
+typedef Matrix<RowTiled<B, B, double>, ParallelTiledIterative<B,8,TiledBCMultiplier>, false> RPTI;
+typedef Matrix<ColumnTiled<B, B, double>, ParallelTiledIterative<B,8,TiledBCMultiplier>, false> CPTI;
 
 typedef Matrix<RowTiled<B, B, double>, TiledIterative<B, SIMDTiledBCMultiplier>, false> SIMDRTI;
 typedef Matrix<ColumnTiled<B, B, double>, TiledIterative<B, SIMDTiledBCMultiplier>, false> SIMDCTI;
-typedef Matrix<RowTiled<B, B, double>, ParallelTiledIterative<B,4,SIMDTiledBCMultiplier>, false> SIMDRPTI;
-typedef Matrix<ColumnTiled<B, B, double>, ParallelTiledIterative<B,4,SIMDTiledBCMultiplier>, false> SIMDCPTI;
+typedef Matrix<RowTiled<B, B, double>, ParallelTiledIterative<B,8,SIMDTiledBCMultiplier>, false> SIMDRPTI;
+typedef Matrix<ColumnTiled<B, B, double>, ParallelTiledIterative<B,8,SIMDTiledBCMultiplier>, false> SIMDCPTI;
 
 typedef Matrix<ColumnBased<double>, Recursive<4, GenericBCMultiplier>, false> CR;
 typedef Matrix<ZCurve<double>, Recursive<4, GenericBCMultiplier>, false> ZR;
 
-typedef Matrix<RowBased<double>, ParallelNaive<4>, false> RP;
-typedef Matrix<ColumnBased<double>, ParallelNaive<4>, false> CP;
+typedef Matrix<RowBased<double>, ParallelNaive<8>, false> RP;
+typedef Matrix<ColumnBased<double>, ParallelNaive<8>, false> CP;
 
 typedef Matrix<ZCurveTiled<double, 32, true>, HackyStrassen<32, FixedTiledBCMultiplier<32>>, false> ZRTHS;
 typedef Matrix<ZCurveTiled<double, 32, false>, HackyStrassen<32, FixedTiledBCMultiplier<32>>, false> ZCTHS;
@@ -91,6 +91,10 @@ void stack_allocation(function<void()> a) {
 int main(int argc, char *argv[]) {
   cout.precision(8);
 
+#ifndef NDEBUG
+  cout << "Assertions are enabled!!!!!!!!!!!!!!" << endl;
+#endif
+
   try {
     // Sequential
     avoid_stack_allocation([] () {
@@ -127,25 +131,25 @@ int main(int argc, char *argv[]) {
     const uint64_t max_size = 1024ULL * 1024ULL * 1024ULL * 64ULL;
 	
 	  // Sequential
-    avoid_stack_allocation([&] () {
-	// test<RN,RN,RN>(cout, trials, min_size, max_size);
-      // test<RN,CN,RN>(cout, trials, min_size, max_size);
-	    test<RR,RC,RR>(cout, trials, min_size, max_size);
-	    test<RRZ,RRZ,RRZ>(cout, trials, min_size, max_size);
-	    test<RZBC,RZBC,RZBC>(cout, trials, min_size, max_size);
-	    test<RTR,CTR,RTR>(cout, trials, min_size, max_size);
-	    test<SIMDRTR,CTR,SIMDRTR>(cout, trials, min_size, max_size);
-	    test<RTI,CTI,RTI>(cout, trials, min_size, max_size);
-	    test<SIMDRTI,SIMDCTI,SIMDRTI>(cout, trials, min_size, max_size);
-	    test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
-	    test<SIMDZRTHS2,SIMDZCTHS2,SIMDZRTHS2>(cout, trials, min_size, max_size);
-      test<ZRTHS,ZCTHS,ZRTHS>(cout, trials, min_size, max_size);
-	    test<SIMDZRTHS,SIMDZCTHS,SIMDZRTHS>(cout, trials, min_size, max_size);
-    });
-    stack_allocation([&] () {
-	    test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
-	    test<SIMDZRTHS2,SIMDZCTHS2,SIMDZRTHS2>(cout, trials, min_size, max_size);
-	  });
+   // avoid_stack_allocation([&] () {
+	  //  //test<RN,RN,RN>(cout, trials, min_size, max_size);
+   //   test<RN,CN,RN>(cout, trials, min_size, max_size);
+	  //  test<RR,RC,RR>(cout, trials, min_size, max_size);
+	  //  test<RRZ,RRZ,RRZ>(cout, trials, min_size, max_size);
+	  //  test<RZBC,RZBC,RZBC>(cout, trials, min_size, max_size);
+	  //  test<RTR,CTR,RTR>(cout, trials, min_size, max_size);
+	  //  test<SIMDRTR,CTR,SIMDRTR>(cout, trials, min_size, max_size);
+	  //  test<RTI,CTI,RTI>(cout, trials, min_size, max_size);
+	  //  test<SIMDRTI,SIMDCTI,SIMDRTI>(cout, trials, min_size, max_size);
+	  //  test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
+	  //  test<SIMDZRTHS2,SIMDZCTHS2,SIMDZRTHS2>(cout, trials, min_size, max_size);
+   //   test<ZRTHS,ZCTHS,ZRTHS>(cout, trials, min_size, max_size);
+	  //  test<SIMDZRTHS,SIMDZCTHS,SIMDZRTHS>(cout, trials, min_size, max_size);
+   // });
+   // stack_allocation([&] () {
+	  //  test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
+	  //  test<SIMDZRTHS2,SIMDZCTHS2,SIMDZRTHS2>(cout, trials, min_size, max_size);
+	  //});
 
     // Parallel
 	  avoid_stack_allocation([&] () {
