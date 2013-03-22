@@ -271,7 +271,7 @@ void sanity_check() {
                 "Types should be equal.");
   
   size_t factor_pow2 = 0;
-  size_t min_size_total = 32768;
+  size_t min_size_total = 32768 * 8;
   size_t max_size_total = 1024 * 1024 * 8;
   
   int i = factor_pow2 - 1;
