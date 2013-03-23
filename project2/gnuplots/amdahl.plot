@@ -15,8 +15,10 @@ set ytics nomirror tc lt 1
 set key vert left top reverse
 set pointsize 2
 
-plot [1:20] [1:20] sin(x)
+amdahl(n,p) = 1 / ((1 - p) + (p / n))
 
-plot 'amdahl_strassen.dat' using ($1):($2) title "Strassen" axes x1y1 with points, \
-'amdahl_recursive.dat' using ($1):($2) title "Recursive, tiled" axes x1y1 with points, \
-'amdahl_iterative.dat' using ($1):($2) title "Iterative, tiled" axes x1y1 with points
+plot [1:20] [0:10] amdahl(x, 0.898) title "Amdahl's law, Strassen", \
+amdahl(x, 0.977) title "Amdahl's law, Recursive + Iterative", \
+'amdahl_strassen.dat' using ($1):($2) title "Strassen, 32x32" axes x1y1 with points, \
+'amdahl_recursive.dat' using ($1):($2) title "Recursive, 64x64, tiled" axes x1y1 with points, \
+'amdahl_iterative.dat' using ($1):($2) title "Iterative, 64x64, tiled" axes x1y1 with points
