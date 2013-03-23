@@ -204,18 +204,22 @@ void test_factor(ostream& out,
   print_header<M0, M1, Mres>(results, factor_pow2);
   print_header<M0, M1, Mres>(out, factor_pow2);
 
-  int i = factor_pow2 - 1;
+  int i = min_size_total;
   while (true) {
-    i++;
+    i += 20;
 
-    size_t n = (1 << (i - factor_pow2));
-    size_t p = 1 << i;
-    size_t m = (1 << (i - factor_pow2));
+    // size_t n = (1 << (i - factor_pow2));
+    // size_t p = 1 << i;
+    // size_t m = (1 << (i - factor_pow2));
 
-    uint64_t total_size = (uint64_t)n * (uint64_t)p * (uint64_t)m;
+    size_t n = i;
+    size_t p = i;
+    size_t m = i;
 
-    if (total_size < min_size_total) continue;
-    if (total_size > max_size_total) break;
+    // uint64_t total_size = (uint64_t)n * (uint64_t)p * (uint64_t)m;
+
+    if (i < min_size_total) continue;
+    if (i > max_size_total) break;
 
     M0 a = random_matrix<M0>(n, p);
     M1 b = random_matrix<M1>(p, m);
@@ -230,7 +234,8 @@ void test_factor(ostream& out,
 
   string sa_str = stack_allocate ? "stack_" : "";
 
-  string name = sa_str + M0::config() + "_" + M1::config() + "_" + Mres::config() + "_" + to_string(factor_pow2);
+  // string name = sa_str + M0::config() + "_" + M1::config() + "_" + Mres::config() + "_" + to_string(factor_pow2);
+  string name = "rowrowtest";
   ofstream datafile("data/" + name + ".dat", ofstream::out);
   datafile << results.str();
   datafile.close();
