@@ -18,4 +18,8 @@ set grid mytics
 set key vert left top reverse
 set pointsize 2
 
-plot '../data/bc/row-tiled8x8 recursive-8(tiled-bc)_column-tiled-8x8 recursive-8(generic-bc)_row-tiled8x8 recursive-8(tiled-bc)_0.dat' using (log2($1)):($7) title "Time" axes x1y1 with linespoints
+plot '../data/bc/row-tiled8x8 recursive-8(tiled-bc)_column-tiled-8x8 recursive-8(generic-bc)_row-tiled8x8 recursive-8(tiled-bc)_0.dat' using (log2($1)):($7) title "Time" axes x1y1 with linespoints, \
+plot '../data/bc/row-tiled16x16 recursive-16(tiled-bc)_column-tiled-16x16 recursive-16(generic-bc)_row-tiled16x16 recursive-16(tiled-bc)_0.dat' using (log2($1)):($7) title "Time" axes x1y1 with linespoints, \
+plot '../data/bc/row-tiled32x32 recursive-32(tiled-bc)_column-tiled-32x32 recursive-32(generic-bc)_row-tiled32x32 recursive-32(tiled-bc)_0.dat' using (log2($1)):($7) title "Time" axes x1y1 with linespoints, \
+plot '../data/bc/row-tiled64x64 recursive-64(tiled-bc)_column-tiled-64x64 recursive-64(generic-bc)_row-tiled64x64 recursive-64(tiled-bc)_0.dat' using (log2($1)):($7) title "Time" axes x1y1 with linespoints, \
+plot '../data/bc/row-tiled128x128 recursive-128(tiled-bc)_column-tiled-128x128 recursive-128(generic-bc)_row-tiled128x128 recursive-128(tiled-bc)_0.dat' using (log2($1)):($7) title "Time" axes x1y1 with linespoints
