@@ -105,7 +105,13 @@ described in a similar fashion.
 
 \subsection{Recursive multiplication}
 
-\subsubsection{Z-curve layout}
+Figure \ref{fig:recursive_layout_performance} shows the performance of the two layouts with the best base case size of each. As can be seen on the figure the best performing layout of the recursive algorithm is the tiled layout. And, as expected, the recursive algorithm outperforms the naive row/column algorithm.
+
+\subsubsection{Layouts}
+
+The tiled layout is better at utilizing the cache shown in figure \ref{fig:recursive_layout_cachefaults}. Furthermore, the Z-curved layout uses more instructions. Recall that, the Z-curve offsets are precomputed but the extra level of indirection and offset calculations increases the number of instructions.
+
+The best Z-curve base size is much smaller than the best tiled layout base case size. By having a small base case we use the recursion for more levels which means that we do not spend as many instructions on looking up offsets in the precomputed table as we do with larger base cases. However, when we get too small base cases then the instructions used on invoking a method and the conditional statements and jumps from loops gets significant.
 
 %\ref{fig:zrzrzr0}
 
@@ -115,7 +121,7 @@ described in a similar fashion.
 %  \label{fig:zrzrzr0}
 %\end{figure}
 
-\subsubsection{Tiled layout}
+%\subsubsection{Tiled layout}
 
 %\begin{figure}[h!]
 %  \centering
@@ -127,8 +133,8 @@ described in a similar fashion.
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\textwidth]{"../project2/gnuplots/recursive_performance"}
-  \label{fig:recursive_layout_performance}
   \caption{Performance comparison between different layouts and the naive row/column algorithm.}
+  \label{fig:recursive_layout_performance}
 \end{figure}
 
 \begin{figure}[h!]
@@ -186,11 +192,15 @@ Figure \ref{fig:recursive_vs_strassen_performance} shows that Strassen performs 
 
 \subsection{SIMD instructions}
 
+Figure \ref{fig:simd} shows that their is a substancial performance speedup when using SIMD instructions. An increase is inline with our expectations. The amout of cache faults stayed the same in the tests. \todo{Ved ikke om vi skal have plot til det?}
+
+As can be seen, the speedup for the recursive algorithm is higher than for Strassen. This is likely due to a larger number of cache faults for Strassen. This makes the propertion of time used on fetching data higher.
+
 \begin{figure}[h!]
   \centering
-  \missingfigure{Lav graf over performance af bedste rekursive, strassen og maaske en af de naive?}
+  \includegraphics[width=\textwidth]{"../project2/gnuplots/simd_performance"}
   \label{fig:simd}
-  \caption{Performance with and without SIMD instructions.}
+  \caption{Speedup using SIMD instructions.}
 \end{figure}
 
 \subsection{Parallelization}
