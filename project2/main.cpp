@@ -27,7 +27,7 @@ typedef Matrix<RowBased<double>, Recursive<4, GenericBCMultiplier>, false> RR;
 typedef Matrix<ColumnBased<double>, Recursive<4, GenericBCMultiplier>, false> RC;
 typedef Matrix<ZCurve<double>, Recursive<4, GenericBCMultiplier>, false> RRZ;
 
-typedef Matrix<ZCurve<double>, Recursive<B2, ZLayoutBCMultiplier<B>>, false> RZBC;
+typedef Matrix<ZCurve<double>, Recursive<B2, ZLayoutBCMultiplier<B2>>, false> RZBC;
 
 typedef Matrix<RowTiled<B, B, double>, Recursive<B, TiledBCMultiplier>, false> RTR;
 typedef Matrix<RowTiled<B, B, double>, Recursive<B, SIMDTiledBCMultiplier>, false> SIMDRTR;
