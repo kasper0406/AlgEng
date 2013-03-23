@@ -17,5 +17,5 @@ set grid mytics
 set key vert left top reverse
 set pointsize 2
 
-plot [6:13] [1.5:3.5] "< paste '../data/4096/row-tiled64x64 recursive-64(tiled-bc)_column-tiled-64x64 recursive-64(generic-bc)_row-tiled64x64 recursive-64(tiled-bc)_0.dat' '../data/4096/row-tiled64x64 recursive-64(simd-tiled-bc)_column-tiled-64x64 recursive-64(generic-bc)_row-tiled64x64 recursive-64(simd-tiled-bc)_0.dat'" using (log2($1)):($7 / $23) title "Recursive" axes x1y1 with linespoints, \
+plot [7:12] [1.5:3.5] "< paste '../data/4096/row-tiled64x64 recursive-64(tiled-bc)_column-tiled-64x64 recursive-64(generic-bc)_row-tiled64x64 recursive-64(tiled-bc)_0.dat' '../data/4096/row-tiled64x64 recursive-64(simd-tiled-bc)_column-tiled-64x64 recursive-64(generic-bc)_row-tiled64x64 recursive-64(simd-tiled-bc)_0.dat'" using (log2($1)):($7 / $23) title "Recursive" axes x1y1 with linespoints, \
 "< paste '../data/4096/z-curve-tiled strassen-32(32-fixed-tiled-bc)_z-curve-tiled strassen-32(32-fixed-tiled-bc)_z-curve-tiled strassen-32(32-fixed-tiled-bc)_0.dat' '../data/4096/z-curve-tiled strassen-32(32-simd-fixed-tiled-bc)_SIMD_z-curve-tiled strassen-32(32-simd-fixed-tiled-bc)_SIMD_z-curve-tiled strassen-32(32-simd-fixed-tiled-bc)_SIMD_0.dat'" using (log2($1)):($7 / $23) title "Strassen" axes x1y1 with linespoints
