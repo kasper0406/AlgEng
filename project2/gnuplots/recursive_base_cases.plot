@@ -2,7 +2,7 @@ log2(x) = log(x)/log(2)
 max(a,b) = (a > b) ? a : b
 
 set terminal pdf enhanced font "Helvetica, 10" size 7,4
-set output "./rowrow.pdf"
+set output "./recursive_base_cases.pdf"
 
 set xlabel "log2 input size"
 set xtics 0, 1 rotate
