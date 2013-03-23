@@ -16,7 +16,7 @@ bool stack_allocate = false;
 #include "matrixmul.h"
 #include "test.h"
 
-const size_t B = 16;
+const size_t B = 32;
 
 typedef Matrix<RowBased<double>, Naive, false> RN;
 typedef Matrix<ColumnBased<double>, Naive, false> CN;
