@@ -18,6 +18,6 @@ set grid mytics
 set key vert left top reverse
 set pointsize 2
 
-plot '../data/4096/row-tiled64x64 recursive-64(tiled-bc)_column-tiled-64x64 recursive-64(generic-bc)_row-tiled64x64 recursive-64(tiled-bc)_0.dat' using (log2($1)):($13) title "Recursive, tiled, 64x64" axes x1y1 with linespoints, \
-'../data/4096/z-curve recursive-8(8-zlayout-bc)_z-curve recursive-8(8-zlayout-bc)_z-curve recursive-8(8-zlayout-bc)_0.dat' using (log2($1)):($13) title "Recursive, Z-curve, 8x8" axes x1y1 with linespoints, \
-'../data/4096/row-based naive_column-based naive_row-based naive_0.dat' using (log2($1)):($13) title "Naive, row/column" axes x1y1 with linespoints
+plot '../data/4096/row-tiled64x64 recursive-64(tiled-bc)_column-tiled-64x64 recursive-64(generic-bc)_row-tiled64x64 recursive-64(tiled-bc)_0.dat' using (log2($1)):($14) title "Recursive, tiled, 64x64" axes x1y1 with linespoints, \
+'../data/4096/z-curve recursive-8(8-zlayout-bc)_z-curve recursive-8(8-zlayout-bc)_z-curve recursive-8(8-zlayout-bc)_0.dat' using (log2($1)):($14) title "Recursive, Z-curve, 8x8" axes x1y1 with linespoints, \
+'../data/4096/row-based naive_column-based naive_row-based naive_0.dat' using (log2($1)):($14) title "Naive, row/column" axes x1y1 with linespoints
