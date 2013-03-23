@@ -18,7 +18,7 @@ set grid mytics
 set key vert left top reverse
 set pointsize 2
 
-plot '../data/bc/row-tiled16x16 recursive-16(tiled-bc)_column-tiled-16x16 recursive-16(generic-bc)_row-tiled16x16 recursive-16(tiled-bc)_0.dat' using (log2($1)):($11) title "Recursive, L2" axes x1y1 with linespoints, \
-'../data/bc/row-tiled16x16 recursive-16(tiled-bc)_column-tiled-16x16 recursive-16(generic-bc)_row-tiled16x16 recursive-16(tiled-bc)_0.dat' using (log2($1)):($13) title "Recursive, L3" axes x1y1 with linespoints, \
-'../data/bc/z-curve-tiled strassen-16(16-fixed-tiled-bc)_z-curve-tiled strassen-16(16-fixed-tiled-bc)_z-curve-tiled strassen-16(16-fixed-tiled-bc)_0.dat' using (log2($1)):($11) title "Strassen, L2" axes x1y1 with linespoints, \
-'../data/bc/z-curve-tiled strassen-16(16-fixed-tiled-bc)_z-curve-tiled strassen-16(16-fixed-tiled-bc)_z-curve-tiled strassen-16(16-fixed-tiled-bc)_0.dat' using (log2($1)):($13) title "Strassen, L3" axes x1y1 with linespoints
+plot '../data/bc/row-tiled16x16 recursive-16(tiled-bc)_column-tiled-16x16 recursive-16(generic-bc)_row-tiled16x16 recursive-16(tiled-bc)_0.dat' using (log2($1)):($11) title "Recursive, 16x16, L2" axes x1y1 with linespoints, \
+'../data/bc/row-tiled16x16 recursive-16(tiled-bc)_column-tiled-16x16 recursive-16(generic-bc)_row-tiled16x16 recursive-16(tiled-bc)_0.dat' using (log2($1)):($13) title "Recursive, 16x16, L3" axes x1y1 with linespoints, \
+'../data/bc/z-curve-tiled strassen-16(16-fixed-tiled-bc)_z-curve-tiled strassen-16(16-fixed-tiled-bc)_z-curve-tiled strassen-16(16-fixed-tiled-bc)_0.dat' using (log2($1)):($11) title "Strassen, 16x16, L2" axes x1y1 with linespoints, \
+'../data/bc/z-curve-tiled strassen-16(16-fixed-tiled-bc)_z-curve-tiled strassen-16(16-fixed-tiled-bc)_z-curve-tiled strassen-16(16-fixed-tiled-bc)_0.dat' using (log2($1)):($13) title "Strassen, 16x16, L3" axes x1y1 with linespoints
