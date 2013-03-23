@@ -214,8 +214,8 @@ void test_factor(ostream& out,
 
     uint64_t total_size = (uint64_t)n * (uint64_t)p * (uint64_t)m;
 
-    if (i < min_size_total) continue;
-    if (i > max_size_total) break;
+    if (total_size < min_size_total) continue;
+    if (total_size > max_size_total) break;
 
     M0 a = random_matrix<M0>(n, p);
     M1 b = random_matrix<M1>(p, m);
