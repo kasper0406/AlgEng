@@ -98,33 +98,32 @@ int main(int argc, char *argv[]) {
   try {
     // Sequential
     avoid_stack_allocation([] () {
-	    sanity_check<RN, RN>();
-	    sanity_check<CN, CN>();
-	    sanity_check<ZR, ZR>();
-	    sanity_check<RTR, CTR>();
-	    sanity_check<CTR, CTR>();
-	    sanity_check<RZBC, RZBC>();
-	    sanity_check<SIMDRTR, CTR>();
-	    sanity_check<RTI, CTI>();
+	sanity_check<RN, RN>();
+	sanity_check<CN, CN>();
+	sanity_check<ZR, ZR>();
+	sanity_check<RTR, CTR>();
+	sanity_check<CTR, CTR>();
+	sanity_check<RZBC, RZBC>();
+	sanity_check<SIMDRTR, CTR>();
+	sanity_check<RTI, CTI>();
     });
     stack_allocation([] () {
-      sanity_check<ZRTHS2, ZCTHS2>();
-      sanity_check<SIMDZRTHS2, SIMDZCTHS2>();
+	sanity_check<ZRTHS2, ZCTHS2>();
+	sanity_check<SIMDZRTHS2, SIMDZCTHS2>();
     });
     // Parallel
     avoid_stack_allocation([] () {
-	    sanity_check<RP, RP>();
-	    sanity_check<RTRP, CTR>();
-	    sanity_check<ZRTHS, ZCTHS>();
-	    sanity_check<ZRTPHS, ZCTPHS>();
-      sanity_check<SIMDZRTHS,SIMDZCTHS>();
-      sanity_check<ZRTPHS2, ZCTPHS2>();
-	    sanity_check<RPTI, CPTI>();
-	    sanity_check<RTRP, CTR>();
-	    sanity_check<SIMDZRTPHSS, SIMDZCTPHSS>();
-	    sanity_check<SIMDZRTPHSS2, SIMDZCTPHSS2>();
-	    */
-    });
+	sanity_check<RP, RP>();
+	sanity_check<RTRP, CTR>();
+	sanity_check<ZRTHS, ZCTHS>();
+	sanity_check<ZRTPHS, ZCTPHS>();
+	sanity_check<SIMDZRTHS,SIMDZCTHS>();
+	sanity_check<ZRTPHS2, ZCTPHS2>();
+	sanity_check<RPTI, CPTI>();
+	sanity_check<RTRP, CTR>();
+	sanity_check<SIMDZRTPHSS, SIMDZCTPHSS>();
+	sanity_check<SIMDZRTPHSS2, SIMDZCTPHSS2>();
+      });
 
     // Rapport tests
     const int trials = 1;
@@ -132,38 +131,38 @@ int main(int argc, char *argv[]) {
     const uint64_t max_size = 4196ULL;
 	
 	  // Sequential
-   avoid_stack_allocation([&] () {
-       test<RN,RN,RN>(cout, trials, min_size, max_size);
-       test<RN,CN,RN>(cout, trials, min_size, max_size);
-	    test<RR,RC,RR>(cout, trials, min_size, max_size);
-	    test<RRZ,RRZ,RRZ>(cout, trials, min_size, max_size);
-	    test<RZBC,RZBC,RZBC>(cout, trials, min_size, max_size);
-	    test<RTR,CTR,RTR>(cout, trials, min_size, max_size);
-	    test<SIMDRTR,CTR,SIMDRTR>(cout, trials, min_size, max_size);
-	    test<RTI,CTI,RTI>(cout, trials, min_size, max_size);
-	    test<SIMDRTI,SIMDCTI,SIMDRTI>(cout, trials, min_size, max_size);
-	    test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
-	    test<SIMDZRTHS2,SIMDZCTHS2,SIMDZRTHS2>(cout, trials, min_size, max_size);
-      test<ZRTHS,ZCTHS,ZRTHS>(cout, trials, min_size, max_size);
-	    test<SIMDZRTHS,SIMDZCTHS,SIMDZRTHS>(cout, trials, min_size, max_size);
-   });
-    stack_allocation([&] () {
-	    test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
-	    test<SIMDZRTHS2,SIMDZCTHS2,SIMDZRTHS2>(cout, trials, min_size, max_size);
-	  });
+    avoid_stack_allocation([&] () {
+	test<RN,RN,RN>(cout, trials, min_size, max_size);
+	test<RN,CN,RN>(cout, trials, min_size, max_size);
+	test<RR,RC,RR>(cout, trials, min_size, max_size);
+	test<RRZ,RRZ,RRZ>(cout, trials, min_size, max_size);
+	test<RZBC,RZBC,RZBC>(cout, trials, min_size, max_size);
+	test<RTR,CTR,RTR>(cout, trials, min_size, max_size);
+	test<SIMDRTR,CTR,SIMDRTR>(cout, trials, min_size, max_size);
+	test<RTI,CTI,RTI>(cout, trials, min_size, max_size);
+	test<SIMDRTI,SIMDCTI,SIMDRTI>(cout, trials, min_size, max_size);
+	test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
+	test<SIMDZRTHS2,SIMDZCTHS2,SIMDZRTHS2>(cout, trials, min_size, max_size);
+	test<ZRTHS,ZCTHS,ZRTHS>(cout, trials, min_size, max_size);
+	test<SIMDZRTHS,SIMDZCTHS,SIMDZRTHS>(cout, trials, min_size, max_size);
+      });
+   stack_allocation([&] () {
+       test<ZRTHS2,ZCTHS2,ZRTHS2>(cout, trials, min_size, max_size);
+       test<SIMDZRTHS2,SIMDZCTHS2,SIMDZRTHS2>(cout, trials, min_size, max_size);
+     });
 
     // Parallel
-	  avoid_stack_allocation([&] () {
-	    test<RP,CP,RP>(cout, trials, min_size, max_size);
-	    test<RTRP,CTR,RTRP>(cout, trials, min_size, max_size);
-	    test<SIMDRTRP,CTR,SIMDRTRP>(cout, trials, min_size, max_size);
-	    test<RPTI,CPTI,RPTI>(cout, trials, min_size, max_size);
-	    test<SIMDRPTI,SIMDCPTI,SIMDRPTI>(cout, trials, min_size, max_size);
-	    test<ZRTPHS,ZCTPHS,ZRTPHS>(cout, trials, min_size, max_size);
-	    test<ZRTPHS2, ZCTPHS2, ZRTPHS2>(cout, 1, min_size, max_size);
-	    test<SIMDZRTPHSS,SIMDZCTPHSS,SIMDZRTPHSS>(cout, trials, min_size, max_size);
-	    test<SIMDZRTPHSS2,SIMDZCTPHSS2,SIMDZRTPHSS2>(cout, trials, min_size, max_size);
-    });
+    avoid_stack_allocation([&] () {
+	test<RP,CP,RP>(cout, trials, min_size, max_size);
+	test<RTRP,CTR,RTRP>(cout, trials, min_size, max_size);
+	test<SIMDRTRP,CTR,SIMDRTRP>(cout, trials, min_size, max_size);
+	test<RPTI,CPTI,RPTI>(cout, trials, min_size, max_size);
+	test<SIMDRPTI,SIMDCPTI,SIMDRPTI>(cout, trials, min_size, max_size);
+	test<ZRTPHS,ZCTPHS,ZRTPHS>(cout, trials, min_size, max_size);
+	test<ZRTPHS2, ZCTPHS2, ZRTPHS2>(cout, 1, min_size, max_size);
+	test<SIMDZRTPHSS,SIMDZCTPHSS,SIMDZRTPHSS>(cout, trials, min_size, max_size);
+	test<SIMDZRTPHSS2,SIMDZCTPHSS2,SIMDZRTPHSS2>(cout, trials, min_size, max_size);
+      });
   } catch (logic_error err) {
     cout << err.what() << endl;
   }
