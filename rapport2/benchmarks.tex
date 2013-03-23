@@ -95,22 +95,86 @@ described in a similar fashion.
 
 \subsubsection{Combined row-based and column-based layout}
 
-\ref{fig:rncnrn0}
+%\ref{fig:rncnrn0}
 
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=\textwidth]{rncnrn0.pdf}
-  \label{fig:rncnrn0}
-\end{figure}
+%\begin{figure}[h!]
+%  \centering
+%  \includegraphics[width=\textwidth]{rncnrn0.pdf}
+%  \label{fig:rncnrn0}
+%\end{figure}
 
 \subsection{Recursive multiplication}
 
 \subsubsection{Z-curve layout}
 
-\ref{fig:zrzrzr0}
+%\ref{fig:zrzrzr0}
+
+%\begin{figure}[h!]
+%  \centering
+%  \includegraphics[width=\textwidth]{zrzrzr0.pdf}
+%  \label{fig:zrzrzr0}
+%\end{figure}
+
+\subsubsection{Tiled layout}
+
+%\begin{figure}[h!]
+%  \centering
+%  \includegraphics[width=\textwidth]{"../project2/gnuplots/recursive_base_cases"}
+%  \caption{Performance of the recursive algorithm with different base case sizes.}
+%  \label{fig:recursive_base_cases}
+%\end{figure}
+
+\todo{Lav graf med performance af z-curve, tiled og row/column}
+
+\todo{Lav graf med cache faults for z-curve og tiled}
+
+\todo{Lav graf med instructions for z-curve og tiled}
+
+\subsection{Strassen}
+
+%\begin{figure}[h!]
+%  \centering
+%  \includegraphics[width=\textwidth]{"../project2/gnuplots/strassen_base_cases"}
+%  \caption{Performance of Strassen with different base case sizes.}
+%  \label{fig:recursive_base_cases}
+%\end{figure}
 
 \begin{figure}[h!]
   \centering
-  \includegraphics[width=\textwidth]{zrzrzr0.pdf}
-  \label{fig:zrzrzr0}
+  \includegraphics[width=\textwidth]{"../project2/gnuplots/recursive_vs_strassen_performance"}
+  \caption{Performance of the best recursive and best Strassen.}
+  \label{fig:recursive_vs_strassen_performance}
 \end{figure}
+
+Figure \ref{fig:recursive_vs_strassen_performance} shows that Strassen performs better than the tiled recursive algorithm for all the matrix sizes we have tested. However, figure \ref{fig:recursive_vs_strassen_cache} does not give the expected number of cache misses. \todo{hvad var det expected, og hvad ser vi}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{"../project2/gnuplots/recursive_vs_strassen_cache"}
+  \caption{Cache misses of the recursive and Strassen. Both with base case 16x16.}
+  \label{fig:recursive_vs_strassen_cache}
+\end{figure}
+
+%\begin{figure}[h!]
+%  \centering
+%  \includegraphics[width=\textwidth]{"../project2/plots/4096/row-tiled8x8 recursive-8(tiled-bc)_column-tiled-8x8 recursive-8(generic-bc)_row-tiled8x8 recursive-8(tiled-bc)_0"}
+%  \caption{Recursive}
+%\end{figure}
+
+
+
+%\begin{figure}[h!]
+%  \centering
+%  \includegraphics[width=\textwidth]{"../project2/plots/4096/z-curve-tiled strassen-32(32-fixed-tiled-bc)_z-curve-tiled strassen-32(32-fixed-tiled-bc)_z-curve-tiled strassen-32(32-fixed-tiled-bc)_0"}
+%  \caption{Strassen}
+%\end{figure}
+
+\subsection{SIMD instructions}
+
+\todo{Lav graf over performance af bedste rekursive, strassen og maaske en af de naive?}
+
+\subsection{Parallelization}
+
+\todo{Lav graf over performance af Strassen, rekursiv og row/column naiv}
+
+\todo{Lav Amdahls graf over rekursiv, strassen og maaske row/column naiv}
