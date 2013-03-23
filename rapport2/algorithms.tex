@@ -10,8 +10,10 @@ based layout.
 
 In order to estimate the number of cache faults, we will for each row
 in the output matrix try to bound the number of cache faults
-encountered in order to compute it. Figure~\ref{fig:rowrowmul}
-illustrates the layouts and the multiplication process.
+encountered in order to compute it. In the analysis we will assume
+that the size of the matrix is divisible by the cache line size, $B =
+8$. Figure~\ref{fig:rowrowmul} illustrates the layouts and the
+multiplication process.
 \begin{figure}[h!]
   \centering
   \includegraphics[width=8cm]{images/rowrowmul}
@@ -21,9 +23,21 @@ illustrates the layouts and the multiplication process.
 
 We want to compute the matrix product $C = AB$. We do this by filling
 out all entries in $C$ in a row-by-row and inside a row,
-column-by-column fashion. Hence, if the matrices are sufficiently
-small, then the current row of $A$ will never be excluded from
-cache. In order for this to happen, we should have enough cache to
+column-by-column fashion. 
+
+If the $B$ matrix and one row of the $A$ matrix are sufficiently small
+to fit into the cache, the naive matrix multiplication will only fetch
+every cache line once, leading to $2n\frac{n}{B}$ cache faults. This
+happens when
+\[
+n^2 \cdot 8 + 8n \leq \mathcal{M}
+\]
+For the L2 cache this limit is at $n \approx 180$, for the L3 it is $n
+\approx 1023$.
+
+If the matrices are a bit larger, then the columns of $B$ will be
+evicted from the cache, but the current row of $A$ will not be
+excluded. In order for this to happen, we should have enough cache to
 store all the cache lines used in matrix $B$ (to fill the current
 row). These are the cache lines marked with the darker blue color in
 Figure~\ref{fig:rowrowmul}. Because the CPU uses an adjacent cache
@@ -33,7 +47,7 @@ let $\mathcal{M}$ denote the size of the cache in bytes, then we find
 that we can reuse the cache lines of $C$ only if
 \[
 ( n + n \cdot \underbrace{8}_{\mathclap{8 \text{ doubles in a cache line}}} \cdot 2) \cdot 8 \leq \mathcal{M}.
-\iff
+\implies
 n \leq \frac{\mathcal{M}}{136}.
 \]
 Since the cache works in a LRU like fashion[citation?], we will get no
@@ -53,7 +67,7 @@ column\footnote{We made some experiments where we tried to move
   backwards through the columns every second row. We suspected this to
   maybe improve cache performance, because we made more local
   work. However it turned out that this approach yielded a running
-  time about $60\%$ slower!}. Hence, every tow in $C$ produces cache
+  time about $60\%$ slower!}. Hence, every row in $C$ produces cache
 faults independently of each other.
 
 When calculating a row, and we assume that the cache is big enough to
@@ -102,7 +116,7 @@ figure~\ref{rowcolmul}.
 First we will estimate for what values of $n$ we can keep the current
 column of $B$ in cache. This is found by
 \[
-(n + n)8 \leq \mathcal{M} \iff n \leq \frac{\mathcal{M}}{16}
+(n + n)8 \leq \mathcal{M} \implies n \leq \frac{\mathcal{M}}{16}
 \]
 For the L2 cache with $\mathcal{M} = 256kb$ we find that
 \[
