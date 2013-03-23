@@ -15,7 +15,7 @@ set xlabel "log2 input size"
 set xtics 0, 1 rotate
 set offset 1, 1
 
-set ylabel "Normalized running time [s]"
+set ylabel "Running time [s]"
 set y2label "Cache misses"
 
 set ytics nomirror tc lt 1
