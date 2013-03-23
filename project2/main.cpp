@@ -98,36 +98,36 @@ int main(int argc, char *argv[]) {
   try {
   // Sequential
   avoid_stack_allocation([] () {
-	  sanity_check<RN, RN>();
+	  /*sanity_check<RN, RN>();
 	  sanity_check<CN, CN>();
 	  sanity_check<ZR, ZR>();
 	  sanity_check<RTR, CTR>();
-	  sanity_check<CTR, CTR>();
+	  sanity_check<CTR, CTR>();*/
 	  sanity_check<RZBC, RZBC>();
-	  sanity_check<SIMDRTR, CTR>();
-	  sanity_check<RTI, CTI>();
+	  /*sanity_check<SIMDRTR, CTR>();
+	  sanity_check<RTI, CTI>();*/
   });
-  stack_allocation([] () {
-	  sanity_check<ZRTHS2, ZCTHS2>();
-	  sanity_check<SIMDZRTHS2, SIMDZCTHS2>();
-  });
-  // Parallel
-  avoid_stack_allocation([] () {
-	  sanity_check<RP, RP>();
-	  sanity_check<RTRP, CTR>();
-	  sanity_check<ZRTHS, ZCTHS>();
-	  sanity_check<ZRTPHS, ZCTPHS>();
-	  sanity_check<SIMDZRTHS,SIMDZCTHS>();
-	  sanity_check<ZRTPHS2, ZCTPHS2>();
-	  sanity_check<RPTI, CPTI>();
-	  sanity_check<RTRP, CTR>();
-	  sanity_check<SIMDZRTPHSS, SIMDZCTPHSS>();
-	  sanity_check<SIMDZRTPHSS2, SIMDZCTPHSS2>();
-  });
+  //stack_allocation([] () {
+	 // sanity_check<ZRTHS2, ZCTHS2>();
+	 // sanity_check<SIMDZRTHS2, SIMDZCTHS2>();
+  //});
+  //// Parallel
+  //avoid_stack_allocation([] () {
+	 // sanity_check<RP, RP>();
+	 // sanity_check<RTRP, CTR>();
+	 // sanity_check<ZRTHS, ZCTHS>();
+	 // sanity_check<ZRTPHS, ZCTPHS>();
+	 // sanity_check<SIMDZRTHS,SIMDZCTHS>();
+	 // sanity_check<ZRTPHS2, ZCTPHS2>();
+	 // sanity_check<RPTI, CPTI>();
+	 // sanity_check<RTRP, CTR>();
+	 // sanity_check<SIMDZRTPHSS, SIMDZCTPHSS>();
+	 // sanity_check<SIMDZRTPHSS2, SIMDZCTPHSS2>();
+  //});
 
   // Rapport tests
   const int trials = 1;
-  const size_t min_size = 1;
+  const size_t min_size = 1024 * 1024;
   const uint64_t max_size = 1024ULL * 1024ULL * 1024ULL * 8ULL;
 	
 	// Sequential
