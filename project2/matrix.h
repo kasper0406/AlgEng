@@ -131,29 +131,19 @@ public:
   };
 
   SelfType unsafe_add(const SelfType& other) const {
+    const size_t N = this->rows() * this->columns();
+    assert(this->columns() == other.columns());
+    assert(this->rows() == other.rows());
+    SelfType c(this->rows(), this->columns());
+    
     if (!SIMD) {
-      assert(this->columns() == other.columns());
-      assert(this->rows() == other.rows());
       
-      SelfType c(this->rows(), this->columns());
-      
-      for (uint32_t i = 0; i < this->rows(); i++) {
-        for (uint32_t j = 0; j < this->columns(); j++) {
-          c.data.data[i * this->rows() + j] = this->data.data[i * this->rows() + j] + other.data.data[i * this->rows() + j];
-        }
+      for (uint32_t i = 0; i < N; i++) {
+        c.data.data[i] = this->data.data[i] + other.data.data[i];
       }
-      
-      // Move semantics
-      return c;
     } else {
       static_assert(is_same<typename SelfType::Element, double>::value,
                     "Element type must be double.");
-      assert(this->columns() == other.columns());
-      assert(this->rows() == other.rows());
-      
-      SelfType c(this->rows(), this->columns());
-      
-      const size_t N = this->rows() * this->columns();
       assert(N % 4 == 0);
       
       for (size_t i = 0; i < N; i += 4) {
@@ -164,36 +154,26 @@ public:
         
         _mm256_store_pd(c.addr(i), res);
       }
-      
-      // Move semantics
-      return c;
     }
+
+    // Move semantics
+    return c;
   };
   
   SelfType unsafe_sub(const SelfType& other) const {
+    const size_t N = this->rows() * this->columns();
+    assert(this->columns() == other.columns());
+    assert(this->rows() == other.rows());
+    SelfType c(this->rows(), this->columns());
+    
     if (!SIMD) {
-      assert(this->columns() == other.columns());
-      assert(this->rows() == other.rows());
       
-      SelfType c(this->rows(), this->columns());
-      
-      for (uint32_t i = 0; i < this->rows(); i++) {
-        for (uint32_t j = 0; j < this->columns(); j++) {
-          c.data.data[i * this->rows() + j] = this->data.data[i * this->rows() + j] - other.data.data[i * this->rows() + j];
-        }
+      for (uint32_t i = 0; i < N; i++) {
+        c.data.data[i] = this->data.data[i] - other.data.data[i];
       }
-      
-      // Move semantics
-      return c;
     } else {
       static_assert(is_same<typename SelfType::Element, double>::value,
                     "Element type must be double.");
-      assert(this->columns() == other.columns());
-      assert(this->rows() == other.rows());
-      
-      SelfType c(this->rows(), this->columns());
-      
-      const size_t N = this->rows() * this->columns();
       assert(N % 4 == 0);
       
       for (size_t i = 0; i < N; i += 4) {
@@ -204,10 +184,10 @@ public:
         
         _mm256_store_pd(c.addr(i), res);
       }
-      
-      // Move semantics
-      return c;
     }
+
+    // Move semantics
+    return c;
   };
 
   inline size_t rows() const {
