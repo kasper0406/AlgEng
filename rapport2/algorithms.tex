@@ -113,7 +113,13 @@ figure~\ref{rowcolmul}.
   \label{fig:colowmul}
 \end{figure}
 
-First we will estimate for what values of $n$ we can keep the current
+First off, if the matrices are sufficiently small all entries used
+fits the cache then, like in the row-row case, we get $2n\frac{n}{B}$
+cache faults. This happens at the same points as in the row-row
+analysis, that is for the L2 cache $n \approx 180$, and for L3 $n
+\approx 1023$.
+
+We will now estimate for what values of $n$ we can keep the current
 column of $B$ in cache. This is found by
 \[
 (n + n)8 \leq \mathcal{M} \implies n \leq \frac{\mathcal{M}}{16}
