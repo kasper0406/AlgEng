@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
   // Rapport tests
   const int trials = 1;
   const size_t min_size = 1024 * 1024;
-  const uint64_t max_size = 1024ULL * 1024ULL * 1024ULL * 8ULL;
+  const uint64_t max_size = 1024ULL * 1024ULL * 1024ULL * 8ULL * 8ULL;
 	
 	// Sequential
   avoid_stack_allocation([&] () {
