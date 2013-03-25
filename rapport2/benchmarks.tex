@@ -93,15 +93,101 @@ described in a similar fashion.
   \label{fig:rowrow_cachepeaks}
 \end{figure}
 
+It can be seen from figure~\ref{fig:rnrnrn0} that the running time
+becomes a lot worse at $2^9 = 512$. At this points when we jump from
+one row to another in the $B$ matrix, we jump a distance of $512 \cdot
+8 = 4096$ bytes. This is the page size of the system, so we jump
+exactly a page for every read. Moreover, the size of the second-level
+TLB in the i7 processor can hold $512$ entries and uses a pseudo-LRU
+replacement strategy, leading to a TLB miss every time we read a cell
+in the $B$ matrix. This explains why we see the running time becomes
+worse at this point.
+
 \subsubsection{Combined row-based and column-based layout}
+Next we performed experiments where we stored the $A$ matrix in row
+form, the $B$ matrix in column form and saved the result in matrix $C$
+in row form. From the algorithms section, we believe this to perform
+better than the row-row naive multiplication.
 
-%\ref{fig:rncnrn0}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{plots/rowcol}
+  \caption{Running time and cache faults using naive matrix
+    multiplication with row and column layout.}
+  \label{fig:rowcol}
+\end{figure}
 
-%\begin{figure}[h!]
-%  \centering
-%  \includegraphics[width=\textwidth]{rncnrn0.pdf}
-%  \label{fig:rncnrn0}
-%\end{figure}
+One thing to notice in figure~\ref{fig:rowcol} is that the number of
+L2 cache faults seems to follow the number of L3 cache faults. This
+was not what we expected. As shown by the purple line at the plot, we
+would expect the number of L2 cache faults to become significantly
+worse at input size $n \approx 180$, when the $B$ matrix does not fit
+the cache anymore.
+
+In order to explain this behavior we have tried to disassemble the
+program to verify that the compiler did not make any very clever
+unexpected optimizations. This turned out not to be the case.
+
+We then tried to make a simple model of the i7 L2 cache, where we
+simulated the 8-way cache layout\footnote{The simulation was based on
+  the description of the i7 L2 cache described in Computer
+  Architecture: A Quantitative Approach, 5th edition. Cite this
+  probably! We also tried the simulation on the row-row layout, this
+  corresponded quite nicely with the real world, hinting some sanity
+  of the simulation.}. In this experiment, we also tried to fill out
+the matrix one row at a time, but start from the right end half of the
+times. This should give us a better cache
+performance. Figure~\ref{fig:rowcolsimulation} shows the result of
+this simulation compared to the actual number of cache faults.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{plots/rowcol_simulation}
+  \caption{Simulated cache performance vs. the actual cache performance.}
+  \label{fig:rowcol_simulation}
+\end{figure}
+
+As figure~\ref{fig:rowcol_simulation} illustrates, the simulated cache
+performance very nicely follows our expectations. Changing the
+for-loop so that we start filling out from the right half of the times
+helps a bit on the cache performance, but can not explain the
+real-life L2 cache performance.
+
+This hints that there is some hardware in the CPU, that in this case
+is doing a really good job to minimize the L2 cache faults. We tried
+to run the experiments on a smaller computer with an i3-550 processor
+where we disabled the hardware- and adjacent cache line
+prefetchers. This test, however, turned out inconclusive\footnote{We
+  got some very strange looking results from the test. The test was
+  performed running a live linux distribution booted from an USB
+  storage stick, but the stick broke during the next restart of the
+  machine. Hence, if our code made some call to the operating system
+  not loaded into memory, our results could be heavily influenced by
+  malfunctioning hardware. Therefore we do not have a lot of
+  confidence in the results.}.
+
+Figure~\ref{fig:rowcol_vs_rowrow} is comparing the row-column results
+to the row-row results. This plot shows the row-row results divided by
+the row-column results. From the algorithms section, we will expect
+the improvement factor to be greater than $1$.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{plots/rowcol_vs_rowrow}
+  \caption{Relative performance of row-row vs. row-col
+    layout. Improvement factor indicates how many times row-col
+    performs better than row-row.}
+  \label{fig:rowcol_vs_rowrow}
+\end{figure}
+
+It can be seen that the row-column version begins to perform a lot
+better at $n \approx 2^9$, which is where the row-row layout begin to
+experience lots of TLB misses.
+
+The plots shows an improved cache performance and running time of the
+row-column layout. However, the plot also shows that the row-row
+layout begins to perform more instructions when the size of the
+matrices exceeds $2^{10} = 1024$. We suspect this could be because the
+operating system needed to perform some additional work to manage the
+virtual memory / paging.
 
 \subsection{Recursive multiplication}
 
