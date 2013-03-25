@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 log2(x) = log(x)/log(2)
 max(a,b) = (a > b) ? a : b
 
