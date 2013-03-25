@@ -443,8 +443,9 @@ public:
         // Load result element
         typename Mres::Element& e = result.at(start_res + offsets[i * B + j]);
         
-        for (uint32_t k = 0; k < B; k++)
+        for (uint32_t k = 0; k < B; k++) {
           e += a.at(start_a + offsets[i * B + k]) * b.at(start_b + offsets[k * B + j]);
+        }
       }
     }
   }

@@ -7,7 +7,7 @@ IF(${LINUX})
 #  set(CMAKE_CXX_COMPILER "clang++")
   set(CMAKE_BUILD_TYPE Release)
   set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -std=c++0x -march=corei7-avx -mtune=corei7-avx -flto -funroll-loops -fpermissive")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -std=c++0x -march=corei7-avx -mtune=corei7-avx -flto -funroll-loops -fpermissive -save-temps -g")
 
   add_library(
     ipcm_lib
