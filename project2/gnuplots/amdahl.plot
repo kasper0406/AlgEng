@@ -12,7 +12,7 @@ set ylabel "Speedup"
 
 set ytics nomirror tc lt 1
 
-set key vert left top reverse
+set key vert right top Right
 set pointsize 2
 
 amdahl(n,p) = 1 / ((1 - p) + (p / n))

@@ -15,7 +15,7 @@ set ytics nomirror tc lt 1
 set logscale y
 set grid mytics
 
-set key vert left top reverse
+set key vert left top Left reverse
 set pointsize 2
 
 plot '../data/bc/row-tiled16x16 recursive-16(tiled-bc)_column-tiled-16x16 recursive-16(generic-bc)_row-tiled16x16 recursive-16(tiled-bc)_0.dat' using (log2($1)):($11) title "Recursive, tiled, 16x16, L2" axes x1y1 with linespoints, \
