@@ -164,10 +164,19 @@ We ended up with precomputing the Z-curve offsets at the base case. That means t
 
 A tiled layout is a compromise between locality and performance of index calculations. When the recursive algorithm reaches blocks of the same size as the tiles, it switches to the naive algorithm. And the naive algorithm functions without any modifications. To improve cache locality a bit we used a row-based layout in the tiles for the left operand and a column-based layout in the tiles for the right operand.
 
-We also tried an iterative algorithm with a tiled layout. But it did not perform well compared to the recursive due to cache locality so we decided to omit it.
-
 $\Theta(n+n^2/B + n^3/B\sqrt{\mathcal{M}})$
 \todo{Her er formelen fra artikel omkring cache faults}
+
+\subsection{Iterative}
+To minimize the cost of function calls in the recursive algorithm, we
+have tried to make an iterative version of it. It work on the tiled
+layout, where consider the matrices as block matrices of the different
+tiles. We then to the standard matrix multiplication on the block
+matrices.
+
+We expect the same behavior of this iterative algorithm as in the
+recursive with tiled layout, since we access the same memory and do
+the same computations.
 
 \subsection{Strassen}
 
