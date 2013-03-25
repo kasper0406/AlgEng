@@ -199,10 +199,6 @@ This subsection describes how we parallized some of the previously mentioned alg
 
 The naive algorithm which is used for this combined is easily parallelizable because we can assign intervals of rows for each thread. The result matrix is stored in a row-based layout so writing is separated such that cache thrashing should not be a problem.
 
-...
-
-\todo{formelen for parallelization}
-
 \subsubsection{Strassen}
 
 Strassen was parallelized by starting new threads at each of the 7 multiplications. This was done at 1 or 2 levels depending on the level of parallization we wanted. The last additions/subtractions and combine operations were not parallelized. However, the multiplications uses most of the time.
@@ -210,5 +206,3 @@ Strassen was parallelized by starting new threads at each of the 7 multiplicatio
 One problem Strassen has compared to other algorithms is that it allocates temporary matrices. This problem gets more severe with parallization because now each thread allocates temporary matrices and therefore the memory consumption is higher than the sequential version.
 
 Another problem we faced was that our custom stack-like allocator was not thread-safe so it is disabled for parallization. A simple lock-based approach yielded too much congestion. One suggestion to improve this is to give each thread their own allocator.
-
-\todo{Loesning: Maaske start med at genere en pool af stack allocators. En ny traad kan saa nappe en af dem. Paa den maade betaler vi ikke saa meget for opstarten som vi ellers ville have gjort.}
