@@ -94,7 +94,7 @@ cache faults\footnote{Notice that we does not pay for cache faults
 
 We do not expect any significant amount of branch mispredictions.
 
-\subsubsection{Combined row-based and column-based layout}
+\subsubsection{Row/column-based layout}
 In order to improve the number of cache faults, we have tried to use a
 column base layout in the right operand in the multiplication. We
 expect this to give us a bit better cache performance. This approach
@@ -195,7 +195,7 @@ This subsection describes how we parallized some of the previously mentioned alg
 
 \todo{SIMD giver ikke ligesaa meget naar parallelet. Maaske giver hyper-threading ikke ligesaa meget}
 
-\subsubsection{Combined row-based and column-based layout}
+\subsubsection{Row/column-based layout}
 
 The naive algorithm which is used for this combined is easily parallelizable because we can assign intervals of rows for each thread. The result matrix is stored in a row-based layout so writing is separated such that cache thrashing should not be a problem.
 
