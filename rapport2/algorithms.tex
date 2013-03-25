@@ -90,7 +90,7 @@ n\left( \frac{n}{B} + n \right) n = n^3 \left(1 + \frac{1}{B} \right)
 \]
 cache faults\footnote{Notice that we does not pay for cache faults
   when writing. This is because L2 cache is not write
-  allocate. TODO: CHECK THIS!}.
+  allocate.}.
 
 We do not expect any significant amount of branch mispredictions.
 
@@ -150,7 +150,7 @@ When we can not hold the column of matrix $B$ in cache, we expect
 cache faults. This number is better than in the row-row case, and it
 should begin to show much later then the row-row layout.
 
-\subsection{Recursive multiplication}
+\subsection{Recursive}
 
 For exploiting more kinds of layouts we implemented the recursive algorithm.
 
@@ -164,8 +164,7 @@ We ended up with precomputing the Z-curve offsets at the base case. That means t
 
 A tiled layout is a compromise between locality and performance of index calculations. When the recursive algorithm reaches blocks of the same size as the tiles, it switches to the naive algorithm. And the naive algorithm functions without any modifications. To improve cache locality a bit we used a row-based layout in the tiles for the left operand and a column-based layout in the tiles for the right operand.
 
-$\Theta(n+n^2/B + n^3/B\sqrt{\mathcal{M}})$
-\todo{Her er formelen fra artikel omkring cache faults}
+The expected number of cache faults is $\Theta(n+n^2/B + n^3/B\sqrt{\mathcal{M}})$ according to the analysis done in \cite{Frigo}.
 
 \subsection{Iterative}
 To minimize the cost of function calls in the recursive algorithm, we
@@ -192,9 +191,9 @@ One major drawback of the algorithm is that we have to allocate 7 temporary matr
 
 One improvement we have made to the algorithm is to allocate all the temporary matrices in a stack-like fashion such that we reduce the number of cache evictions when we start writing at new locations instead of reusing locations already in cache.
 
-Furthermore, the algorithm does lend itself to more numerical instability as described in \[strassen_stability.pdf\].\todo{citation}
+Furthermore, the algorithm does lend itself to more numerical instability as described in \citep{Stability}.
 
-According to \[ ref til matrix paper \] we should expect $\Theta(n+n^2/B + n^{\log 7}/B\mathcal{M}^{(\log 7)/2-1})$ cache faults assuming that the cache is tall ($\mathcal{M} = \Omega(B^2)$) which is true for our test CPU. Therefore, the algorithm is expected to perform fewer instructions and have fewer cache faults than the regular recursive algorithm.
+According to \cite{Frigo} we should expect $\Theta(n+n^2/B + n^{\log_2 7}/B\mathcal{M}^{(\log_2 7)/2-1})$ cache faults assuming that the cache is tall ($\mathcal{M} = \Omega(B^2)$) which is true for our test CPU. Therefore, the algorithm is expected to perform fewer instructions and have fewer cache faults than the regular recursive algorithm.
 
 \subsection{SIMD instructions}
 
@@ -206,9 +205,7 @@ Our expectations are that the performance will increase while cache faults shoul
 
 \subsection{Parallelization}
 
-This subsection describes how we parallized some of the previously mentioned algorithms. One disadvantage when parallizing is that the L3 cache is effectively splitted into the number of cores if the threads work on independently data. An advantage, however, is that we get more L1 and L2 cache available in total.
-
-\todo{SIMD giver ikke ligesaa meget naar parallelet. Maaske giver hyper-threading ikke ligesaa meget}
+This subsection describes how we parallelized some of the previously mentioned algorithms. One disadvantage when parallelizing is that the L3 cache is effectively splitted into the number of cores if the threads work on independently data. An advantage, however, is that we get more L1 and L2 cache available in total.
 
 \subsubsection{Row/column-based layout}
 
