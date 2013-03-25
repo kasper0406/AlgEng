@@ -10,14 +10,14 @@ set ylabel "Speedup"
 
 set ytics nomirror tc lt 1
 
-set key vert left top reverse
+set key left top Left reverse
 set pointsize 2
 
 amdahl(n,p) = 1 / ((1 - p) + (p / n))
 
-plot 'parallel_speedup_strassen_simd.dat' using 2:xticlabels(1) title "Strassen, 32x32, SIMD" with linespoints, \
+plot [0:6] [0:6] 'parallel_speedup_strassen_simd.dat' using 2:xticlabels(1) title "Strassen, 32x32, SIMD" with linespoints, \
 'parallel_speedup_recursive_simd.dat' using 2:xticlabels(1) title "Recursive, 64x64, tiled, SIMD" with linespoints, \
 'parallel_speedup_iterative_simd.dat' using 2:xticlabels(1) title "Iterative, 64x64, tiled, SIMD" with linespoints, \
-'parallel_speedup_strassen.dat' using 2:xticlabels(1) title "Strassen, 32x32g" with linespoints, \
+'parallel_speedup_strassen.dat' using 2:xticlabels(1) title "Strassen, 32x32" with linespoints, \
 'parallel_speedup_recursive.dat' using 2:xticlabels(1) title "Recursive, 64x64, tiled" with linespoints, \
 'parallel_speedup_iterative.dat' using 2:xticlabels(1) title "Iterative, 64x64, tiled" with linespoints
