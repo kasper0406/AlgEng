@@ -8,7 +8,7 @@ set xlabel "log2 input size"
 set xtics 0, 1 rotate
 set offset 1, 1
 
-set ylabel "Speedup [w/o SIMD / w/SIMD]"
+set ylabel "Speedup w/SIMD"
 
 set ytics nomirror tc lt 1
 
