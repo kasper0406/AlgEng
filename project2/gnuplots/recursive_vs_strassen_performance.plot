@@ -18,5 +18,5 @@ set grid mytics
 set key vert left top reverse
 set pointsize 2
 
-plot '../data/bc/row-tiled64x64 recursive-64(tiled-bc)_column-tiled-64x64 recursive-64(generic-bc)_row-tiled64x64 recursive-64(tiled-bc)_0.dat' using (log2($1)):($7) title "Recursive, 64x64" axes x1y1 with linespoints, \
+plot '../data/bc/row-tiled64x64 recursive-64(tiled-bc)_column-tiled-64x64 recursive-64(generic-bc)_row-tiled64x64 recursive-64(tiled-bc)_0.dat' using (log2($1)):($7) title "Recursive, tiled, 64x64" axes x1y1 with linespoints, \
 '../data/bc/z-curve-tiled strassen-32(32-fixed-tiled-bc)_z-curve-tiled strassen-32(32-fixed-tiled-bc)_z-curve-tiled strassen-32(32-fixed-tiled-bc)_0.dat' using (log2($1)):($7) title "Strassen, 32x32" axes x1y1 with linespoints
