@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
 	  sanity_check<CN, CN>();
 	  sanity_check<ZR, ZR>();
 	  sanity_check<RTR, CTR>();
-	  sanity_check<CTR, CTR>();*/
+	  sanity_check<CTR, CTR>();
 	  sanity_check<RZBC, RZBC>();
 	  sanity_check<SIMDRTR, CTR>();
 	  sanity_check<RTI, CTI>();
