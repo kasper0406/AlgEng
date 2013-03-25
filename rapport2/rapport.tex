@@ -8,6 +8,7 @@
 \usepackage{graphicx}
 \usepackage{tikz,pgfplots}
 \usepackage[colorinlistoftodos]{todonotes}
+\usepackage{natbib} 
 \usepackage{geometry}
 \usetikzlibrary{fit,shapes.misc,snakes}
 \geometry{verbose,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2.5cm}
@@ -39,5 +40,8 @@ Kasper Nielsen - 20091182}
 
 \section{Conclusion}
 \input{conclusion.tex}
+
+\pagebreak{}\bibliographystyle{plain}
+\addcontentsline{toc}{section}{\refname}\bibliography{ref}
 
 \end{document}

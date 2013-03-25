@@ -37,7 +37,7 @@ matrices with row layout.
 \end{figure}
 
 From figure~\ref{rnrnrn0} it seems like we typically gets a bit fewer
-cache faults than we expect\todo{Describe why?}. The jumps we expect
+cache faults than we expect which can be explained by prefetching. The jumps we expect
 also seems to happen, although in the experiments, they seem to happen
 a bit before we expect. This can be explained by that the cache also
 contains some data which is not the matrices.
@@ -130,9 +130,7 @@ unexpected optimizations. This turned out not to be the case.
 
 We then tried to make a simple model of the i7 L2 cache, where we
 simulated the 8-way cache layout\footnote{The simulation was based on
-  the description of the i7 L2 cache described in Computer
-  Architecture: A Quantitative Approach, 5th edition. Cite this
-  probably! We also tried the simulation on the row-row layout, this
+  the description of the i7 L2 cache described in \cite[p. 117 - 121]{Hanne}. We also tried the simulation on the row-row layout, this
   corresponded quite nicely with the real world, hinting some sanity
   of the simulation.}. In this experiment, we also tried to fill out
 the matrix one row at a time, but start from the right end half of the
@@ -189,15 +187,24 @@ matrices exceeds $2^{10} = 1024$. We suspect this could be because the
 operating system needed to perform some additional work to manage the
 virtual memory / paging.
 
-\subsection{Recursive multiplication}
+\subsection{Recursive}
 
-Figure \ref{fig:recursive_layout_performance} shows the performance of the two layouts with the best base case size of each. As can be seen on the figure, the best performing layout of the recursive algorithm is the tiled layout. And, as expected, the recursive algorithm outperforms the naive row/column algorithm.
+Figure \ref{fig:recursive_layout_performance} shows the performance of the two layouts with the best base case size of each. As can be seen on the figure, the best performing layout of the recursive algorithm is the tiled layout. And, as expected, the recursive algorithm outperforms the naive row/column algorithm. This is because the cache locality is better for the recursive algorithm and because we forced the compiler to loop unroll the base case which lead to fewer instructions as seen in figure \ref{fig:recursive_layout_instructions}.
 
 \subsubsection{Layouts}
 
-The tiled layout is better at utilizing the cache shown in figure \ref{fig:recursive_layout_cachefaults}. Furthermore, the Z-curved layout uses more instructions. Recall that, the Z-curve offsets are precomputed but the extra level of indirection and offset calculations increases the number of instructions.
+The tiled layout is better at utilizing the cache shown in figure \ref{fig:recursive_layout_cachefaults}. The adjacent cache line prefetcher might have an influence on the amount of cache faults for Z-curve layout because in the base case we do not read in Z-order. This is illustrated in figure \ref{fig:z-order}. On average we get 1 cache fault for each column with a Z-layout where in column order the prefetcher would be able to predict the next read reducing the average number of cache faults to 1/2 for each column. Furthermore, the Z-curved layout uses more instructions. Recall that, the Z-curve offsets are precomputed but the extra level of indirection and offset calculations into the precomputed table increases the number of instructions.
 
-The best Z-curve base size is much smaller than the best tiled layout base case size. By having a small base case we use the recursion for more levels which means that we do not spend as many instructions on looking up offsets in the precomputed table as we do with larger base cases. However, when the base case gets very small then the instructions used on invoking a method and the conditional statements and jumps from loops gets significant.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=.3\textwidth]{images/zlayout_cachefaults}
+  \caption{Cache faults when reading a column in Z-layout with base case size 8.}
+  \label{fig:z-order}
+\end{figure}
+
+\todo{Naiv cache faults}
+
+The best Z-curve base size is much smaller than the best tiled layout base case size. It is a trade-off between overhead with recursion and more cache faults, where we get more cache faults when using larger base case sizes due to the same reasoning as in the previous paragraph.
 
 %\ref{fig:zrzrzr0}
 
@@ -237,7 +244,8 @@ The best Z-curve base size is much smaller than the best tiled layout base case 
   \caption{Number of instructions for the recursive and naive algorithm.}
 \end{figure}
 
-\subsection{Recursive}
+\subsection{Iterative}
+
 \todo{Insert measurements and discussion!}
 
 \subsection{Strassen}
@@ -256,7 +264,7 @@ The best Z-curve base size is much smaller than the best tiled layout base case 
   \label{fig:recursive_vs_strassen_performance}
 \end{figure}
 
-Figure \ref{fig:recursive_vs_strassen_performance} shows that Strassen performs better than the tiled recursive algorithm for all the matrix sizes we have tested. However, figure \ref{fig:recursive_vs_strassen_cache} does not give the expected number of cache misses. The increased number of cache faults might be due to large constants in the big Theta notation for all the additions, subtractions etc.
+Figure \ref{fig:recursive_vs_strassen_performance} shows that Strassen performs better than the tiled recursive algorithm for all the matrix sizes we have tested. However, figure \ref{fig:recursive_vs_strassen_cache} does not give the expected number of cache misses. The increased number of cache faults might be due to large constants in the big Theta notation.
 
 \begin{figure}[h!]
   \centering
@@ -281,9 +289,9 @@ Figure \ref{fig:recursive_vs_strassen_performance} shows that Strassen performs 
 
 \subsection{SIMD instructions}
 
-We experienced a substantial performance speedup when SIMD instructions were used (figure \ref{fig:simd}). An increase is in line with our expectations. The amount of cache faults stayed the same in the tests as expected while the cache hits was greatly reduced.
+We experienced a substantial performance speedup when SIMD instructions were used (figure \ref{fig:simd}). The increase is in line with our expectations. The amount of cache faults stayed the same in the tests as expected while the cache hits were greatly reduced. One AVX SIMD instruction reads 4 double precision floating point at a time leading to only one cache hit/fault.
 
-As can be seen, the speedup using SIMD instructions for the recursive algorithm is higher than for Strassen. This is likely due to a larger number of cache faults for Strassen. This makes the proportion of time used on fetching data higher.
+As can be seen, the speedup using SIMD instructions for the recursive algorithm is higher than for Strassen. This is likely due to a larger number of cache faults for Strassen. This makes the proportion of time used on fetching data higher. Moreover in the recursive algorithm a larger part uses SIMD instructions.
 
 \begin{figure}[h!]
   \centering
@@ -294,14 +302,18 @@ As can be seen, the speedup using SIMD instructions for the recursive algorithm 
 
 \subsection{Parallelization}
 
+Figure \ref{fig:parallel_speedup} shows an increase in performance when the algorithms are parallelized. The parallelization upto 4 physical cores are as expected. Without SIMD instructions Hyper-Threading gives a substantial performance boost. Four cores with Hyper-Threading is performing like 5 or 6 physical cores. However, when SIMD instructions are enabled the speedup is equal to or worse when Hyper-Threading is enabled. The problem is that each core only has one FPU \cite{IntelHT} which is shared between a pair of logical Hyper-Threading cores. This makes the FPU the bottleneck.
+
 \begin{figure}[h!]
   \centering
-  \missingfigure{Lav graf over performance af Strassen, rekursiv og row/column naiv. 8 core m/ht Og sammenlign med single cpu}
-  \label{fig:parallel_performance}
-  \caption{Performance of parallelized algorithms.}
+  \includegraphics[width=\textwidth]{"../project2/gnuplots/parallel_speedup"}
+  \label{fig:parallel_speedup}
+  \caption{Speedup of parallelized algorithms with and without SIMD instructions.}
 \end{figure}
 
-We have analyzed the theoretical speedup using non-linear regression and Amdahl's law. The percentage of parallelized code in the iterative and recursive algorithms are 98\% while our implementation of Strassen have 89\% parallelized code. This could be improved by parallelizing the last additions and the code for combining submatrices. The projected speedup is shown in figure \ref{fig:amdahl}. The speedup is when SIMD instructions are included.
+We have analyzed the theoretical speedup using non-linear regression and Amdahl's law. The percentage of parallelized code in the iterative and recursive algorithms are 98\% while our implementation of Strassen have 89\% parallelized code. This could be improved by parallelizing the last additions and the code for combining submatrices. The projected speedup is shown in figure \ref{fig:amdahl}. The speedup is when SIMD instructions are included. The higher performance of Strassen of the tested matrix sizes does not make up for it being less parallelizable when the number of cores increases. When the number of cores goes to infinity the speedup is 9.8 for Strassen while the speedup for the iterative is 44.
+
+\todo{Tjek at iterativ er lidt daarligere inden}
 
 \begin{figure}[h!]
   \centering
