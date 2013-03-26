@@ -1,5 +1,5 @@
 In this section we will describe the different algorithms and memory
-layouts we have used.
+layouts we have implemented. All the algorithms we have implemented uses double precision floating points (8 bytes).
 
 \subsection{Simple multiplication}
 
@@ -17,7 +17,7 @@ multiplication process.
 \begin{figure}[h!]
   \centering
   \includegraphics[width=8cm]{images/rowrowmul}
-  \caption{Illustration of multiplication with row-row layout.}
+  \caption{Illustration of multiplication with row/row layout.}
   \label{fig:rowrowmul}
 \end{figure}
 
@@ -32,27 +32,27 @@ happens when
 \[
 n^2 \cdot 8 + 8n \leq \mathcal{M}
 \]
-For the L2 cache this limit is at $n \approx 180$, for the L3 it is $n
+For a cache of 256 kB this limit is at $n \approx 180$, for a 8 MB cache it is $n
 \approx 1023$.
 
 If the matrices are a bit larger, then the columns of $B$ will be
 evicted from the cache, but the current row of $A$ will not be
 excluded. In order for this to happen, we should have enough cache to
-store all the cache lines used in matrix $B$ (to fill the current
-row). These are the cache lines marked with the darker blue color in
+store all the cache lines used in matrix $B$ to fill the current
+entry. These are the cache lines marked with the darker blue color in
 Figure~\ref{fig:rowrowmul}. Because the CPU uses an adjacent cache
 line prefetcher, we also expect it to load the next cache line, hence
 we also expect the area marked with light blue to be in cache. If we
 let $\mathcal{M}$ denote the size of the cache in bytes, then we find
-that we can reuse the cache lines of $C$ only if
+that we can reuse the cache lines of $B$ only if
 \[
-( n + n \cdot \underbrace{8}_{\mathclap{8 \text{ doubles in a cache line}}} \cdot 2) \cdot 8 \leq \mathcal{M}.
+( n + n \cdot \underbrace{8}_{\mathclap{8 \text{ doubles in a cache line}}} \cdot 2) \cdot 8 \leq \mathcal{M}
 \implies
 n \leq \frac{\mathcal{M}}{136}.
 \]
-Since the cache works in a LRU like fashion[citation?], we will get no
+Since the cache works in a LRU like fashion \citep[p. 117 - 121]{Hanne}, we will get no
 benefit from the loaded cache lines of the $B$ matrix if the cached
-elements does not fit. For example, the L2 cache, which is $256kb$,
+elements does not fit. For example, a cache of size 256 kB
 will begin to trash the values when
 \[
 n \leq \frac{256 \cdot 1024}{136} \approx 1927.
@@ -60,8 +60,8 @@ n \leq \frac{256 \cdot 1024}{136} \approx 1927.
 We will analyze the expected number of cache faults in both situations.
 
 In order to estimate the number of cache faults, we will consider the
-number of cache faults incurred when computing one line in the $C$
-matrix. When we begin to calculate the next line, we will not be able
+number of cache faults incurred when computing one row in the $C$
+matrix. When we begin to calculate the next row, we will not be able
 to reuse any cache data, since we start computation from the first
 column\footnote{We made some experiments where we tried to move
   backwards through the columns every second row. We suspected this to
@@ -70,12 +70,12 @@ column\footnote{We made some experiments where we tried to move
   time about $60\%$ slower!}. Hence, every row in $C$ produces cache
 faults independently of each other.
 
-When calculating a row, and we assume that the cache is big enough to
+When we assume that the cache is big enough to
 store the data needed, as illustrated in figure~\ref{fig:rowrowmul},
 we initially get $\frac{n}{B}$ cache faults from reading a row in $A$.
 Afterwards we make $n$ cache faults from loading a column in
 $B$. These entries can be used for the computation of the entire cache
-block of $C$, thus we will encounter $n \cdot \frac{n}{B}$ cache
+line of $C$, thus we will encounter $n \cdot \frac{n}{B}$ cache
 faults from the $B$ matrix. Therefore we find the total number of
 cache faults to be
 \[
@@ -89,7 +89,7 @@ and all columns in $B$. This gives us
 n\left( \frac{n}{B} + n \right) n = n^3 \left(1 + \frac{1}{B} \right)
 \]
 cache faults\footnote{Notice that we does not pay for cache faults
-  when writing. This is because L2 cache is not write
+  when writing. This is because the caches are not write
   allocate.}.
 
 We do not expect any significant amount of branch mispredictions.
@@ -105,17 +105,17 @@ which is an $O(n^2)$ operation.
 We will give estimates of the number of cache faults occurring when
 multiplying two matrices. This will be done similarly to the previous
 section. The situation now looks as illustrated in
-figure~\ref{rowcolmul}.
+figure~\ref{fig:colowmul}.
 \begin{figure}[h!]
   \centering
   \includegraphics[width=8cm]{images/rowcolmul}
-  \caption{Illustration of multiplication with row-col layout.}
+  \caption{Illustration of multiplication with row/column layout.}
   \label{fig:colowmul}
 \end{figure}
 
-First off, if the matrices are sufficiently small all entries used
-fits the cache then, like in the row-row case, we get $2n\frac{n}{B}$
-cache faults. This happens at the same points as in the row-row
+First off, if the matrices are sufficiently small such that all entries
+fits the cache then, like in the row/row case, we get $2n\frac{n}{B}$
+cache faults. This happens at the same points as in the row/row
 analysis, that is for the L2 cache $n \approx 180$, and for L3 $n
 \approx 1023$.
 
@@ -124,54 +124,50 @@ column of $B$ in cache. This is found by
 \[
 (n + n)8 \leq \mathcal{M} \implies n \leq \frac{\mathcal{M}}{16}
 \]
-For the L2 cache with $\mathcal{M} = 256kb$ we find that
+For $\mathcal{M} = 256$ kB we find that
 \[
 n \leq \frac{256 \cdot 1024}{16} = 16384.
 \]
 That is, a number that is much larger than any of our test instances
-(when using a row-column based layout). We will therefore focus on the
+(when using a row/column based layout). We will therefore focus on the
 analysis where a column of $B$ actually fits the cache. We will again
 do the analysis for one row in $C$, and then, since the next row does
 not share any cache data with the previous (except if the matrices are
 really small), we can multiply the number of cache faults for each
 row. We first get $\frac{n}{B}$ cache faults from matrix $A$. Then we
-get $\frac{n}{B}$ cache fault from a column in $B$, which we do for
+get $\frac{n}{B}$ cache faults from a column in $B$, which we do for
 each of the $n$ columns, giving a total of
 \[
 \left( \frac{n}{B} + n \frac{n}{B} \right) = \frac{n^2}{B}\left(1 + n \right)
 \]
 cache faults. This is exactly the same number of expected cache faults
-as in the row-row layout, when that is also in the good case.
+as in the row/row layout, when that is also in the good case.
 
 When we can not hold the column of matrix $B$ in cache, we expect
 \[
-\left( \frac{n}{B} + \frac{n}{B} \right) n^2 = \frac{2n^3}{B}
+\left( \frac{n}{B} + \frac{n}{B} \right) n^2 = n^3\frac{2}{B}
 \]
-cache faults. This number is better than in the row-row case, and it
-should begin to show much later then the row-row layout.
+cache faults. This number is better than in the row/row case, and it
+should begin to show much later then the row/row layout.
 
 \subsection{Recursive}
 
-For exploiting more kinds of layouts we implemented the recursive algorithm.
+For exploiting more kinds of layouts we implemented the recursive algorithm describes in \citep{Frigo}. The expected number of cache faults for this algorithm is $\Theta(n+n^2/B + n^3/B\sqrt{\mathcal{M}})$ according to the analysis done in \cite{Frigo}.
 
 \subsubsection{Z-curve layout}
 
-The first idea was to use a Z-curved layout. One major advantage of this layout is that improves locality on all levels of the recursive multiplication. The drawback is that the index calculations are time consuming. On x86 we get approximately 50 bitwise operations each time we want to convert a coordinate to the position in the array. However, this can be improved by incrementally constructing the Z-curve numbers or by precomputing offsets at base cases. The upcoming Intel Haswell architecture has support for bit permutations which will improve the situation.
+The first idea was to use a Z-curved layout. One major advantage of this layout is that it improves locality on all levels of the recursive multiplication. The drawback is that the index calculations are time consuming. On x86 we get approximately 50 bitwise operations each time we want to convert a coordinate to a position in the array. However, this can be improved by incrementally constructing the Z-curve numbers or by precomputing offsets at base cases. The upcoming Intel Haswell architecture has support for bit permutations which will improve the situation.
 
-We ended up with precomputing the Z-curve offsets at the base case. That means the only penalty when we want to store or lookup a value is a level of indirection. In the recursive algorithm we used 8*8 as a base case for switching to the naive algorithm.
+We ended up with precomputing the Z-curve offsets at the base case. That means we get an extra level of indirection when we want to store or lookup a value and a lookup table which likely will be in cache. In the recursive algorithm we used 8x8 as a base case for switching to the naive algorithm. The base case size was experimentally shown to be the fastest.
 
 \subsubsection{Tiled layout}
 
 A tiled layout is a compromise between locality and performance of index calculations. When the recursive algorithm reaches blocks of the same size as the tiles, it switches to the naive algorithm. And the naive algorithm functions without any modifications. To improve cache locality a bit we used a row-based layout in the tiles for the left operand and a column-based layout in the tiles for the right operand.
 
-The expected number of cache faults is $\Theta(n+n^2/B + n^3/B\sqrt{\mathcal{M}})$ according to the analysis done in \cite{Frigo}.
-
 \subsection{Iterative}
-To minimize the cost of function calls in the recursive algorithm, we
-have tried to make an iterative version of it. It work on the tiled
-layout, where consider the matrices as block matrices of the different
-tiles. We then to the standard matrix multiplication on the block
-matrices.
+To minimize the cost of function calls in the recursive algorithm, we tried to make an iterative version. It works on the tiled
+layout, where the matrices are considered block matrices of
+tiles. We then switch to the naive matrix multiplication on the tiles.
 
 We expect the same behavior of this iterative algorithm as in the
 recursive with tiled layout, since we access the same memory and do
@@ -179,15 +175,15 @@ the same computations.
 
 \subsection{Strassen}
 
-Strassen exploits some tricks with matrix multiplication such that it only uses 7 multiplications instead of 8 multiplications. It is a recursive algorithm by nature. The first step of the algorithm is to split the operands into 2*2 blocked matrix.
+Strassen exploits some tricks with matrix multiplication such that it only uses 7 multiplications instead of 8 multiplications at each level. It is a recursive algorithm by nature. The first step of the algorithm is to split the operands into 2x2 blocked matrix.
 
 Instead of actually splitting the matrix into smaller matrices we have used a Z-curve layout. That means that the smaller matrices are able to just point to the data in the parent matrix (instead of actually copying) while still preserving a proper layout themselves.
 
-Strassen needs to have a large base case such that we do not spend too much time on the recursion and to improve cache locality at the base levels. 32*32 seemed to be a good choice on our platform. To avoid the overhead of handling matrix multiplication with a level of indirection or by calculating Z-curve indices, we used a row-based and column-based layout at the base case for the left and right operand respectively.
+Strassen needs to have a large base case such that we do not spend too much time on the extra work (additions, allocations, etc.) done at each level in the recursion. 32x32 turned out to be a good choice on our platform. To avoid the overhead of handling matrix multiplication with a level of indirection or by calculating Z-curve indices, we used a row-based and column-based layout at the base case for the left and right operand respectively.
 
-The additions and subtractions in the algorithm only works on left operand block matrices or right operand block matrices. Therefore, we can use a single loop and no index calculations to add and subtract matrices. I.e. Z-curve indices are the same and we only add/subtract row-based base cases with row-based base cases etc.
+The additions and subtractions in the algorithm only works on left operand block matrices or right operand block matrices. Therefore, we can use a single loop and no index calculations to add and subtract matrices.
 
-One major drawback of the algorithm is that we have to allocate 7 temporary matrices of one fourth of the size of the resulting matrix + at least one extra used by the calculation of the temporary matrices. Therefore, a two input matrices of size 1024 * 1024 containing double precision floating points needs ~5*8 MB instead of 3*8 MB. Additionally, the algorithm assumes that the input matrix sizes are power of two which can lead to 4 times more memory usage if padding is employed. By using padding at each level less memory is used but it is slightly slower to pad/unpad multiple times.
+One major drawback of the algorithm is that we have to allocate 7 temporary matrices of one fourth of the size of the resulting matrix plus at least one extra used by the calculation of the temporary matrices. Therefore, a two input matrices of size 1024x1024 containing double precision floating points needs \textasciitilde$5\cdot8$ MB instead of $3\cdot8$ MB. Additionally, the algorithm assumes that the input matrix sizes are power of two which can lead to 4 times more memory usage if padding is employed. By using padding at each level less memory is used but it might be slightly slower to pad/unpad multiple times.
 
 One improvement we have made to the algorithm is to allocate all the temporary matrices in a stack-like fashion such that we reduce the number of cache evictions when we start writing at new locations instead of reusing locations already in cache.
 
@@ -201,7 +197,7 @@ We extended some of the algorithms with SIMD instructions from Intel Advanced Ve
 
 For computing a cell in a matrix we exchanged the dot product loop such that it read, multiplied, and added four values each time. We also added AVX instructions for matrix additions and substractions for Strassen.
 
-Our expectations are that the performance will increase while cache faults should be stable because we still need the same data. 
+Our expectations are that the performance will increase while cache faults should be stable because we still fetch the same data. 
 
 \subsection{Parallelization}
 
@@ -209,7 +205,11 @@ This subsection describes how we parallelized some of the previously mentioned a
 
 \subsubsection{Row/column-based layout}
 
-The naive algorithm which is used for this combined is easily parallelizable because we can assign intervals of rows for each thread. The result matrix is stored in a row-based layout so writing is separated such that cache thrashing should not be a problem.
+The implementation of the naive algorithm is easily parallelizable because we can assign intervals of rows for each thread. The result matrix is stored in a row-based layout so writing is separated such that cache thrashing should not be a problem.
+
+\subsubsection{Recursive}
+
+We parallelized by spawning new threads when we split the result matrix. We did it for 3 levels in the recursion, making each thread work on disjoint parts of the result matrix.
 
 \subsubsection{Strassen}
 
@@ -217,4 +217,4 @@ Strassen was parallelized by starting new threads at each of the 7 multiplicatio
 
 One problem Strassen has compared to other algorithms is that it allocates temporary matrices. This problem gets more severe with parallization because now each thread allocates temporary matrices and therefore the memory consumption is higher than the sequential version.
 
-Another problem we faced was that our custom stack-like allocator was not thread-safe so it is disabled for parallization. A simple lock-based approach yielded too much congestion. One suggestion to improve this is to give each thread their own allocator.
+Another problem we faced was that our custom stack-like allocator was not thread-safe so it is disabled in the parallelized version. A simple lock-based approach yielded too much congestion. One suggestion to improve this is to give each thread their own allocator.
