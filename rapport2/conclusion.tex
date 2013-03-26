@@ -1,21 +1,17 @@
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\textwidth]{"../project2/gnuplots/best_single"}
-  \label{fig:best_single}
   \caption{Summarised single-core performance.}
+  \label{fig:best_single}
 \end{figure}
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\textwidth]{"../project2/gnuplots/best_parallel"}
+  \caption{Summarised multi-core performance on 4 cores with Hyper-Threading.}
   \label{fig:best_parallel}
-  \caption{Summarised multi-core performance.}
 \end{figure}
 
-\todo{Opsummering af algoritmer og hvordan de har klaret sig}
+In this project we have successfully implemented and tested a range of algorithms and tried different memory layouts and optimizations, for matrix multiplication. Our results shows that memory layouts plays a significant role in reducing running time. We have found that the iterative algorithm with tiled layout and Strassen with a tiled layout in a Z-curve fashion, are the best performing algorithms. Strassen performs a bit better than the iterative but on the other hand, it does not scale as well (figure \ref{fig:amdahl}). Furthermore, Strassen suffers from numerical instability which might be a problem for some applications.
 
-\todo{Layout rigtig vigtig}
-
-\todo{Strassen, numerisk stabilitet samt ikke ligesaa god til parallisering => iterativ god}
-
-\todo{Alt i alt, ved at benytte layout, algoritmer, simd, paral. saa har vi faaet noget der er langt bedre}
+With the right combination of algorithm, layout and optimizations (SIMD, loop unrolling, stack-like allocation) we have achieved a speedup of \textasciitilde 50 for matrices of size $2048^2$ on a single core setup (figure \ref{fig:best_single}). For 4 cores with HT we achieved a speedup of \textasciitilde 30 (figure \ref{fig:best_parallel}).

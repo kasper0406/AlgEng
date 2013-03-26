@@ -12,7 +12,6 @@ set ylabel "Running time [s]"
 
 set ytics nomirror tc lt 1
 
-set logscale y
 set grid mytics
 
 set key vert left top reverse

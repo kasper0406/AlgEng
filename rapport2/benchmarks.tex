@@ -211,49 +211,32 @@ The tiled layout is better at utilizing the cache shown in figure \ref{fig:recur
 
 The best Z-curve base size is much smaller than the best tiled layout base case size. It is a trade-off between overhead with recursion and more cache faults, where we get more cache faults when using larger base case sizes due to the same reasoning as in the previous paragraph.
 
-%\ref{fig:zrzrzr0}
-
-%\begin{figure}[h!]
-%  \centering
-%  \includegraphics[width=\textwidth]{zrzrzr0.pdf}
-%  \label{fig:zrzrzr0}
-%\end{figure}
-
-%\subsubsection{Tiled layout}
-
-%\begin{figure}[h!]
-%  \centering
-%  \includegraphics[width=\textwidth]{"../project2/gnuplots/recursive_base_cases"}
-%  \caption{Performance of the recursive algorithm with different base case sizes.}
-%  \label{fig:recursive_base_cases}
-%\end{figure}
-
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\textwidth]{"../project2/gnuplots/recursive_cache"}
-  \label{fig:recursive_layout_cachefaults}
   \caption{Cache faults for the recursive and naive algorithm.}
+  \label{fig:recursive_layout_cachefaults}
 \end{figure}
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\textwidth]{"../project2/gnuplots/recursive_instructions"}
-  \label{fig:recursive_layout_instructions}
   \caption{Number of instructions for the recursive and naive algorithm.}
+  \label{fig:recursive_layout_instructions}
 \end{figure}
 
 \subsection{Iterative}
 
-\todo{Insert measurements and discussion!}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{"../project2/gnuplots/iterative_cache"}
+  \caption{Cache faults for the recursive and iterative algorithm.}
+  \label{fig:iterative_cache}
+\end{figure}
+
+In this section we will compare the iterative and recursive algorithm. Figure \ref{fig:iterative_cache} shows that cache locality is worse for the iterative algorithm compared to the recursive. However, the amount of executed instructions for the iterative algorithm is \textasciitilde 14\% less, leading to about the same running time (within 5\permil).
 
 \subsection{Strassen}
-
-%\begin{figure}[h!]
-%  \centering
-%  \includegraphics[width=\textwidth]{"../project2/gnuplots/strassen_base_cases"}
-%  \caption{Performance of Strassen with different base case sizes.}
-%  \label{fig:recursive_base_cases}
-%\end{figure}
 
 \begin{figure}[h!]
   \centering
@@ -271,20 +254,6 @@ Figure \ref{fig:recursive_vs_strassen_performance} shows that Strassen performs 
   \label{fig:recursive_vs_strassen_cache}
 \end{figure}
 
-%\begin{figure}[h!]
-%  \centering
-%  \includegraphics[width=\textwidth]{"../project2/plots/4096/row-tiled8x8 recursive-8(tiled-bc)_column-tiled-8x8 recursive-8(generic-bc)_row-tiled8x8 recursive-8(tiled-bc)_0"}
-%  \caption{Recursive}
-%\end{figure}
-
-
-
-%\begin{figure}[h!]
-%  \centering
-%  \includegraphics[width=\textwidth]{"../project2/plots/4096/z-curve-tiled strassen-32(32-fixed-tiled-bc)_z-curve-tiled strassen-32(32-fixed-tiled-bc)_z-curve-tiled strassen-32(32-fixed-tiled-bc)_0"}
-%  \caption{Strassen}
-%\end{figure}
-
 \subsection{SIMD instructions}
 
 We experienced a substantial performance speedup when SIMD instructions were used (figure \ref{fig:simd}). The increase is in line with our expectations. The amount of cache faults stayed the same in the tests as expected while the cache hits were greatly reduced. One AVX SIMD instruction reads 4 double precision floating point at a time leading to only one cache hit/fault.
@@ -294,19 +263,21 @@ As can be seen, the speedup using SIMD instructions for the recursive algorithm 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\textwidth]{"../project2/gnuplots/simd_performance"}
-  \label{fig:simd}
   \caption{Speedup using SIMD instructions.}
+  \label{fig:simd}
 \end{figure}
 
 \subsection{Parallelization}
 
 Figure \ref{fig:parallel_speedup} shows an increase in performance when the algorithms are parallelized. The parallelization upto 4 physical cores are as expected. Without SIMD instructions Hyper-Threading gives a substantial performance boost. Four cores with Hyper-Threading is performing like 5 or 6 physical cores. However, when SIMD instructions are enabled the speedup is equal to or worse when Hyper-Threading is enabled. The problem is that each core only has one FPU \cite{IntelHT} which is shared between a pair of logical Hyper-Threading cores. This makes the FPU the bottleneck.
 
+The problem is not as bad for the iterative algorithm. This is due to the fact that the iterative is more cache bound as shown in figure \ref{fig:iterative_cache}. Thus Hyper-Threading still gives an advantage, because the execution unit is free when the other HT core is fetching data.
+
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\textwidth]{"../project2/gnuplots/parallel_speedup"}
-  \label{fig:parallel_speedup}
   \caption{Speedup of parallelized algorithms with and without SIMD instructions.}
+  \label{fig:parallel_speedup}
 \end{figure}
 
 We have analyzed the theoretical speedup using non-linear regression and Amdahl's law. The percentage of parallelized code in the iterative and recursive algorithms are 98\% while our implementation of Strassen have 89\% parallelized code. This could be improved by parallelizing the last additions and the code for combining submatrices. The projected speedup is shown in figure \ref{fig:amdahl}. The speedup is when SIMD instructions are included. The higher performance of Strassen of the tested matrix sizes does not make up for it being less parallelizable when the number of cores increases. When the number of cores goes to infinity the speedup is 9.8 for Strassen while the speedup for the iterative is 44.
@@ -316,6 +287,6 @@ We have analyzed the theoretical speedup using non-linear regression and Amdahl'
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\textwidth]{"../project2/gnuplots/amdahl"}
-  \label{fig:amdahl}
   \caption{Speedup projection using Amdahl's law.}
+  \label{fig:amdahl}
 \end{figure}
