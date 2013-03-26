@@ -1,14 +1,14 @@
 \subsection{Test setup}
 
-Our program was written in C/C++ and compiled with Clang. All memory allocations were cache line boundary aligned. For parallelization we used C++11 cross-platform library \texttt{<thread>}.
+Our program was written in C/C++ and compiled with GCC. All memory allocations were cache line boundary aligned. For parallelization we used C++11 cross-platform library \texttt{<thread>}.
 
 All benchmarks were performed on a Linux desktop which has 16 GB ram and a Core i7 3770 CPU with the following specification:
 
 \begin{itemize}
 \item 4 * 3.4 GHz (Turbo Boost up to 3.9 GHz)
-\item 4 * 32 KB L1 instruction cache
-\item 4 * 32 KB L1 data cache (write back)
-\item 4 * 256 KB L2 cache (write back)
+\item 4 * 32 kB L1 instruction cache
+\item 4 * 32 kB L1 data cache (write back)
+\item 4 * 256 kB L2 cache (write back)
 \item Hyper-Threading
 \item Shared 8 MB L3 cache (inclusive, write back)
 \item 64 byte cache lines
@@ -16,9 +16,9 @@ All benchmarks were performed on a Linux desktop which has 16 GB ram and a Core 
 % http://www.ni.com/white-paper/11266/en#toc5
 \end{itemize}
 
-L2 cache faults and L3 cache faults were measured using Intel Performance Monitor Counter while branch mispredictions were measured using PAPI.
+L2 cache faults, L3 cache faults and retired instructions were measured using Intel Performance Monitor Counter.
 
-All tests were performed 5 times and the median was selected. The data in the matrices were randomly generated double precision floating points with
+The data in the matrices were randomly generated double precision floating points with
 an uniform distribution. The range of the data was -1 to
 1.
 
@@ -36,22 +36,22 @@ matrices with row layout.
   \label{fig:rnrnrn0}
 \end{figure}
 
-From figure~\ref{rnrnrn0} it seems like we typically gets a bit fewer
+From figure~\ref{fig:rnrnrn0} it seems like we typically gets a bit fewer
 cache faults than we expect which can be explained by prefetching. The jumps we expect
 also seems to happen, although in the experiments, they seem to happen
 a bit before we expect. This can be explained by that the cache also
 contains some data which is not the matrices.
 
-Figure~\ref{rnrnrn0} moreover shows a lot of spikes on the lines
+Figure~\ref{fig:rnrnrn0} moreover shows a lot of spikes on the lines
 indicating L2 and L3 cache faults. The L2 spikes is beginning around
 $n = 256$ and the L3 spikes around $n = 1024$.
 
 We strongly suspect that the cache layout due to the 8-way
 associativity is to blame. When looking up in the L2 cache, the 36 bit
 physical address of the i7 processor is split into three parts $addr =
-(tag,index,offset)$. Since the cache line size is $64b$, $6$ bits
+(tag,index,offset)$. Since the cache line size is 64 B, $6$ bits
 should be used to reference a byte in a cache line. Because the L2
-cache is $256kb$, we find that the index size to be
+cache is 256 kB, we find that the index size to be
 \[
   \frac{256 \cdot 1024}{\underbrace{64}_{\text{Cache line size}} \cdot \underbrace{8}_{\text{Cache associativity}}}
     = 512 = 2^9.
@@ -65,13 +65,13 @@ size, it will always be the case that a new row in a matrix starts
 with a new cache line. But this means that a cache line, and the
 corresponding cache lines on the next row, always will be
 $\frac{n}{B}$ cache lines apart. Therefore we are only able to utilize
-$\ord(\frac{n}{B})$, cache lines in the L2 cache, where $\ord(\dot)$
+$\ord(\frac{n}{B})$, cache lines in the L2 cache, where $\ord(\cdot)$
 denotes the order of the element in the additive group
 $\mathbb{Z}_{2^9}$.
 
 Figure~\ref{fig:rowrow_cachepeaks} illustrates the correlation between
-these available cache lines in the cache (the green line), and the
-cache misses divided by the expected number of cache misses (the red
+these available cache lines (the green line), and the
+cache faults divided by the expected number of cache faults (the red
 line).
 
 When comparing the interval from $[7.5; 9]$ with the interval $[9;
@@ -81,9 +81,7 @@ case are bigger, meaning that more columns of the $B$ matrix will be
 loaded. Therefore we will overwrite the same available cache slots
 more times (we can afford to do this 8 time, since we have an 8-way
 cache). The plot on figure~\ref{fig:rowrow_cachepeaks} heavily suggest
-that these peaks actually stems from the 8-way cache layout.  The
-peaks on the line plotting the L3 cache faults, the peaks can be
-described in a similar fashion.
+that these peaks actually stems from the 8-way cache layout.
 
 \begin{figure}[h!]
   \centering
@@ -107,7 +105,7 @@ worse at this point.
 Next we performed experiments where we stored the $A$ matrix in row
 form, the $B$ matrix in column form and saved the result in matrix $C$
 in row form. From the algorithms section, we believe this to perform
-better than the row-row naive multiplication.
+better than the row/row naive multiplication.
 
 \begin{figure}[h!]
   \centering
@@ -119,7 +117,7 @@ better than the row-row naive multiplication.
 
 One thing to notice in figure~\ref{fig:rowcol} is that the number of
 L2 cache faults seems to follow the number of L3 cache faults. This
-was not what we expected. As shown by the purple line at the plot, we
+was not what we expected. As shown by the purple line in the plot, we
 would expect the number of L2 cache faults to become significantly
 worse at input size $n \approx 180$, when the $B$ matrix does not fit
 the cache anymore.
@@ -130,12 +128,12 @@ unexpected optimizations. This turned out not to be the case.
 
 We then tried to make a simple model of the i7 L2 cache, where we
 simulated the 8-way cache layout\footnote{The simulation was based on
-  the description of the i7 L2 cache described in \cite[p. 117 - 121]{Hanne}. We also tried the simulation on the row-row layout, this
+  the description of the i7 L2 cache described in \cite[p. 117 - 121]{Hanne}. We also tried the simulation on the row/row layout, this
   corresponded quite nicely with the real world, hinting some sanity
   of the simulation.}. In this experiment, we also tried to fill out
 the matrix one row at a time, but start from the right end half of the
 times. This should give us a better cache
-performance. Figure~\ref{fig:rowcolsimulation} shows the result of
+performance. Figure~\ref{fig:rowcol_simulation} shows the result of
 this simulation compared to the actual number of cache faults.
 \begin{figure}[h!]
   \centering
@@ -163,25 +161,25 @@ prefetchers. This test, however, turned out inconclusive\footnote{We
   malfunctioning hardware. Therefore we do not have a lot of
   confidence in the results.}.
 
-Figure~\ref{fig:rowcol_vs_rowrow} is comparing the row-column results
-to the row-row results. This plot shows the row-row results divided by
-the row-column results. From the algorithms section, we will expect
+Figure~\ref{fig:rowcol_vs_rowrow} is comparing the row/column results
+to the row/row results. This plot shows the row/row results divided by
+the row/column results. From the algorithms section, we will expect
 the improvement factor to be greater than $1$.
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\textwidth]{plots/rowcol_vs_rowrow}
-  \caption{Relative performance of row-row vs. row-col
-    layout. Improvement factor indicates how many times row-col
-    performs better than row-row.}
+  \caption{Relative performance of row/row vs. row/column
+    layout. Improvement factor indicates how many times row/column
+    performs better than row/row.}
   \label{fig:rowcol_vs_rowrow}
 \end{figure}
 
-It can be seen that the row-column version begins to perform a lot
-better at $n \approx 2^9$, which is where the row-row layout begin to
+It can be seen that the row/column version begins to perform a lot
+better at $n \approx 2^9$, which is where the row/row layout begin to
 experience lots of TLB misses.
 
 The plots shows an improved cache performance and running time of the
-row-column layout. However, the plot also shows that the row-row
+row/column layout. However, the plot also shows that the row/row
 layout begins to perform more instructions when the size of the
 matrices exceeds $2^{10} = 1024$. We suspect this could be because the
 operating system needed to perform some additional work to manage the
@@ -198,19 +196,6 @@ Figure \ref{fig:recursive_layout_performance} shows the performance of the two l
   \label{fig:recursive_layout_performance}
 \end{figure}
 
-\subsubsection{Layouts}
-
-The tiled layout is better at utilizing the cache shown in figure \ref{fig:recursive_layout_cachefaults}. The adjacent cache line prefetcher might have an influence on the amount of cache faults for Z-curve layout because in the base case we do not read in Z-order. This is illustrated in figure \ref{fig:z-order}. On average we get 1 cache fault for each column with a Z-layout where in column order the prefetcher would be able to predict the next read reducing the average number of cache faults to 1/2 for each column. Furthermore, the Z-curved layout uses more instructions. Recall that, the Z-curve offsets are precomputed but the extra level of indirection and offset calculations into the precomputed table increases the number of instructions.
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=.3\textwidth]{images/zlayout_cachefaults}
-  \caption{Cache faults when reading a column in Z-layout with base case size 8.}
-  \label{fig:z-order}
-\end{figure}
-
-The best Z-curve base size is much smaller than the best tiled layout base case size. It is a trade-off between overhead with recursion and more cache faults, where we get more cache faults when using larger base case sizes due to the same reasoning as in the previous paragraph.
-
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\textwidth]{"../project2/gnuplots/recursive_cache"}
@@ -224,6 +209,19 @@ The best Z-curve base size is much smaller than the best tiled layout base case 
   \caption{Number of instructions for the recursive and naive algorithm.}
   \label{fig:recursive_layout_instructions}
 \end{figure}
+
+\subsubsection{Layouts}
+
+The tiled layout is better at utilizing the cache shown in figure \ref{fig:recursive_layout_cachefaults}. The adjacent cache line prefetcher might have an influence on the amount of cache faults for Z-curve layout because in the base case we do not read in Z-order. This is illustrated in figure \ref{fig:z-order}. On average we get 1 cache fault for each column with a Z-curve layout where in column order the prefetcher would be able to predict the next read reducing the average number of cache faults to 1/2 for each column. Furthermore, the Z-curved layout uses more instructions. Recall that, the Z-curve offsets are precomputed but the extra level of indirection and offset calculations into the precomputed table increases the number of instructions.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=.3\textwidth]{images/zlayout_cachefaults}
+  \caption{Cache faults when reading a column in Z-curve layout with base case size 8.}
+  \label{fig:z-order}
+\end{figure}
+
+The best Z-curve base size is much smaller than the best tiled layout base case size. It is a trade-off between overhead with recursion and more cache faults, where we get more cache faults when using larger base case sizes due to the same reasoning as in the previous paragraph.
 
 \subsection{Iterative}
 
@@ -245,20 +243,18 @@ In this section we will compare the iterative and recursive algorithm. Figure \r
   \label{fig:recursive_vs_strassen_performance}
 \end{figure}
 
-Figure \ref{fig:recursive_vs_strassen_performance} shows that Strassen performs better than the tiled recursive algorithm for all the matrix sizes we have tested. However, figure \ref{fig:recursive_vs_strassen_cache} does not give the expected number of cache misses. The increased number of cache faults might be due to large constants in the big Theta notation.
-
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\textwidth]{"../project2/gnuplots/recursive_vs_strassen_cache"}
-  \caption{Cache misses of the recursive and Strassen.}
+  \caption{Cache faults of the recursive and Strassen with the same base case size.}
   \label{fig:recursive_vs_strassen_cache}
 \end{figure}
+
+Figure \ref{fig:recursive_vs_strassen_performance} shows that Strassen performs better than the tiled recursive algorithm for all the matrix sizes we have tested. However, figure \ref{fig:recursive_vs_strassen_cache} does not give the expected number of cache faults. The increased number of cache faults might be due to large constants in the big Theta notation.
 
 \subsection{SIMD instructions}
 
 We experienced a substantial performance speedup when SIMD instructions were used (figure \ref{fig:simd}). The increase is in line with our expectations. The amount of cache faults stayed the same in the tests as expected while the cache hits were greatly reduced. One AVX SIMD instruction reads 4 double precision floating point at a time leading to only one cache hit/fault.
-
-As can be seen, the speedup using SIMD instructions for the recursive algorithm is higher than for Strassen. This is likely due to a larger number of cache faults for Strassen. This makes the proportion of time used on fetching data higher. Moreover in the recursive algorithm a larger part uses SIMD instructions.
 
 \begin{figure}[h!]
   \centering
@@ -266,6 +262,8 @@ As can be seen, the speedup using SIMD instructions for the recursive algorithm 
   \caption{Speedup using SIMD instructions.}
   \label{fig:simd}
 \end{figure}
+
+As can be seen, the speedup using SIMD instructions for the recursive algorithm is higher than for Strassen. This is likely due to a larger number of cache faults for Strassen. This makes the proportion of time used on fetching data higher. Moreover in the recursive algorithm a larger part uses SIMD instructions.
 
 \subsection{Parallelization}
 
@@ -280,9 +278,7 @@ The problem is not as bad for the iterative algorithm. This is due to the fact t
   \label{fig:parallel_speedup}
 \end{figure}
 
-We have analyzed the theoretical speedup using non-linear regression and Amdahl's law. The percentage of parallelized code in the iterative and recursive algorithms are 98\% while our implementation of Strassen have 89\% parallelized code. This could be improved by parallelizing the last additions and the code for combining submatrices. The projected speedup is shown in figure \ref{fig:amdahl}. The speedup is when SIMD instructions are included. The higher performance of Strassen of the tested matrix sizes does not make up for it being less parallelizable when the number of cores increases. When the number of cores goes to infinity the speedup is 9.8 for Strassen while the speedup for the iterative is 44.
-
-\todo{Tjek at iterativ er lidt daarligere inden}
+We have analyzed the theoretical speedup using non-linear regression and Amdahl's law. The percentage of parallelized code in the iterative and recursive algorithms are 98\% while our implementation of Strassen has 89\% parallelized code. This could be improved by parallelizing the last additions and the code for combining submatrices. The projected speedup is shown in figure \ref{fig:amdahl}. The speedup is when SIMD instructions are included. The higher performance of Strassen of the tested matrix sizes does not make up for it being less parallelizable when the number of cores increases. When the number of cores goes to infinity the speedup is 9.8 for Strassen while the speedup for the iterative is 44.
 
 \begin{figure}[h!]
   \centering
