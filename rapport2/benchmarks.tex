@@ -189,7 +189,14 @@ virtual memory / paging.
 
 \subsection{Recursive}
 
-Figure \ref{fig:recursive_layout_performance} shows the performance of the two layouts with the best base case size of each. As can be seen on the figure, the best performing layout of the recursive algorithm is the tiled layout. And, as expected, the recursive algorithm outperforms the naive row/column algorithm. This is because the cache locality is better for the recursive algorithm and because we forced the compiler to loop unroll the base case which lead to fewer instructions as seen in figure \ref{fig:recursive_layout_instructions}.
+Figure \ref{fig:recursive_layout_performance} shows the performance of the two layouts with the best base case size of each. As can be seen on the figure, the best performing layout of the recursive algorithm is the tiled layout. And, as expected, the recursive algorithm outperforms the naive row/column algorithm. This is because the cache locality is better for the recursive algorithm (figure \ref{fig:recursive_layout_cachefaults}) and because we forced the compiler to loop unroll the base case which lead to fewer instructions as seen in figure \ref{fig:recursive_layout_instructions}.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{"../project2/gnuplots/recursive_performance"}
+  \caption{Performance comparison between different layouts and the naive row/column algorithm.}
+  \label{fig:recursive_layout_performance}
+\end{figure}
 
 \subsubsection{Layouts}
 
@@ -201,8 +208,6 @@ The tiled layout is better at utilizing the cache shown in figure \ref{fig:recur
   \caption{Cache faults when reading a column in Z-layout with base case size 8.}
   \label{fig:z-order}
 \end{figure}
-
-\todo{Naiv cache faults}
 
 The best Z-curve base size is much smaller than the best tiled layout base case size. It is a trade-off between overhead with recursion and more cache faults, where we get more cache faults when using larger base case sizes due to the same reasoning as in the previous paragraph.
 
@@ -225,16 +230,9 @@ The best Z-curve base size is much smaller than the best tiled layout base case 
 
 \begin{figure}[h!]
   \centering
-  \includegraphics[width=\textwidth]{"../project2/gnuplots/recursive_performance"}
-  \caption{Performance comparison between different layouts and the naive row/column algorithm.}
-  \label{fig:recursive_layout_performance}
-\end{figure}
-
-\begin{figure}[h!]
-  \centering
   \includegraphics[width=\textwidth]{"../project2/gnuplots/recursive_cache"}
   \label{fig:recursive_layout_cachefaults}
-  \caption{Cache faults for each layout.}
+  \caption{Cache faults for the recursive and naive algorithm.}
 \end{figure}
 
 \begin{figure}[h!]
