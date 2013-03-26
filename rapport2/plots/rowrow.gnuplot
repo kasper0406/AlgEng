@@ -16,7 +16,7 @@ set xtics 0, 1 rotate
 set offset 1, 1
 
 set ylabel "Running time [s]"
-set y2label "Cache misses"
+set y2label "Cache faults"
 
 set ytics nomirror tc lt 1
 set y2tics nomirror tc lt 2
@@ -29,7 +29,7 @@ set key vert left top reverse
 set pointsize 1
 
 plot 'rowrow.dat' using (log2($1)):($7) title "Time" axes x1y1 with linespoints, \
-     'rowrow.dat' using (log2($1)):($11) title "L2 cache misses" axes x1y2 with linespoints, \
-     'rowrow.dat' using (log2($1)):($13) title "L3 cache misses" axes x1y2 with linespoints, \
+     'rowrow.dat' using (log2($1)):($11) title "L2 cache faults" axes x1y2 with linespoints, \
+     'rowrow.dat' using (log2($1)):($13) title "L3 cache faults" axes x1y2 with linespoints, \
      L2expect(2 ** x) title "L2 cache faults expectation" axes x1y2, \
      L3expect(2 ** x) title "L3 cache faults expectation" axes x1y2

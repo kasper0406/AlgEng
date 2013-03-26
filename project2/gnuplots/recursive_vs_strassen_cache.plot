@@ -8,7 +8,7 @@ set xlabel "log2 input size"
 set xtics 0, 1 rotate
 set offset 1, 1
 
-set ylabel "Cache misses"
+set ylabel "Cache faults"
 
 set ytics nomirror tc lt 1
 

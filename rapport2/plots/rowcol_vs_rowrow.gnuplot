@@ -24,5 +24,5 @@ plot '<paste rowrow_edited.dat rowcol.dat' using (log2($1)):($7/$23) title "Time
      '<paste rowrow_edited.dat rowcol.dat' using (log2($1)):($11/$27) title "L2 cache fault improvement" axes x1y1 with linespoints, \
      '<paste rowrow_edited.dat rowcol.dat' using (log2($1)):($13/$29) title "L3 cache fault improvement" axes x1y1 with linespoints, \
      '<paste rowrow_edited.dat rowcol.dat' using (log2($1)):($14/$30) title "Instruction improvement" axes x1y1 with linespoints
-#'<paste rowrow.dat rowcol.dat' using (log2($1)):($11/$27) title "L2 cache misses" axes x1y2 with linespoints
-     # 'rowcol.dat' using (log2($1)):($13) title "L3 cache misses" axes x1y2 with linespoints, \
+#'<paste rowrow.dat rowcol.dat' using (log2($1)):($11/$27) title "L2 cache faults" axes x1y2 with linespoints
+     # 'rowcol.dat' using (log2($1)):($13) title "L3 cache faults" axes x1y2 with linespoints, \
