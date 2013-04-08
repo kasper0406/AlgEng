@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <cassert>
+#include <iostream>
 
 #include "constants.h"
 #include "ComparisonCounter.h"
@@ -67,12 +68,18 @@ public:
   static int prev(int q);
 };
 
+template<typename T>
+class BlockedDFSLinearV2 : public BlockedDFS<T> {
+public:
+  static int prev(int q);
+};
 
 template<typename T>
 void build(T* arr, int pos, T* numbers, int start, int end)
 {
     // printf("build(arr, %d, numbers, %d, %d)\n", pos, start, end);
     if (start > end) return; // Should not happen...
+
     if (start + B - 1 == end) {
         for (int i = 0; i < B; i++)
             arr[pos + i] = numbers[start + i];
@@ -81,7 +88,7 @@ void build(T* arr, int pos, T* numbers, int start, int end)
     
     const int parentleaf = pos / B;
     // printf("parent leaf = %d\n", parentleaf);
-    
+
     int prevIndex = start - 1;
     int curleaf;
     for (int i = 1; i < d; i++) {
@@ -89,6 +96,7 @@ void build(T* arr, int pos, T* numbers, int start, int end)
         // printf("cur leaf = %d\n", curleaf);
         
         int index = (int)(start + ((double)(end - start + 1) / d) * i);
+        // std::cout << "Index = " << index << std::endl;
         
         // printf("index = %d\n", index);
         arr[B * parentleaf + (i - 1)] = numbers[index];
@@ -163,7 +171,7 @@ int bs_scan_search_iter(int q, T* arr, int n)
     int cur_answer = -1;
     
     // While we are not out of bounds we search the block
-    while (B * block + 1 < n) {
+    while (B * block < n) {
         // Make a linear scan of the block
         for (int i = 0; i < B; i++) {
             const int index = B * block + i;
@@ -211,8 +219,16 @@ int bs_bs_search_iter(int q, T* arr, int n)
     // printf("Searching for %d\n", q);
     int cur_answer = -1;
 
+    /*
+    for (int i = 0; i < n; i++)
+      std::cout << arr[i] << "\t";
+    std::cout << std::endl;
+
+    std::cout << "Searching for: " << q << endl;
+    */
+
     // While we are not out of bounds we search the block
-    while (B * block + 1 < n) {
+    while (B * block < n) {
         // print_block(arr, block);
         
         // Find Pred(q) while only searching the block using BS
@@ -222,11 +238,14 @@ int bs_bs_search_iter(int q, T* arr, int n)
         
         // printf("start = %d, end = %d\n", start, end);
         
-        //for (int i = B * block; i < B * (block + 1); i++)
-        //  printf("%5d|", arr[i]);
-        //printf("\n");
+        /*
+        for (int i = B * block; i < B * (block + 1); i++)
+          printf("%5d|", arr[i]);
+        printf("\n");
+        */
         
         // printf("index = %d\n", index);
+        // cout << index << endl;
         if (index != start - 1) {
           cur_answer = index;
         }
@@ -272,6 +291,8 @@ int dfs_linear_scan(int q, T* arr, int n)
       const int index = cur_arr - arr + i;
       const T value = cur_arr[i];
       
+      // std::cout << cur_arr + i << std::endl;
+
       if (q < value) {
         // i'te pointer
         cur_arr += B + i * next_n;
@@ -298,14 +319,54 @@ int dfs_linear_scan(int q, T* arr, int n)
   return cur_answer;
 }
 
+template<typename T>
+int dfs_linear_scan_v2(const int q, const T* arr, const int n)
+{
+  int index = 0;
+  int cur_answer = -1;
+  int next_n = n;
+
+  /*
+  for (int i = 0 ; i < n; i++) {
+    std::cout << arr[i] << "\t";
+  }
+  std::cout << std::endl;
+
+  std::cout << "Searching for: " << q << std::endl;
+  */
+
+  int foo = 42;
+
+  while (next_n != 0) {
+    const T val = arr[index];
+
+    next_n = next_n >> 1;
+    // Prefetching fun
+    foo = arr[index + next_n + 1] ^ arr[index + 1];
+
+    // std::cout << index << " -> " << arr[index] << std::endl;
+
+    if (val < q) {
+      cur_answer = index;
+      index += next_n;
+    } else if (val == q) {
+      return index;
+    }
+    index++;
+  }
+
+  // std::cout << "Answer: " << cur_answer << std::endl;
+
+  return cur_answer;
+}
 
 template<typename T>
 void BlockedBFS<T>::preprocess(vector<int>& datapoints) {
   sort(datapoints.begin(), datapoints.end());
-  BlockedBFS<T>::n = (int)pow(d, max(1., ceil(log(datapoints.size()) / log(d))));
+
+  BlockedBFS<T>::n = (int)pow(d, max(1., ceil(log(datapoints.size() + 1) / log(d)))) - 1;
   posix_memalign((void**)&BlockedBFS<T>::arr, CACHE_LINE_SIZE, BlockedBFS<T>::n * sizeof(T));
   BlockedBFS<T>::numbers = (T*) malloc(BlockedBFS<T>::n * sizeof(T));
-
   // memcpy(numbers, &datapoints[0], datapoints.size() * sizeof(T));
   for (int i = 0; i < datapoints.size(); i++)
     BlockedBFS<T>::numbers[i] = T(datapoints[i]);
@@ -313,8 +374,14 @@ void BlockedBFS<T>::preprocess(vector<int>& datapoints) {
   for (int i = 0; i < BlockedBFS<T>::n - datapoints.size(); i++) {
     BlockedBFS<T>::numbers[datapoints.size() + i] = T(numeric_limits<int>::max());
   }
-    
-  build(BlockedBFS<T>::arr, 0, BlockedBFS<T>::numbers, 0, BlockedBFS<T>::n - 2);
+
+  /*
+  std::cout << "datapoints:" << std::endl;
+  for (auto i : datapoints)
+    cout << i << endl;
+  */
+
+  build(BlockedBFS<T>::arr, 0, BlockedBFS<T>::numbers, 0, BlockedBFS<T>::n - 1);
   ComparisonCounter::counter = 0;
 };
 
@@ -364,3 +431,7 @@ int BlockedDFSLinear<T>::prev(int q) {
   return dfs_linear_scan(q, Blocked<T>::arr, Blocked<T>::n);
 };
 
+template<typename T>
+int BlockedDFSLinearV2<T>::prev(int q) {
+  return dfs_linear_scan_v2(q, Blocked<T>::arr, Blocked<T>::n);
+};
